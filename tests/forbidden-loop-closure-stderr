@@ -1,0 +1,3 @@
+line 8: can't transform closure. x is defined outside closure, inside loop
+line 14: can't transform closure. y is defined outside closure, inside loop
+line 19: can't transform closure. x is defined outside closure, inside loop

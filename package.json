@@ -1,0 +1,37 @@
+{
+  "name": "es6-transpiler",
+  "version": "0.1.0",
+  "description": "es6 -> es3",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/termi/es6-transpiler.git"
+  },
+  "dependencies": {
+    "simple-fmt": "~0.1.0",
+    "simple-is": "~0.2.0",
+    "stringmap": "~0.2.0",
+    "stringset": "~0.2.0",
+    "tryor": "~0.1.0",
+    "esprima": "~1.0.0",
+	"ansidiff": "~1.0.0"
+  },
+  "keywords": [
+    "defs",
+    "scope",
+    "blockscope",
+    "block-scope",
+    "let",
+    "const",
+    "var",
+    "es6",
+    "transpile",
+    "transpiler",
+    "lint",
+    "linter"
+  ],
+  "scripts": {
+    "test": "node --harmony run-tests"
+  },
+  "author": "Egor Khalimonenko <1+es6transpiler@h123.ru>",
+  "license": "MIT"
+}
