@@ -61,11 +61,11 @@ function isLvalue(node) {
 }
 
 function isObjectPattern(node) {
-	return node && node.type == 'ObjectPattern';
+	return node && node.type === 'ObjectPattern';
 }
 
 function isArrayPattern(node) {
-	return node && node.type == 'ArrayPattern';
+	return node && node.type === 'ArrayPattern';
 }
 
 
@@ -125,6 +125,45 @@ let core = module.exports = {
 		node.$parent = parent;
 		node.$scope = node.$parent ? node.$parent.$scope : null; // may be overridden
 
+		function addParamToScope(param) {
+			if( isObjectPattern(param) ) {
+				param.properties.forEach(addParamToScope);
+			}
+			else if( param.type === "Property" ) {//from objectPattern
+				addParamToScope(param.value);
+			}
+			else if( isArrayPattern(param) ) {
+				param.elements.forEach(addParamToScope);
+			}
+			else {
+				node.$scope.add(param.name, "param", param, null);
+			}
+		}
+
+		function addVariableToScope(variable, kind, originalDeclarator) {
+			if( isObjectPattern(variable) ) {
+				variable.properties.forEach(function(variable) {
+					addVariableToScope(variable, kind, originalDeclarator);
+				});
+			}
+			else if( variable.type === "Property" ) {//from objectPattern
+				addVariableToScope(variable.value, kind, originalDeclarator);
+			}
+			else if( isArrayPattern(variable) ) {
+				variable.elements.forEach(function(variable) {
+					if( variable ) {
+						addVariableToScope(variable, kind, originalDeclarator);
+					}
+				});
+			}
+			else if( variable.type === "SpreadElement" ) {//from arrayPattern
+				node.$scope.add(variable.argument.name, kind, variable, variable.range[1], originalDeclarator);
+			}
+			else {
+				node.$scope.add(variable.name, kind, variable, variable.range[1], originalDeclarator);
+			}
+		}
+
 		if (node.type === "Program") {
 			// Top-level program is a scope
 			// There's no block-scope under it
@@ -160,31 +199,19 @@ let core = module.exports = {
 				parent: node.$parent.$scope
 			});
 
-			node.params.forEach(function addParamToScope(param) {
-				if( isObjectPattern(param) ) {
-					param.properties.forEach(addParamToScope);
-				}
-				else if( param.type === "Property" ) {
-					addParamToScope(param.value);
-				}
-				else if( isArrayPattern(param) ) {
-					param.elements.forEach(addParamToScope);
-				}
-				else {
-					node.$scope.add(param.name, "param", param, null);
-				}
-			});
+			node.params.forEach(addParamToScope);
 
 		} else if (node.type === "VariableDeclaration") {
 			// Variable declarations names goes in current scope
 			assert(isVarConstLet(node.kind));
 			node.declarations.forEach(function(declarator) {
 				assert(declarator.type === "VariableDeclarator");
-				const name = declarator.id.name;
+
 				if (this.options.disallowVars && node.kind === "var") {
 					error(getline(declarator), "var {0} is not allowed (use let or const)", name);
 				}
-				node.$scope.add(name, node.kind, declarator.id, declarator.range[1], declarator);
+
+				addVariableToScope(declarator.id, node.kind, declarator);
 			}, this);
 
 		} else if (isForWithConstLet(node) || isForInWithConstLet(node)) {
@@ -392,6 +419,63 @@ let core = module.exports = {
 		}
 
 		return result
+	}
+
+	,
+	/**
+	 *
+	 * @param {Object} node
+	 * @param {string} donor
+	 * @param {number} fromIndex
+	 */
+	unwrapSpreadDeclaration: function(node, donor, fromIndex) {
+		assert(node.type === "Identifier");
+
+		return node.name + " = [].slice.call(" + donor + ", " + fromIndex + ");";
+	}
+
+	,
+	/**
+	 *
+	 * @param {Object} node
+	 * @param {string} donor
+	 * @param {string} value
+	 */
+	definitionWithDefaultString: function(node, donor, value) {
+		assert(node.type === "Identifier");
+
+		return node.name + " = " + donor + ";" + this.defaultString(node, value);
+	}
+
+	,
+	/**
+	 *
+	 * @param {Object} node
+	 * @param {string} value
+	 */
+	defaultString: function(node, value) {
+		assert(node.type === "Identifier");
+
+		return "if(" + node.name + " === void 0)" + node.name + " = " + value;
+	}
+
+	,
+	/**
+	 *
+	 * @param {(Object|number)} nodeOrFrom
+	 * @param {number=} to
+	 * @returns {string}
+	 */
+	stringFromSrc: function(nodeOrFrom, to) {
+		if( typeof nodeOrFrom === "object" ) {
+			return this.src.substring(nodeOrFrom.range[0], nodeOrFrom.range[1])
+		}
+		else if( typeof nodeOrFrom === "number" && typeof to === "number" ) {
+			return this.src.substring(nodeOrFrom, to)
+		}
+		else {
+			throw new Error();
+		}
 	}
 };
 
