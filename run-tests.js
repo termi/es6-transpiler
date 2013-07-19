@@ -5,7 +5,7 @@ const fmt = require("simple-fmt");
 const path = require("path");
 const exec = require("child_process").exec;
 const ansidiff = require("ansidiff");
-const defsMain = require("./main");
+const defsMain = require("./es6-transpiler");
 
 const commandVariables = {};
 process.argv.forEach(function(arg, index, array) {
@@ -27,7 +27,7 @@ function slurp(filename) {
 
 const pathToTests = (fs.existsSync("tests") ? "tests" : "../../tests");
 
-var tests;
+let tests;
 if( commandVariables.file && typeof commandVariables.file === "string" ) {
 	tests = [
 		commandVariables.file
@@ -60,7 +60,7 @@ function stringCompare(str1, str2, compareType, removeLines) {
 
 	const compareFunction = compareType === "lines" ? ansidiff.lines : ansidiff.chars;
 
-	var equal = true
+	let equal = true
 		, lastDiffIndex = null
 		, result = compareFunction.call(ansidiff, str1, str2, function(obj, i, array) {
 			if( obj.added || obj.removed ) {
@@ -83,6 +83,28 @@ function stringCompare(str1, str2, compareType, removeLines) {
     return equal === true || result;
 }
 
+function colorRed(text) {
+	return (
+		'\x1b[31m'  // red
+		+ text
+		+ '\x1b[39m'
+	);
+}
+
+function colorGreen(text) {
+	return (
+		'\x1b[32m'  // green
+		+ text
+		+ '\x1b[39m'
+	);
+}
+
+function fail(file, type, diff1, diff2) {
+	console.log(fmt("FAILED test {0} TYPE {1} (" + colorRed("EXPECTED") + "/" + colorGreen("CURRENT") + ")", file, type));
+	console.log(diff1, "\n", diff2 || "");
+	console.log("\n---------------------------\n");
+}
+
 function test(file) {
 	let result = defsMain.run({filename: path.join(pathToTests, file), fullES6: true});
 	let errors = result.errors.join("\n");
@@ -97,23 +119,17 @@ function test(file) {
 	const compare2 = stringCompare(expectedStdout, srcOut, "lines", true);
 
 	if (compare1 !== true && compare2 !== true) {
-		fail("stdout/stderr", compare1, compare2);
+		fail(file, "stdout/stderr", compare1, compare2);
 	}
 	else {
 		if (compare1 !== true) {
-			fail("stderr", compare1);
+			fail(file, "stderr", compare1);
 			//console.log(stderr);//, "+|+", stdout, "|error|", error);
 		}
 		if (compare2 !== true) {
-			fail("stdout", compare2);
+			fail(file, "stdout", compare2);
 			//console.log(stdout);//, "+|+", stderr, "|error|", error);
 		}
-	}
-
-	function fail(type, diff1, diff2) {
-		console.log(fmt("FAILED test {0} TYPE {1}", file, type));
-		console.log(diff1, "\n", diff2 || "");
-		console.log("\n---------------------------\n");
 	}
 }
 
