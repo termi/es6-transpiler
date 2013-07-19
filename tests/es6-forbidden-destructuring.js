@@ -25,3 +25,10 @@ function test4() {
 	console.log(a);
 }
 test4();
+
+{
+	let {c};
+}
+
+let a, c;
+let [a, b, ...c];

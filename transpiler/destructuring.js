@@ -4,6 +4,11 @@ const assert = require("assert");
 const is = require("simple-is");
 const stringset = require("stringset");
 const core = require("./core");
+const error = require("./../lib/error");
+
+function getline(node) {
+	return node.loc.start.line;
+}
 
 
 function isVarConstLet(kind) {
@@ -33,7 +38,7 @@ var plugin = module.exports = {
 		if( node.type === "VariableDeclaration" && isVarConstLet(node.kind) ) {
 			let declarations = node.declarations;
 
-			let afterVariableDeclaration = declarations.reduce(this.__renameDeclaration, {node: node, output: ""}).output;
+			let afterVariableDeclaration = declarations.reduce(this.__replaceDeclaration, {node: node, output: ""}).output;
 
 			if( afterVariableDeclaration ) {
 				// add temporary variables cleanup
@@ -49,59 +54,111 @@ var plugin = module.exports = {
 	/**
 	 * reduce
 	 */
-	, __renameDeclaration: function renameDeclaration(output, declarator, declaratorIndex) {
+	, __replaceDeclaration: function replaceDeclaration(output, declarator, declaratorIndex, declarations) {
 		let declaratorId = declarator.id;
 
 		if( isObjectPattern(declaratorId) || isArrayPattern(declaratorId) ) {
 			let declaratorInit = declarator.init;
-			assert(typeof declaratorInit === "object");
 
-			let newVariables = [], newDefinitions = [], declarationString = "";
+			if( declaratorInit == null ) {
+				error(getline(declarator), "destructuring must have an initializer");
+				return output;
+			}
 
-			this.unwrapDestructuring(declaratorId, declaratorInit, newVariables, newDefinitions);
+			let newVariables = [];
 
-			let hoistScope = output.node.$scope.closestHoistScope();
-			newVariables.forEach(function(newVariable, index){
-				hoistScope.add(newVariable.name, newVariable.kind, declaratorInit);
-				core.allIdentifiers.add(newVariable.name);
+			let declarationString = this.unwrapDestructuring("var", declaratorId, declaratorInit, newVariables);
 
-				declarationString += (
-					(declaratorIndex === 0 && index === 0 ? "" : ", ")
-						+ newVariable.name
-						+ " = "
-						+ newVariable.value
-					);
-
+			newVariables.forEach(function(newVariable){
 				if( newVariable.needsToCleanUp ) {
 					output.output += (newVariable.name + " = null;");
 				}
 			});
 
-			newDefinitions.forEach(function(definition, index) {
-				assert(definition.type === "VariableDeclarator");
-				var definitionId = definition.id;
-
-				declarationString += (
-					(declaratorIndex === 0 && index === 0 && newVariables.length === 0 ? "" : ", ")
-						+ definitionId.name
-						+ " = "
-						+ definition["init"]["object"].name
-						+ core.PropertyToString(definition["init"]["property"])
-					)
-			});
+			let isLastDeclaration = declarations.length - 1 == declaratorIndex;
 
 			// replace destructuring with simple variable declaration
 			this.changes.push({
 				start: declarator.range[0],
 				end: declarator.range[1],
-				str: declarationString
+				str: (declaratorIndex === 0 ? "" : ", ")
+					+ declarationString.substring(4, declarationString.length - (isLastDeclaration ? 1 : 0))//remove first "var " and last ";" if need
+					+ (isLastDeclaration ? "" : "var ")//unwrapDestructuring always return string with ";" at the end
 			});
 		}
 
 		return output;
 	}
 
-	, unwrapDestructuring: function unwrapDestructuring(definitionNode, valueNode, newVariables, newDefinitions, temporaryVariables) {
+	, unwrapDestructuring: function unwrapDestructuring(kind, definitionNode, valueNode, newVariables) {
+		let newDefinitions = [];
+
+		this.__unwrapDestructuring(definitionNode, valueNode, newVariables, newDefinitions);
+
+		kind = (kind ? kind + " " : "");
+
+		let destructurisationString = kind;
+
+		let hoistScope = definitionNode.$scope.closestHoistScope();
+
+		let lastIsSemicolon = false;
+
+		newVariables.forEach(function(newVariable, index){
+			hoistScope.add(newVariable.name, newVariable.kind, newVariable.originalNode);
+			core.allIdentifiers.add(newVariable.name);
+
+			destructurisationString += (
+				(index === 0 ? "" : ", ")
+				+ newVariable.name
+				+ " = "
+				+ newVariable.value
+			);
+		});
+
+		newDefinitions.forEach(function(definition, index) {
+			assert(definition.type === "VariableDeclarator");
+			let definitionId = definition.id;
+
+			let delimiter;
+			if( lastIsSemicolon ) {
+				delimiter = kind;
+				lastIsSemicolon = false;
+			}
+			else {
+				delimiter = (index === 0 && newVariables.length === 0 ? "" : ", ");
+			}
+
+			if( definitionId.type === "Identifier" ) {
+				destructurisationString += (
+					delimiter
+					+ definitionId.name
+					+ " = "
+					+ definition["init"]["object"].name
+					+ core.PropertyToString(definition["init"]["property"])
+				);
+			}
+			else if( definitionId.type === "SpreadElement" ){
+				destructurisationString += (
+					delimiter
+					+ core.unwrapSpreadDeclaration(definitionId.argument, definition["init"]["object"].name, index)
+				);
+			}
+			else {
+				throw new SyntaxError();
+			}
+
+			let defaultValue = definitionId.default;//TODO:: goes to latest Parser API from esprima
+
+			if( defaultValue ) {
+				destructurisationString += (";" + core.defaultString(definitionId, core.stringFromSrc(defaultValue)) + ";");
+				lastIsSemicolon = true;
+			}
+		});
+
+		return destructurisationString + (lastIsSemicolon ? "" : ";");
+	}
+
+	, __unwrapDestructuring: function(definitionNode, valueNode, newVariables, newDefinitions, temporaryVariables) {
 		assert(typeof valueNode === "object");
 		assert(isObjectPattern(definitionNode) || isArrayPattern(definitionNode));
 		assert(Array.isArray(newVariables));
@@ -133,6 +190,7 @@ var plugin = module.exports = {
 				, kind: "var"
 				, value: valueIdentifierDefinition
 				, needsToCleanUp: true
+				, originalNode: valueNode
 			});
 		}
 
@@ -143,7 +201,7 @@ var plugin = module.exports = {
 					//console.log("    property:: key = ", property.key.name, " / value = ", property.value.name, " | type =  ", definitionNode.$parent.type);
 
 					if( isObjectPattern(property.value) || isArrayPattern(property.value) ) {
-						this.unwrapDestructuring(property.value, {type: "Identifier", name: valueIdentifierName + core.PropertyToString(property.key)}, newVariables, newDefinitions, temporaryVariables);
+						this.__unwrapDestructuring(property.value, {type: "Identifier", name: valueIdentifierName + core.PropertyToString(property.key)}, newVariables, newDefinitions, temporaryVariables);
 					}
 					else {
 						newDefinitions.push({
@@ -170,7 +228,7 @@ var plugin = module.exports = {
 					//console.log("    element = ", element.name, " | type =  ", definitionNode.$parent.type);
 
 					if( isObjectPattern(element) || isArrayPattern(element) ) {
-						this.unwrapDestructuring(element, {type: "Identifier", name: valueIdentifierName + "[" + k + "]"}, newVariables, newDefinitions, temporaryVariables);
+						this.__unwrapDestructuring(element, {type: "Identifier", name: valueIdentifierName + "[" + k + "]"}, newVariables, newDefinitions, temporaryVariables);
 					}
 					else {
 						newDefinitions.push({

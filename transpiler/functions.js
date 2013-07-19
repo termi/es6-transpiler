@@ -51,7 +51,7 @@ var plugin = module.exports = {
 						, node.body.range[1] - 1
 					]
 				;
-			const indentStr = "" + src.substring(node.body.range[0] + 1, fnBodyRange[0]);
+			const indentStr = "" + core.stringFromSrc(node.body.range[0] + 1, fnBodyRange[0]);
 			const defaultsCount = defaults.length;
 			const lastParam = params[paramsCount - 1];
 			const lastDflt = defaults[defaults.length - 1];
@@ -65,36 +65,27 @@ var plugin = module.exports = {
 					const prevParam = params[i - 1];
 
 					if( isObjectPattern(param) || isArrayPattern(param) ) {
-						let paramStr, newVariables = [], newDefinitions = [], postFix = "";
+						let paramStr, newVariables = [], postFix = "";
 						paramStr = "";//"\n" + indentStr;
-						destructuring.unwrapDestructuring(param
-							, {type: "Identifier", name: "arguments[" + i + "]"}
-							, newVariables, newDefinitions);
+						paramStr =
+							destructuring.unwrapDestructuring(
+								"var"
+								, param
+								, {type: "Identifier", name: "arguments[" + i + "]"}
+								, newVariables
+							);
 
 						hoistScope = node.$scope.closestHoistScope();
-						newVariables.forEach(function(newVariable, index){
-							hoistScope.add(newVariable.name, newVariable.kind, param);
-							core.allIdentifiers.add(newVariable.name);
-
-							paramStr += (
-								(index === 0 ? "var " : "")//always VAR !!! not a newVariable.type
-									+ newVariable.name
-									+ " = "
-									+ newVariable.value
-								);
-
+						newVariables.forEach(function(newVariable){
 							if( newVariable.needsToCleanUp ) {
 								postFix += (newVariable.name + " = null;");
 							}
 						});
-						paramStr += (";" + indentStr);
-
-						paramStr = newDefinitions.reduce(this.__definitionToString, paramStr);
-						paramStr += (";" + indentStr + postFix + indentStr);
+						paramStr += (postFix + indentStr);
 
 						param.$replaced = true;
 
-						// add default set
+						// add
 						changes.push({
 							start: fnBodyRange[0],
 							end: fnBodyRange[0],
@@ -102,8 +93,7 @@ var plugin = module.exports = {
 							type: 2// ??
 						});
 
-						// cleanup default definition
-						// text change 'param = value' => ''
+						// cleanup
 						changes.push({
 							start: (prevParam ? prevParam.range[1] + 1 : param.range[0]) - (prevParam ? 1 : 0),
 							end: param.range[1],
@@ -130,36 +120,28 @@ var plugin = module.exports = {
 						//dflt.$type = dflt.type;
 						//dflt.type = "";//TODO:: check it
 
-						let newVariables = [], newDefinitions = [], postFix = "";
-						defaultStr = "";
-						destructuring.unwrapDestructuring(param
-							, {type: "Identifier", name: "arguments[" + paramIndex + "] !== void 0 ? arguments[" + paramIndex + "] : " + src.substring(dflt.range[0], dflt.range[1])}
-							, newVariables, newDefinitions);
+						let newVariables = [], postFix = "";
+						defaultStr =
+							destructuring.unwrapDestructuring(
+								"var"
+								, param
+								, {type: "Identifier", name: "arguments[" + paramIndex + "] !== void 0 ? arguments[" + paramIndex + "] : " + core.stringFromSrc(dflt)}
+								, newVariables
+							)
+						;
 
-						hoistScope = node.$scope.closestHoistScope();
 						newVariables.forEach(function(newVariable, index){
-							hoistScope.add(newVariable.name, newVariable.kind, dflt);
-							core.allIdentifiers.add(newVariable.name);
-
-							defaultStr += (
-								(index === 0 ? "var " : ", ")//always VAR !!! not a newVariable.type
-									+ newVariable.name
-									+ " = "
-									+ newVariable.value
-								);
-
 							if( newVariable.needsToCleanUp ) {
 								postFix += (newVariable.name + " = null;");
 							}
 						});
-						defaultStr += (";" + indentStr);
 
-						defaultStr = newDefinitions.reduce(this.__definitionToString, defaultStr);
-
-						defaultStr += (";" + indentStr + postFix + indentStr);
+						defaultStr += (postFix + indentStr);
 					}
 					else {
-						defaultStr = "var " + param.name + " = arguments[" + paramIndex + "];if(" + param.name + " === void 0)" + param.name + " = " + src.substring(dflt.range[0], dflt.range[1]) + ";" + indentStr;
+						defaultStr = "var "
+							+ core.definitionWithDefaultString(param, "arguments[" + paramIndex + "]", core.stringFromSrc(dflt))
+							+ ";" + indentStr;
 					}
 
 					param.$replaced = true;
@@ -184,7 +166,7 @@ var plugin = module.exports = {
 
 			const rest = node.rest;
 			if( rest ) {
-				const restStr = "var " + rest.name + " = [].slice.call(arguments, " + initialParamsCount + ");" + indentStr;
+				const restStr = "var " + core.unwrapSpreadDeclaration(rest, "arguments", initialParamsCount) + indentStr;
 				if( !hoistScope ) {
 					hoistScope = node.$scope.closestHoistScope();
 				}
@@ -206,22 +188,6 @@ var plugin = module.exports = {
 				});
 			}
 		}
-	}
-
-	/**
-	 * use: reduce
-	 */
-	, __definitionToString: function(str, definition, index, a, b, c) {
-		var definitionId = definition.id;
-		assert(definitionId.type === "Identifier");
-
-		return str + (
-			(index === 0 ? "var " : ", ")//always VAR !!!
-				+ definitionId.name
-				+ " = "
-				+ definition["init"]["object"].name
-				+ core.PropertyToString(definition["init"]["property"])
-			)
 	}
 };
 

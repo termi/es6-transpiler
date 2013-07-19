@@ -41,3 +41,8 @@ function test5() {
 	console.log(a, b, c.test, testStr);
 }
 test5();
+
+function test6({a, b}, {c}) {
+	console.log(a === 1, b === 2, c === 3)
+}
+test6({a: 1, b: 2}, {c: 3});

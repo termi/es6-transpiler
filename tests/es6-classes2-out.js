@@ -14,9 +14,7 @@ var Greeter = (function(_super){
 	//static A = 123;
 
 	function Greeter() {
-		var $D$0 = arguments[0];
-		var message = $D$0.message;
-		$D$0 = null;
+		var $D$0 = arguments[0], message = $D$0.message;$D$0 = null;
 		_super.call(this, message);
 		this.greeting = message;
 	}
@@ -24,9 +22,7 @@ var Greeter = (function(_super){
 
 	Greeter.prototype.greet = function() {
 		var a = arguments[0];if(a === void 0)a = 1;
-		var $D$1 = arguments[1] !== void 0 ? arguments[1] : [2];
-		var b = $D$1[0];
-		$D$1 = null;
+		var $D$1 = arguments[1] !== void 0 ? arguments[1] : [2], b = $D$1[0];$D$1 = null;
 		return _super.prototype.greet.call(this) + "Hello, " + this.msg	+ "|" + this.greeting + "|" + a + "|" + b;
 	}
 
