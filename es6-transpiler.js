@@ -18,7 +18,20 @@ let plugins = [
 module.exports = {
 	runned: false
 
-	, applyChanges: function() {
+	, setupPlugins: function(config) {
+		var optionsList = this.optionsList = [];
+
+		plugins.forEach(function(plugin, index) {
+			var options = optionsList[index] = {};
+			for(let i in config)if(config.hasOwnProperty(i))options[i] = config[i];
+
+			if( typeof plugin.setup === "function" ) {
+				plugin.setup(this.src, this.changes, this.ast, options);
+			}
+		}, this);
+	}
+
+	, applyChanges: function(config) {
 		if( this.changes.length ) {// has changes in classes replacement Step
 			this.src = alter(this.src, this.changes);
 			this.ast = this.esprima.parse(this.src, {
@@ -28,6 +41,7 @@ module.exports = {
 
 			error.reset();
 			this.changes = [];
+			this.setupPlugins(config);
 		}
 	}
 	, reset: function() {
@@ -90,13 +104,10 @@ module.exports = {
 		// output
 		const output = {errors: [], src: ""};
 
-		const result = plugins.every(function(plugin) {
-			var options = {};
-			for(let i in config)if(config.hasOwnProperty(i))options[i] = config[i];
+		this.setupPlugins(config);
 
-			if( typeof plugin.setup === "function" ) {
-				plugin.setup(this.src, this.changes, this.ast, options);
-			}
+		plugins.forEach(function(plugin, index) {
+			var options = this.optionsList[index];
 
 			if( typeof plugin.before === "function" ) {
 				plugin.before(this.ast);
@@ -111,17 +122,12 @@ module.exports = {
 			}
 
 			if( options.applyChangesAfter ) {
-				this.applyChanges();
+				this.applyChanges(config);
 			}
-
-			if( error.errors.length ) {
-				return false;
-			}
-			return true;
 		}, this);
 
 		// output
-		if( !result ) {
+		if( error.errors.length ) {
 			output.exitcode = -1;
 			output.errors = error.errors;
 		}

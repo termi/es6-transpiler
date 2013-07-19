@@ -32,7 +32,9 @@ let plugin = module.exports = {
 		if( typeof options.stats !== "object" ) {
 			options.stats = new Stats();
 		}
+	}
 
+	, before: function(ast) {
 		ast.$scope.traverse({pre: function(scope) {
 			delete scope.moves;
 		}});
@@ -121,7 +123,13 @@ let plugin = module.exports = {
 				}
 				else if (declarator.$parentType === "ArrayPattern") {
 					declaratorId = declarator;
-					name = declarator.name;
+
+					if (declarator.type === "SpreadElement" ) {
+						name = declarator.argument.name;
+					}
+					else {
+						name = declarator.name;
+					}
 
 					needSrcChanges = false;//src text-replace in replaceDestructuringVariableDeclaration function
 				}
