@@ -42,24 +42,14 @@ var plugin = module.exports = {
 	, pre: function functionDestructuringAndDefaultsAndRest(node) {
 		if ( isFunction(node) ) {
 			const changes = this.changes;
-			const src = this.src;
 			const defaults = node.defaults;
 			const params = node.params;
 			let paramsCount = params.length;
 			const initialParamsCount = paramsCount;
-			const fnBodyRange = node.body.body.length ?
-					node.body.body[0].range
-					:
-					[//empty function body. example: function r(){}
-						node.body.range[0] + 1
-						, node.body.range[1] - 1
-					]
-				;
-			const indentStr = "" + core.stringFromSrc(node.body.range[0] + 1, fnBodyRange[0]);
+			const fnBodyStart = node.body.range[0] + 1;
 			const defaultsCount = defaults.length;
 			const lastParam = params[paramsCount - 1];
 			const lastDflt = defaults[defaults.length - 1];
-			let hoistScope;
 
 			paramsCount -= defaultsCount;
 
@@ -69,30 +59,21 @@ var plugin = module.exports = {
 					const prevParam = params[i - 1];
 
 					if( isObjectPattern(param) || isArrayPattern(param) ) {
-						let paramStr, newVariables = [], postFix = "";
-						paramStr = "";//"\n" + indentStr;
-						paramStr =
+						let newParamName = core.unique("$D", true);
+						let paramStr =
 							destructuring.unwrapDestructuring(
 								"var"
 								, param
-								, {type: "Identifier", name: "arguments[" + i + "]"}
-								, newVariables
-							);
-
-						hoistScope = node.$scope.closestHoistScope();
-						newVariables.forEach(function(newVariable){
-							if( newVariable.needsToCleanUp ) {
-								postFix += (newVariable.name + " = null;");
-							}
-						});
-						paramStr += (postFix + indentStr);
+								, {type: "Identifier", name: newParamName}
+							) + ";"
+						;
 
 						param.$replaced = true;
 
 						// add
 						changes.push({
-							start: fnBodyRange[0],
-							end: fnBodyRange[0],
+							start: fnBodyStart,
+							end: fnBodyStart,
 							str: paramStr,
 							type: 2// ??
 						});
@@ -101,7 +82,7 @@ var plugin = module.exports = {
 						changes.push({
 							start: (prevParam ? prevParam.range[1] + 1 : param.range[0]) - (prevParam ? 1 : 0),
 							end: param.range[1],
-							str: ""
+							str: (i === 0 ? "" : ", ") + newParamName
 						});
 					}
 				}
@@ -121,39 +102,26 @@ var plugin = module.exports = {
 
 					let defaultStr;
 					if( isObjectPattern(param) || isArrayPattern(param) ) {
-						//dflt.$type = dflt.type;
-						//dflt.type = "";//TODO:: check it
-
-						let newVariables = [], postFix = "";
 						defaultStr =
 							destructuring.unwrapDestructuring(
 								"var"
 								, param
-								, {type: "Identifier", name: "arguments[" + paramIndex + "] !== void 0 ? arguments[" + paramIndex + "] : " + core.stringFromSrc(dflt)}
-								, newVariables
-							)
+								, {type: "Identifier", name: "(arguments[" + paramIndex + "] !== void 0 ? arguments[" + paramIndex + "] : " + core.stringFromSrc(dflt) + ")"}
+							) + ";"
 						;
-
-						newVariables.forEach(function(newVariable, index){
-							if( newVariable.needsToCleanUp ) {
-								postFix += (newVariable.name + " = null;");
-							}
-						});
-
-						defaultStr += (postFix + indentStr);
 					}
 					else {
 						defaultStr = "var "
 							+ core.definitionWithDefaultString(param, "arguments[" + paramIndex + "]", core.stringFromSrc(dflt))
-							+ ";" + indentStr;
+							+ ";"
 					}
 
 					param.$replaced = true;
 
 					// add default set
 					changes.push({
-						start: fnBodyRange[0],
-						end: fnBodyRange[0],
+						start: fnBodyStart,
+						end: fnBodyStart,
 						str: defaultStr,
 						type: 2// ??
 					});
@@ -170,17 +138,14 @@ var plugin = module.exports = {
 
 			const rest = node.rest;
 			if( rest ) {
-				const restStr = "var " + core.unwrapSpreadDeclaration(rest, "arguments", initialParamsCount) + indentStr;
-				if( !hoistScope ) {
-					hoistScope = node.$scope.closestHoistScope();
-				}
+				const restStr = "var " + core.unwrapSpreadDeclaration(rest, "arguments", initialParamsCount) + ";";
 
-				hoistScope.add(rest.name, "var", rest, -1);
+				node.$scope.closestHoistScope().add(rest.name, "var", rest, -1);
 
 				// add rest
 				changes.push({
-					start: fnBodyRange[0],
-					end: fnBodyRange[0],
+					start: fnBodyStart,
+					end: fnBodyStart,
 					str: restStr
 				});
 

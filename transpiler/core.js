@@ -122,6 +122,9 @@ let core = module.exports = {
 		for( let cnt = 0 ; ; cnt++ ) {
 			const genName = name + "$" + cnt;
 			if( !this.allIdentifiers.has(genName) && (!additionalFilter || !additionalFilter.has(genName))) {
+				if( newVariable ) {
+					this.allIdentifiers.add(genName);
+				}
 				return genName;
 			}
 		}
@@ -134,6 +137,10 @@ let core = module.exports = {
 		node.$scope = node.$parent ? node.$parent.$scope : null; // may be overridden
 
 		function addParamToScope(param) {
+			if( param === null ){
+				return;
+			}
+
 			if( isObjectPattern(param) ) {
 				param.properties.forEach(addParamToScope);
 			}
@@ -437,7 +444,7 @@ let core = module.exports = {
 	unwrapSpreadDeclaration: function(node, donor, fromIndex) {
 		assert(node.type === "Identifier");
 
-		return node.name + " = [].slice.call(" + donor + ", " + fromIndex + ");";
+		return node.name + " = [].slice.call(" + donor + ", " + fromIndex + ")";
 	}
 
 	,

@@ -2,7 +2,6 @@
 
 const assert = require("assert");
 const is = require("simple-is");
-const stringset = require("stringset");
 const core = require("./core");
 const error = require("./../lib/error");
 
@@ -39,173 +38,250 @@ var plugin = module.exports = {
 	}
 
 	, pre: function replaceDestructuringVariableDeclaration(node) {
-		if( node.type === "VariableDeclaration" && isVarConstLet(node.kind) ) {
-			let declarations = node.declarations;
+		let parentNode;
 
-			let afterVariableDeclaration = declarations.reduce(this.__replaceDeclaration, {node: node, output: ""}).output;
+		if( isObjectPattern(node) || isArrayPattern(node) ) {
+			parentNode = node.$parent;
 
-			if( afterVariableDeclaration ) {
-				// add temporary variables cleanup
-				this.changes.push({
-					start: node.range[1],
-					end: node.range[1],
-					str: afterVariableDeclaration
-				});
+			/*if( !parentNode ){
+				return;
+			}*/
+
+			if( parentNode.type === "VariableDeclarator" ) {
+				if( isVarConstLet(parentNode.$parent.kind) ) {
+					this.__replaceDeclaration(parentNode, node);
+				}
+			}
+			else if( parentNode.type === "AssignmentExpression" ) {
+				this.__replaceAssignment(parentNode, node);
 			}
 		}
 	}
 
-	/**
-	 * reduce
-	 */
-	, __replaceDeclaration: function replaceDeclaration(output, declarator, declaratorIndex, declarations) {
-		let declaratorId = declarator.id;
+	, __replaceDeclaration: function replaceDeclaration(declarator, declaratorId) {
+		let declaratorInit = declarator.init;
 
-		if( isObjectPattern(declaratorId) || isArrayPattern(declaratorId) ) {
-			let declaratorInit = declarator.init;
-
-			if( declaratorInit == null ) {
-				error(getline(declarator), "destructuring must have an initializer");
-				return output;
-			}
-
-			let newVariables = [];
-
-			let declarationString = this.unwrapDestructuring("var", declaratorId, declaratorInit, newVariables);
-
-			newVariables.forEach(function(newVariable){
-				if( newVariable.needsToCleanUp ) {
-					output.output += (newVariable.name + " = null;");
-				}
-			});
-
-			let isLastDeclaration = declarations.length - 1 == declaratorIndex;
-
-			// replace destructuring with simple variable declaration
-			this.changes.push({
-				start: declarator.range[0],
-				end: declarator.range[1],
-				str: (declaratorIndex === 0 ? "" : ", ")
-					+ declarationString.substring(4, declarationString.length - (isLastDeclaration ? 1 : 0))//remove first "var " and last ";" if need
-					+ (isLastDeclaration ? "" : "var ")//unwrapDestructuring always return string with ";" at the end
-			});
+		if( declaratorInit == null ) {
+			error(getline(declarator), "destructuring must have an initializer");
+			return;
 		}
 
-		return output;
+		let declarationString = this.unwrapDestructuring("var", declaratorId, declaratorInit);
+
+		let isFirstVar = declarationString.substring(0, 4) === "var ";
+
+		// replace destructuring with simple variable declaration
+		this.changes.push({
+			start: declarator.range[0],
+			end: declarator.range[1],
+			str: (isFirstVar ? declarationString.substr(4) : declarationString)//remove first "var " if need
+		});
+	}
+
+	, __replaceAssignment: function(assignment, assignmentLeft) {
+		let assignmentRight = assignment.right, newVariables = [];
+
+		let declarationString = this.unwrapDestructuring("", assignmentLeft, assignmentRight, newVariables);
+
+		if( newVariables.length ) {
+			declarationString = "var " + newVariables.map(function(a){ return a.name }).join(", ") + ";" + declarationString;
+		}
+
+		// replace destructuring with simple variable assignment
+		this.changes.push({
+			start: assignment.range[0],
+			end: assignment.range[1],
+			str: declarationString
+		});
 	}
 
 	, unwrapDestructuring: function unwrapDestructuring(kind, definitionNode, valueNode, newVariables) {
+		assert(isObjectPattern(definitionNode) || isArrayPattern(definitionNode));
+		if( !newVariables )newVariables = [];
+		assert(Array.isArray(newVariables));
+
 		let newDefinitions = [];
 
 		this.__unwrapDestructuring(definitionNode, valueNode, newVariables, newDefinitions);
 
 		kind = (kind ? kind + " " : "");
 
-		let destructurisationString = kind;
+		let destructurisationString = "";
 
-		let hoistScope = definitionNode.$scope.closestHoistScope();
+		let needsFirstSemicolon = false;
 
-		let lastIsSemicolon = false;
+		for(let index = 0, len = newDefinitions.length ; index < len ; index++ ){
+			let definition = newDefinitions[index];
 
-		newVariables.forEach(function(newVariable, index){
-			hoistScope.add(newVariable.name, newVariable.kind, newVariable.originalNode);
-			core.allIdentifiers.add(newVariable.name);
-
-			destructurisationString += (
-				(index === 0 ? "" : ", ")
-				+ newVariable.name
-				+ " = "
-				+ newVariable.value
+			assert(
+				definition.type === "VariableDeclarator"
+				|| definition.type === "AssignmentExpression"
+				//|| definition.type === "EmptyStatement"
 			);
-		});
-
-		newDefinitions.forEach(function(definition, index) {
-			assert(definition.type === "VariableDeclarator");
 			let definitionId = definition.id;
 
 			let delimiter;
-			if( lastIsSemicolon ) {
-				delimiter = kind;
-				lastIsSemicolon = false;
+			if( needsFirstSemicolon ) {
+				delimiter = ";" + kind;
+				needsFirstSemicolon = false;
 			}
 			else {
-				delimiter = (index === 0 && newVariables.length === 0 ? "" : ", ");
+				delimiter = (index === 0 ? "" : ", ");
 			}
 
-			if( definitionId.type === "Identifier" ) {
+			if( definition.type === "AssignmentExpression" ) {
+				assert(!!definition.left && definition.operator === "=" && !!definition.right && !!definition.right.__initValue);
 				destructurisationString += (
-					delimiter
-					+ definitionId.name
-					+ " = "
-					+ definition["init"]["object"].name
-					+ core.PropertyToString(definition["init"]["property"])
-				);
+					(needsFirstSemicolon ? ";" : "")
+						+ definition.left.name
+						+ " = "
+						+ definition.right.__initValue
+					);
+				needsFirstSemicolon = true;
+			}
+			else if( definitionId.type === "Identifier" ) {
+				if( !destructurisationString )destructurisationString = kind;
+
+				if( "__initValue" in definitionId ) {
+					destructurisationString += (
+						delimiter
+							+ definitionId.name
+							+ " = "
+							+ definitionId.__initValue
+						);
+				}
+				else {
+					destructurisationString += (
+						delimiter
+							+ definitionId.name
+							+ " = "
+							+ definition["init"]["object"].name
+							+ core.PropertyToString(definition["init"]["property"])
+						);
+				}
 			}
 			else if( definitionId.type === "SpreadElement" ){
+				if( !destructurisationString )destructurisationString = kind;
+
 				destructurisationString += (
 					delimiter
-					+ core.unwrapSpreadDeclaration(definitionId.argument, definition["init"]["object"].name, index)
-				);
+						+ core.unwrapSpreadDeclaration(definitionId.argument, definition["init"]["object"].name, definition["init"]["property"]["value"])
+					)
+				;
 			}
 			else {
 				throw new SyntaxError();
 			}
 
-			let defaultValue = definitionId.default;//TODO:: goes to latest Parser API from esprima
+			//if( definitionId ) {// "EmptyStatement" has no definition.id
+				let defaultValue = definitionId.default;//TODO:: goes to latest Parser API from esprima
 
-			if( defaultValue ) {
-				destructurisationString += (";" + core.defaultString(definitionId, core.stringFromSrc(defaultValue)) + ";");
-				lastIsSemicolon = true;
-			}
-		});
+				if( defaultValue ) {
+					destructurisationString += (";" + core.defaultString(definitionId, core.stringFromSrc(defaultValue)));
+					needsFirstSemicolon = true;
+				}
+			//}
+		}
 
-		return destructurisationString + (lastIsSemicolon ? "" : ";");
+		return destructurisationString;
 	}
 
-	, __unwrapDestructuring: function(definitionNode, valueNode, newVariables, newDefinitions, temporaryVariables) {
-		assert(typeof valueNode === "object");
-		assert(isObjectPattern(definitionNode) || isArrayPattern(definitionNode));
-		assert(Array.isArray(newVariables));
-		assert(Array.isArray(newDefinitions));
+	, __unwrapDestructuring: function(definitionNode, valueNode, newVariables, newDefinitions, hoistScope) {
+		let isTemporaryVariable = false, valueIdentifierName, temporaryVariableIndexOrName, valueIdentifierDefinition;
+		let isTemporaryValueAssignment;
 
-		if(!temporaryVariables)temporaryVariables = stringset();
-
-		let needsNewVariable = false, valueIdentifierName, valueIdentifierDefinition;
 		if( valueNode.type === "Identifier" ) {
 			valueIdentifierName = valueNode.name;
 
 			if( valueIdentifierName.indexOf("[") !== -1 || valueIdentifierName.indexOf(".") !== -1 ) {
-				needsNewVariable = true;
+				isTemporaryVariable = true;
 				valueIdentifierDefinition = valueIdentifierName;
 			}
 		}
 		else {
-			needsNewVariable = true;
-			valueIdentifierDefinition = this.src.substring(valueNode.range[0], valueNode.range[1]);
+			isTemporaryVariable = true;
+			valueIdentifierDefinition = core.stringFromSrc(valueNode.range[0], valueNode.range[1]);
 		}
 
-		if( needsNewVariable ) {
-			valueIdentifierName = core.unique("$D", true, temporaryVariables);
+		if( isTemporaryVariable ) {
+			if( isObjectPattern(definitionNode) ) {
+				if( definitionNode.properties.length < 2 ) {
+					isTemporaryVariable = false;
+				}
+			}
+			else {
+				if( definitionNode.elements.length < 2 ) {
+					isTemporaryVariable = false;
+				}
+			}
+			if( isTemporaryVariable == false ) {
+				if( valueIdentifierDefinition.charAt(0) != "(") {
+					valueIdentifierName = "(" + valueIdentifierDefinition + ")";
+				}
+				else {
+					valueIdentifierName = valueIdentifierDefinition;
+				}
+			}
+		}
 
-			temporaryVariables.add(valueIdentifierName);
 
-			newVariables.push({
-				name: valueIdentifierName
-				, kind: "var"
-				, value: valueIdentifierDefinition
-				, needsToCleanUp: true
-				, originalNode: valueNode
-			});
+		if( isTemporaryVariable ) {
+			if( !hoistScope ) {
+				hoistScope = definitionNode.$scope.closestHoistScope();
+			}
+
+			valueIdentifierName = hoistScope.popFree();
+
+			if( valueIdentifierName ) {
+				temporaryVariableIndexOrName = valueIdentifierName;
+				valueIdentifierName = "(" + valueIdentifierName + " = " + valueIdentifierDefinition + ")";
+				isTemporaryValueAssignment = true;
+				/*newDefinitions.push({
+					"type": "EmptyStatement"
+					, __semicolon: true
+				});
+				newDefinitions.push({
+					"type": "AssignmentExpression"
+					, "operator": "="
+					, "left": {
+						"type": "Identifier",
+						"name": valueIdentifierName
+					}
+					, "right": {
+						"type": "__Raw",
+						__initValue: valueIdentifierDefinition
+					}
+				});*/
+
+			}
+			else {
+				temporaryVariableIndexOrName = newVariables.length;
+				valueIdentifierName = core.unique("$D", true);
+				hoistScope.add(valueIdentifierName, "var", valueNode);
+
+				newVariables.push({
+					name: valueIdentifierName
+					, kind: "var"
+					, needsToCleanUp: true
+					//, isFree: false
+				});
+				newDefinitions.push({
+					"type": "VariableDeclarator",
+					"id": {
+						"type": "Identifier",
+						"name": valueIdentifierName,
+						__initValue: valueIdentifierDefinition
+					}
+				});
+			}
 		}
 
 		if( isObjectPattern(definitionNode) ) {
 			for (let properties = definitionNode.properties, k = 0, l = properties.length ; k < l ; k++) {
 				const property = properties[k];
 				if (property) {
-					//console.log("    property:: key = ", property.key.name, " / value = ", property.value.name, " | type =  ", definitionNode.$parent.type);
-
 					if( isObjectPattern(property.value) || isArrayPattern(property.value) ) {
-						this.__unwrapDestructuring(property.value, {type: "Identifier", name: valueIdentifierName + core.PropertyToString(property.key)}, newVariables, newDefinitions, temporaryVariables);
+						this.__unwrapDestructuring(property.value, {type: "Identifier", name: valueIdentifierName + core.PropertyToString(property.key)}, newVariables, newDefinitions, hoistScope);
 					}
 					else {
 						newDefinitions.push({
@@ -222,6 +298,11 @@ var plugin = module.exports = {
 							}
 						});
 					}
+
+					if( isTemporaryValueAssignment ) {
+						valueIdentifierName = temporaryVariableIndexOrName;
+						isTemporaryValueAssignment = false;
+					}
 				}
 			}
 		}
@@ -229,10 +310,8 @@ var plugin = module.exports = {
 			for (let elements = definitionNode.elements, k = 0, l = elements.length ; k < l ; k++) {
 				const element = elements[k];
 				if (element) {
-					//console.log("    element = ", element.name, " | type =  ", definitionNode.$parent.type);
-
 					if( isObjectPattern(element) || isArrayPattern(element) ) {
-						this.__unwrapDestructuring(element, {type: "Identifier", name: valueIdentifierName + "[" + k + "]"}, newVariables, newDefinitions, temporaryVariables);
+						this.__unwrapDestructuring(element, {type: "Identifier", name: valueIdentifierName + "[" + k + "]"}, newVariables, newDefinitions, hoistScope);
 					}
 					else {
 						newDefinitions.push({
@@ -253,7 +332,23 @@ var plugin = module.exports = {
 							}
 						});
 					}
+
+					if( isTemporaryValueAssignment ) {
+						valueIdentifierName = temporaryVariableIndexOrName;
+						isTemporaryValueAssignment = false;
+					}
 				}
+			}
+		}
+
+		assert(!isTemporaryValueAssignment);
+
+		if( isTemporaryVariable && temporaryVariableIndexOrName != void 0 ) {
+			if( typeof temporaryVariableIndexOrName === "number" ) {
+				hoistScope.pushFree(newVariables[temporaryVariableIndexOrName].name);
+			}
+			else {
+				hoistScope.pushFree(temporaryVariableIndexOrName);
 			}
 		}
 	}
