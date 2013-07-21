@@ -1,15 +1,15 @@
 "use strict";
 
 const fs = require("fs");
-const alter = require("./lib/alter");
 const traverse = require("./lib/traverse");
 const error = require("./lib/error");
 const defaultOptions = require("./options");
+const core = require("./transpiler/core");
 
 let plugins = [
 	require("./transpiler/classes")
 	//, require("./transpiler/loopClosures")TODO::
-	, require("./transpiler/core")
+	, core
 	, require("./transpiler/letConst")
 	, require("./transpiler/functions")
 	, require("./transpiler/destructuring")
@@ -26,20 +26,24 @@ module.exports = {
 			for(let i in config)if(config.hasOwnProperty(i))options[i] = config[i];
 
 			if( typeof plugin.setup === "function" ) {
-				plugin.setup(this.src, this.changes, this.ast, options);
+				plugin.setup(this.changes, this.ast, options, this.src);
 			}
 		}, this);
 	}
 
-	, applyChanges: function(config) {
+	, applyChanges: function(config, doNotReset) {
 		if( this.changes.length ) {// has changes in classes replacement Step
-			this.src = alter(this.src, this.changes);
-			this.ast = this.esprima.parse(this.src, {
-				loc: true,
-				range: true
-			});
+			this.src = core.alter(this.src, this.changes, doNotReset);
+			if( doNotReset !== true ) {
+				//console.log("RE AST", this.changes)
+				this.ast = this.esprima.parse(this.src, {
+					loc: true,
+					range: true
+				});
 
-			error.reset();
+				error.reset();
+			}
+
 			this.changes = [];
 			this.setupPlugins(config);
 		}
@@ -90,7 +94,6 @@ module.exports = {
 			*/
 		}
 
-
 		if( !this.ast && this.src ) {
 			this.ast = esprima.parse(this.src, {
 				loc: true,
@@ -122,7 +125,7 @@ module.exports = {
 			}
 
 			if( options.applyChangesAfter ) {
-				this.applyChanges(config);
+				this.applyChanges(config, options.doNotParseSrc);
 			}
 		}, this);
 
@@ -142,7 +145,7 @@ module.exports = {
 			// apply changes produced by varify and return the transformed src
 			//console.log(changes);var transformedSrc = "";try{ transformedSrc = alter(src, changes) } catch(e){ console.error(e+"") };
 
-			output.src = alter(this.src, this.changes);
+			output.src = core.alter(this.src, this.changes);
 		}
 
 		if( config.outputToConsole === true ) {

@@ -9,27 +9,27 @@ const classesTranspiler = {
 		this.__currentClassName = null;
 	}
 
-	, setup: function(src, changes, ast, options) {
-		this.reset();
+	, setup: function(changes, ast, options) {
+		if( !this.__isInit ) {
+			this.reset();
+			this.__isInit = true;
+		}
 
 		this.changes = changes;
-		this.src = src;
 
 		options.applyChangesAfter = true;
 	}
 
 	, pre: function replaceClassBody(node) {
 		if( node.type === "ClassDeclaration" ) {
-			const src = this.src
-				, changes = this.changes
-			;
+			const changes = this.changes;
 
 			let nodeId = node.id
 				, superClass = node.superClass
 				, classStr
 				, classBodyNodes = node.body.body
 				, classConstructor
-				, indent = classBodyNodes[0] ? src.substring(node.body.range[0] + 1, classBodyNodes[0].range[0]) : "\t"
+				, indent = classBodyNodes[0] ? core.stringFromSrc(node.body.range[0] + 1, classBodyNodes[0].range[0]) : "\t"
 				, classBodyNodesCount = classBodyNodes.length
 				, extendedClassConstructorPostfix
 			;
@@ -41,7 +41,7 @@ const classesTranspiler = {
 
 			if( superClass ) {
 				classStr += "_super";
-				superClass = src.substring(superClass.range[0], superClass.range[1]);
+				superClass = core.stringFromSrc(superClass.range[0], superClass.range[1]);
 				extendedClassConstructorPostfix = indent +
 					"Object.assign(" + this.__currentClassName + ", _super);" +
 					this.__currentClassName + ".prototype = Object.create(_super.prototype);" +

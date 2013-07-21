@@ -25,13 +25,24 @@ function isArrayPattern(node) {
 
 
 let plugin = module.exports = {
-	setup: function(src, changes, ast, options) {
+	reset: function() {
+
+	}
+
+	, setup: function(changes, ast, options) {
+		if( !this.__isInit ) {
+			this.reset();
+			this.__isInit = true;
+		}
+
 		this.changes = changes;
-		this.src = src;
 		this.options = options;
 		if( typeof options.stats !== "object" ) {
 			options.stats = new Stats();
 		}
+
+		options.applyChangesAfter = true;
+		options.doNotParseSrc = true;
 	}
 
 	, before: function(ast) {

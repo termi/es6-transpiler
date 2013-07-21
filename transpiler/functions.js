@@ -29,9 +29,13 @@ var plugin = module.exports = {
 
 	}
 
-	, setup: function(src, changes, ast, options) {
+	, setup: function(changes, ast, options) {
+		if( !this.__isInit ) {
+			this.reset();
+			this.__isInit = true;
+		}
+
 		this.changes = changes;
-		this.src = src;
 		this.options = options;
 	}
 

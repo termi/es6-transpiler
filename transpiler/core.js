@@ -70,15 +70,23 @@ function isArrayPattern(node) {
 
 
 let core = module.exports = {
+    alter: alter,
+
+	traverse: traverse,
+
 	reset: function() {
 		this.allIdentifiers = stringset();
 
 		this.outermostLoop = null;
 		this.functions = [];
+        this.offsets = [];
 	}
 
-	, setup: function(src, changes, ast, options) {
+	, setup: function(changes, ast, options, src) {
+		if( !this.__isInit ) {
 		this.reset();
+			this.__isInit = true;
+		}
 
 		this.changes = changes;
 		this.src = src;
@@ -101,7 +109,7 @@ let core = module.exports = {
 		// also collects all referenced names to allIdentifiers
 		traverse(ast, {pre: this.setupReferences});
 
-		// static analysis passes
+		// static analysis passes//TODO:: separate transpiler
 		traverse(ast, {pre: this.detectLoopClosuresPre, post: this.detectLoopClosuresPost});
 		traverse(ast, {pre: this.detectConstAssignment});
 
@@ -405,8 +413,6 @@ let core = module.exports = {
 		}
 	}
 
-	, traverse: traverse
-
 	, PropertyToString: function PropertyToString(node) {
 		assert(node.type === "Literal" || node.type === "Identifier");
 
@@ -467,17 +473,163 @@ let core = module.exports = {
 	 * @returns {string}
 	 */
 	stringFromSrc: function(nodeOrFrom, to) {
+        let offsets = this.offsets;
+        let from;
+
 		if( typeof nodeOrFrom === "object" ) {
-			return this.src.substring(nodeOrFrom.range[0], nodeOrFrom.range[1])
+            from = nodeOrFrom.range[0];
+            to = nodeOrFrom.range[1];
 		}
 		else if( typeof nodeOrFrom === "number" && typeof to === "number" ) {
-			return this.src.substring(nodeOrFrom, to)
+            from = nodeOrFrom;
 		}
 		else {
 			throw new Error();
 		}
+
+		let originalFrom = from, originalTo = to;
+        if( offsets.length ) {
+
+            for( let offset in offsets ) if( offsets.hasOwnProperty(offset) ) {
+	            // Fast enumeration through array MAY CAUSE PROBLEM WITH WRONG ORDER OF ARRAY ITEM, but it is unlikely
+                offset = offset | 0;
+	            let offsetValue = offsets[offset];
+
+                if( offset <= originalTo ) {
+                    if( offset <= originalFrom ) {
+                        from += offsetValue;
+                    }
+                    to += offsetValue;
+                }
+                else {
+                    break;
+                }
+            }
+        }
+
+        return this.src.substring(from, to)
 	}
 };
+
+/**
+ * @this {core}
+ * @param {string} str
+ * @param {Array.<{start: number, end: number}>} fragments
+ * @param {boolean=} safeOffset
+ * @returns {string}
+ */
+function alter(str, fragments, safeOffset) {
+    "use strict";
+
+    assert(typeof str === "string");
+    assert(Array.isArray(fragments));
+
+    let offsets = this.offsets;
+
+    fragments = fragments.map(function(v, index) {
+        v.originalIndex = index;
+        return v;
+    }); // copy before destructive sort
+
+    fragments.sort(function(a, b) {
+        var result = a.start - b.start;
+        if( result === 0 ) {
+            result = a.originalIndex - b.originalIndex;
+        }
+        return result;
+    });
+
+    // smart-filter for changes: If one change A full-overwrite one or more changes B -> remove B
+    for( let i = 0, len = fragments.length ; i < len ; i++ ) {
+        let frag = fragments[i], nextFrag;
+
+        do {
+            if( nextFrag = fragments[i + 1] ) {
+                if( nextFrag.start === frag.start ) {
+                    if( nextFrag.start === nextFrag.end ) {
+                        nextFrag = null;
+                    }
+                    else if( nextFrag.end === frag.end && nextFrag.originalIndex > frag.originalIndex || nextFrag.end > frag.end ) {
+                        fragments.splice(i, 1);//remove current fragment
+                        frag = nextFrag;
+                    }
+                    else {
+                        fragments.splice(i + 1, 1);//remove next fragment
+                    }
+                    len--;
+                }
+                else if( frag.end > nextFrag.start && frag.end >= nextFrag.end ) { // nextFrag.start is <= frag.start due of previous sorting
+                    fragments.splice(i + 1, 1);//remove next fragment
+                    len--;
+                }
+                else {
+                    nextFrag = null;
+                }
+            }
+        }
+        while( nextFrag );
+    }
+
+    var outs = [];
+
+    var pos = 0;
+	var currentOffsets = offsets.slice();
+
+    //console.log(fragments)
+
+    for (var i = 0; i < fragments.length; i++) {
+        var frag = fragments[i];
+	    var from = frag.start, to = frag.end;
+
+	    if( currentOffsets.length ) {
+		    let originalFrom = from, originalTo = to;
+
+		    for( let offset in currentOffsets ) if( currentOffsets.hasOwnProperty(offset) ) {
+			    // Fast enumeration through array MAY CAUSE PROBLEM WITH WRONG ORDER OF ARRAY ITEM, but it is unlikely
+			    offset = offset | 0;
+			    let offsetValue = currentOffsets[offset];
+
+			    if( offset <= originalTo ) {
+				    if( offset <= originalFrom ) {
+					    from += offsetValue;
+				    }
+				    to += offsetValue;
+			    }
+			    else {
+				    break;
+			    }
+		    }
+	    }
+
+        assert(
+            pos <= from
+                || from === to//nothing to remove
+	        , pos + "|frag.start=" + from + "|frag.end=" + to
+        );
+        assert(from <= to);
+
+	    //console.log(pos, frag.str, frag.start, frag.end)
+        if( safeOffset ) {
+            let offset = frag.str.length - (to - from);
+            if(offset) {
+                offsets[from] = offset;
+            }
+        }
+
+        outs.push(str.slice(pos, from));
+        outs.push(frag.str);
+        pos = to;
+    }
+    if (pos < str.length) {
+        outs.push(str.slice(pos));
+    }
+
+	//offsets && console.log(offsets.map(function(a, index){ return a && index } ).filter(function(a){ return !!a }))
+
+    return outs.join("");
+}
+
+
 
 for(let i in core) if( core.hasOwnProperty(i) && typeof core[i] === "function" ) {
 	core[i] = core[i].bind(core);
