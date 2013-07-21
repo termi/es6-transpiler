@@ -1,24 +1,25 @@
-class test{
+class class1 {
 	constructor(msg) {
-		this.msg = msg;
+		this.property1 = msg;
 	}
+	static sayStatic() { return "[static:class1]" }
 
-	greet() { return "lol" }
+	say() { return "class1:" + this.property1 }
 }
 
-class Greeter extends test {
-	static test(){ return super.test() + "test" }
+class class2 extends class1 {
+	static sayStatic(){ return super.sayStatic() + "[static:class2]" }
 
 	//static A = 123;
 
 	constructor({message}) {
 		super(message);
-		this.greeting = message;
+		this.property2 = message;
 	}
 
-	greet(a = 1, [b] = [2]) {
-		return super.greet() + "Hello, " + this.msg	+ "|" + this.greeting + "|" + a + "|" + b;
+	say(a = 1, [b] = [2]) {
+		return super.say() + "|class2" + ":" + this.property2 + "|" + a + "|" + b + ":" + class2.sayStatic();
 	}
 }
 
-(new Greeter({message: "test"})).greet()
+console.log((new class2({message: "test"})).say() === "class1:test|class2|test|1|2:[static:class1][static:class2]")

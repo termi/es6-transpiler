@@ -1,32 +1,30 @@
-var test = (function(){
-	function test(msg) {
-		this.msg = msg;
+var class1 = (function(){
+	function class1(msg) {
+		this.property1 = msg;
 	}
+	class1.sayStatic = function() { return "[static:class1]" }
 
-	test.prototype.greet = function() { return "lol" }
+	class1.prototype.say = function() { return "class1:" + this.property1 }
 
-	return test;
+	return class1;
 })();
 
-var Greeter = (function(_super){
-	Greeter.test = function(){ return _super.test() + "test" }
+var class2 = (function(_super){
+	class2.sayStatic = function(){ return _super.sayStatic() + "[static:class2]" }
 
 	//static A = 123;
 
-	function Greeter() {
-		var $D$0 = arguments[0], message = $D$0.message;$D$0 = null;
+	function class2($D$0) {var message = $D$0.message;
 		_super.call(this, message);
-		this.greeting = message;
+		this.property2 = message;
 	}
-	Object.assign(Greeter, _super);Greeter.prototype = Object.create(_super.prototype);Greeter.prototype.constructor = Greeter;
+	Object.assign(class2, _super);class2.prototype = Object.create(_super.prototype);class2.prototype.constructor = class2;
 
-	Greeter.prototype.greet = function() {
-		var a = arguments[0];if(a === void 0)a = 1;
-		var $D$1 = arguments[1] !== void 0 ? arguments[1] : [2], b = $D$1[0];$D$1 = null;
-		return _super.prototype.greet.call(this) + "Hello, " + this.msg	+ "|" + this.greeting + "|" + a + "|" + b;
+	class2.prototype.say = function() {var a = arguments[0];if(a === void 0)a = 1;var b = (arguments[1] !== void 0 ? arguments[1] : [2])[0];
+		return _super.prototype.say.call(this) + "|class2" + ":" + this.property2 + "|" + a + "|" + b + ":" + class2.sayStatic();
 	}
 
-	return Greeter;
-})(test);
+	return class2;
+})(class1);
 
-(new Greeter({message: "test"})).greet()
+console.log((new class2({message: "test"})).say() === "class1:test|class2|test|1|2:[static:class1][static:class2]")
