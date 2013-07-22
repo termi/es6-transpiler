@@ -17,7 +17,7 @@ function isConstLet(kind) {
 	return is.someof(kind, ["const", "let"]);
 }
 function isFunction(node) {
-	return is.someof(node.type, ["FunctionDeclaration", "FunctionExpression"]);
+	return is.someof(node.type, ["FunctionDeclaration", "FunctionExpression", "ArrowFunctionExpression"]);
 }
 
 function isLoop(node) {

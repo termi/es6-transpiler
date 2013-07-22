@@ -13,7 +13,7 @@ function getline(node) {
 }
 
 function isFunction(node) {
-	return is.someof(node.type, ["FunctionDeclaration", "FunctionExpression"]);
+	return is.someof(node.type, ["FunctionDeclaration", "FunctionExpression", "ArrowFunctionExpression"]);
 }
 
 function isObjectPattern(node) {
@@ -42,16 +42,57 @@ var plugin = module.exports = {
 	, pre: function functionDestructuringAndDefaultsAndRest(node) {
 		if ( isFunction(node) ) {
 			const changes = this.changes;
+			const functionBody = node.body;
+			const isArrowFunction = node.type === "ArrowFunctionExpression", fnBodyIsSequenceExpression = isArrowFunction && functionBody.type === "SequenceExpression";
 			const defaults = node.defaults;
 			const params = node.params;
+			const rest = node.rest;
 			let paramsCount = params.length;
 			const initialParamsCount = paramsCount;
-			const fnBodyStart = node.body.range[0] + 1;
+			let fnBodyStart = functionBody.range[0] + (isArrowFunction ? 0 : 1), fnBodyEnd = functionBody.range[1];
 			const defaultsCount = defaults.length;
 			const lastParam = params[paramsCount - 1];
-			const lastDflt = defaults[defaults.length - 1];
+			const lastDflt = defaults[defaultsCount - 1];
+
+			let insertIntoBodyBegin = "", insertIntoBodyEnd;
 
 			paramsCount -= defaultsCount;
+
+			if( isArrowFunction ) {
+				// find '=>'
+				const right = fnBodyStart;
+				let left;
+
+				let lastDefinition = rest || (lastDflt || lastParam);
+
+				if( lastDefinition ) {
+					left = lastDefinition.range[1];
+				}
+				else {// function without params
+					left = node.range[0];
+				}
+
+				let str = core.stringFromSrc(left, right).replace(/=>/gi, "");
+
+				if( fnBodyIsSequenceExpression ) {
+					// =>   (   <function body>
+					str = str.replace(/\(/gi, "");
+				}
+
+				// remove "=>"
+				changes.push({
+					start: left,
+					end: right,
+					str: str
+				});
+
+				// add "function" word before arrow function params list
+				changes.push({
+					start: node.range[0],
+					end: node.range[0],
+					str: "function"
+				});
+			}
 
 			if( paramsCount ) {
 				for(let i = 0 ; i < paramsCount ; i++) {
@@ -71,12 +112,7 @@ var plugin = module.exports = {
 						param.$replaced = true;
 
 						// add
-						changes.push({
-							start: fnBodyStart,
-							end: fnBodyStart,
-							str: paramStr,
-							type: 2// ??
-						});
+						insertIntoBodyBegin += paramStr;
 
 						// cleanup
 						changes.push({
@@ -119,12 +155,7 @@ var plugin = module.exports = {
 					param.$replaced = true;
 
 					// add default set
-					changes.push({
-						start: fnBodyStart,
-						end: fnBodyStart,
-						str: defaultStr,
-						type: 2// ??
-					});
+					insertIntoBodyBegin += defaultStr;
 
 					// cleanup default definition
 					// text change 'param = value' => ''
@@ -136,24 +167,55 @@ var plugin = module.exports = {
 				}
 			}
 
-			const rest = node.rest;
 			if( rest ) {
 				const restStr = "var " + core.unwrapSpreadDeclaration(rest, "arguments", initialParamsCount) + ";";
 
 				node.$scope.closestHoistScope().add(rest.name, "var", rest, -1);
 
 				// add rest
-				changes.push({
-					start: fnBodyStart,
-					end: fnBodyStart,
-					str: restStr
-				});
+				insertIntoBodyBegin += restStr;
 
 				// cleanup rest definition
 				changes.push({
 					start: ((lastDflt || lastParam) ? ((lastDflt || lastParam).range[1] + 1) : rest.range[0]) - (lastParam ? 1 : 3),
 					end: rest.range[1],
 					str: ""
+				});
+			}
+
+			if( isArrowFunction && functionBody.type !== "BlockStatement" ) {
+				if( fnBodyIsSequenceExpression ) {
+					// ()=>( <function body> )
+					fnBodyEnd = node.range[1];
+				}
+				// add "{return " and "}"
+
+				insertIntoBodyBegin = "{" + insertIntoBodyBegin + "return " + (fnBodyIsSequenceExpression ? "(" : "");
+				insertIntoBodyEnd = "}";
+
+				node.body = {
+					"type": "BlockStatement",
+					"body": [{
+						"type": "ReturnStatement",
+						"argument": functionBody,
+						"range": functionBody.range,//WARNING!!! range is not accurate
+						"loc": functionBody.loc//WARNING!!! loc is not accurate
+					}],
+					"range": functionBody.range,//WARNING!!! range is not accurate
+					"loc": functionBody.loc//WARNING!!! loc is not accurate
+				}
+			}
+
+			changes.push({
+				start: fnBodyStart,
+				end: fnBodyStart,
+				str: insertIntoBodyBegin
+			});
+			if( insertIntoBodyEnd ) {
+				changes.push({
+					start: fnBodyEnd,
+					end: fnBodyEnd,
+					str: insertIntoBodyEnd
 				});
 			}
 		}

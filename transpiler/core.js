@@ -21,7 +21,7 @@ function isVarConstLet(kind) {
 }
 
 function isNonFunctionBlock(node) {
-	return node.type === "BlockStatement" && is.noneof(node.$parent.type, ["FunctionDeclaration", "FunctionExpression"]);
+	return node.type === "BlockStatement" && is.noneof(node.$parent.type, ["FunctionDeclaration", "FunctionExpression", "ArrowFunctionExpression"]);
 }
 
 function isForWithConstLet(node) {
@@ -33,7 +33,7 @@ function isForInWithConstLet(node) {
 }
 
 function isFunction(node) {
-	return is.someof(node.type, ["FunctionDeclaration", "FunctionExpression"]);
+	return is.someof(node.type, ["FunctionDeclaration", "FunctionExpression", "ArrowFunctionExpression"]);
 }
 
 function isLoop(node) {
@@ -582,7 +582,7 @@ function alter(str, fragments, safeOffset) {
     var pos = 0;
 	var currentOffsets = offsets.slice();
 
-    //console.log(fragments)
+    //console.log(fragments);
 
     for (var i = 0; i < fragments.length; i++) {
         var frag = fragments[i];
@@ -594,6 +594,7 @@ function alter(str, fragments, safeOffset) {
 		    for( let offset in currentOffsets ) if( currentOffsets.hasOwnProperty(offset) ) {
 			    // Fast enumeration through array MAY CAUSE PROBLEM WITH WRONG ORDER OF ARRAY ITEM, but it is unlikely
 			    offset = offset | 0;
+
 			    let offsetValue = currentOffsets[offset];
 
 			    if( offset <= originalTo ) {
@@ -608,10 +609,9 @@ function alter(str, fragments, safeOffset) {
 		    }
 	    }
 
-        assert(
-            pos <= from
-                || from === to//nothing to remove
-	        , pos + "|frag.start=" + from + "|frag.end=" + to
+        assert(pos <= from
+			|| from === to//nothing to remove
+			, "'pos' (" + pos + ") shoulde be lq " + from + " or " + from + " equal " + to
         );
         assert(from <= to);
 
