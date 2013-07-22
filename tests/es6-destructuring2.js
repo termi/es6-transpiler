@@ -19,6 +19,12 @@ console.log(a === 1, b === 2, c.join("|") === "3|4|5|6")
 }
 
 {
-	let [a = 1, , b, ...c] = [void 0, 2, 3, 4, 5]
-	console.log(a === 1, b === 3, c.join("|") === "4|5");
+	let [a = 1, , c, ...rest] = [void 0, 2, 3, 4, 5]
+	console.log(a === 1, c === 3, rest.join("|") === "4|5");
+}
+
+{
+	let a, b, c, rest;
+	[a, b, c, ...rest] = [1, 2, 3, 4, 5];
+	console.log(a === 1, c === 3, rest.join("|") === "4|5");
 }
