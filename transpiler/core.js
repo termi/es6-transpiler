@@ -267,6 +267,21 @@ let core = module.exports = {
 			// in the closest hoist-scope, i.e. where var e$0 belongs.
 			node.$scope.closestHoistScope().markPropagates(identifier.name);
 		}
+		else if ( node.type === "ThisExpression" ) {
+			let thisFunctionScope = node.$scope.closestHoistScope(), functionNode = thisFunctionScope.node;
+
+			if( functionNode.type === "ArrowFunctionExpression" ) {
+				do {
+					// ArrowFunction should transpile to the function with .bind(this) at the end
+					thisFunctionScope.markThisUsing();
+				}
+				while(
+					(functionNode = thisFunctionScope.node.$parent)
+						&& functionNode.type === "ArrowFunctionExpression"
+						&& (thisFunctionScope = functionNode.$scope.closestHoistScope())
+					);
+			}
+		}
 	}
 
 	, createTopScope: function(programScope, environments, globals) {
@@ -541,7 +556,12 @@ function alter(str, fragments, safeOffset) {
     fragments.sort(function(a, b) {
         var result = a.start - b.start;
         if( result === 0 ) {
-            result = a.originalIndex - b.originalIndex;
+			if( a.reverse && b.reverse && a.start === a.end && b.start === b.end ) {
+				result = -(a.originalIndex - b.originalIndex);
+			}
+            else {
+				result = a.originalIndex - b.originalIndex;
+			}
         }
         return result;
     });
@@ -552,7 +572,7 @@ function alter(str, fragments, safeOffset) {
 
         do {
             if( nextFrag = fragments[i + 1] ) {
-                if( nextFrag.start === frag.start ) {
+                if( nextFrag.start === frag.start && (frag.start !== frag.end) ) {
                     if( nextFrag.start === nextFrag.end ) {
                         nextFrag = null;
                     }

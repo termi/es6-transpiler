@@ -56,9 +56,13 @@ var plugin = module.exports = {
 
 			let insertIntoBodyBegin = "", insertIntoBodyEnd;
 
+			let doesThisInsideArrowFunction;
+
 			paramsCount -= defaultsCount;
 
 			if( isArrowFunction ) {
+				doesThisInsideArrowFunction = node.$scope.doesThisUsing();
+
 				// find '=>'
 				const right = fnBodyStart;
 				let left;
@@ -73,24 +77,26 @@ var plugin = module.exports = {
 				}
 
 				let str = core.stringFromSrc(left, right).replace(/=>/gi, "");
+				//console.log(str)
+				//str = "[" + str + "]";
 
 				if( fnBodyIsSequenceExpression ) {
 					// =>   (   <function body>
 					str = str.replace(/\(/gi, "");
 				}
 
-				// remove "=>"
-				changes.push({
-					start: left,
-					end: right,
-					str: str
-				});
 
 				// add "function" word before arrow function params list
 				changes.push({
 					start: node.range[0],
 					end: node.range[0],
-					str: "function"
+					str: (doesThisInsideArrowFunction ? "(" : "") + "function"// + "|"
+				});
+				// remove "=>"
+				changes.push({
+					start: left,
+					end: right,
+					str: str
 				});
 			}
 
@@ -190,8 +196,13 @@ var plugin = module.exports = {
 				}
 				// add "{return " and "}"
 
-				insertIntoBodyBegin = "{" + insertIntoBodyBegin + "return " + (fnBodyIsSequenceExpression ? "(" : "");
-				insertIntoBodyEnd = "}";
+				insertIntoBodyBegin =
+					"{"
+						+ insertIntoBodyBegin
+						+ "return "
+						+ (fnBodyIsSequenceExpression ? "(" : "")
+				;
+				insertIntoBodyEnd = "}" + (doesThisInsideArrowFunction ? ").bind(this)" : "");
 
 				node.body = {
 					"type": "BlockStatement",
@@ -215,7 +226,8 @@ var plugin = module.exports = {
 				changes.push({
 					start: fnBodyEnd,
 					end: fnBodyEnd,
-					str: insertIntoBodyEnd
+					str: insertIntoBodyEnd,
+					reverse: true
 				});
 			}
 		}
