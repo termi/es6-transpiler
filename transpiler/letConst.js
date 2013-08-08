@@ -41,8 +41,8 @@ let plugin = module.exports = {
 			options.stats = new Stats();
 		}
 
-		options.applyChangesAfter = true;
-		options.doNotParseSrc = true;
+		//options.applyChangesAfter = true;
+		//options.doNotParseSrc = true;
 	}
 
 	, before: function(ast) {

@@ -8,9 +8,9 @@ console.log(a === 1, b === 2, c.join("|") === "3|4|5|6")
 }
 
 {
-	let {a, b} = {a: "A", b: "B"};
+	let {a, b = "B"} = {a: "A", b: void 0}, c = 22;
 	({B: b, a}) = {a: b, B: a};
-	console.log(a === "B", b === "A");
+	console.log(a === "B", b === "A", c === 22);
 }
 
 {
@@ -19,8 +19,8 @@ console.log(a === 1, b === 2, c.join("|") === "3|4|5|6")
 }
 
 {
-	let [a = 1, , c, ...rest] = [void 0, 2, 3, 4, 5]
-	console.log(a === 1, c === 3, rest.join("|") === "4|5");
+	let [a = 1, , c, ...rest] = [void 0, 2, 3, 4, 5], b = 22
+	console.log(a === 1, c === 3, b === 22, rest.join("|") === "4|5");
 }
 
 {

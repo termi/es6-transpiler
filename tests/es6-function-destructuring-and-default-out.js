@@ -10,7 +10,7 @@ function test2(a) {var c = (arguments[1] !== void 0 ? arguments[1] : {b: {c: 321
 }
 test2(1);
 
-function test3() {var $D$0 = (arguments[0] !== void 0 ? arguments[0] : {a: [ {b: [ {c: 999, d: 888} ]} ]}).a[0].b[0], c = $D$0.c, d = $D$0.d;
+function test3() {var $D$0;var c = ($D$0 = (arguments[0] !== void 0 ? arguments[0] : {a: [ {b: [ {c: 999, d: 888} ]} ]}).a[0].b[0]).c, d = $D$0.d;
 	console.log(c === 999, d === 888);
 
 	{

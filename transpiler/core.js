@@ -80,6 +80,11 @@ let core = module.exports = {
 		this.outermostLoop = null;
 		this.functions = [];
         this.offsets = [];
+
+		this.uniqueStart = "[<" + ((Math.random() * 1e8) | 0);//should matches /\[\<\d{8}/
+		this.uniqueSeparator = "" + ((Math.random() * 1e8) | 0);//should matches /\d{8}/
+		this.uniqueEnd = ((Math.random() * 1e8) | 0) + ">]";//should matches /\d{8}\>\]/
+		this.uniqueRE = new RegExp("\\[\\<\\d{" + (this.uniqueStart.length - 2) + "}\\[(\\d+)\\]\\d{" + this.uniqueSeparator.length + "}\\[(\\d+)\\]\\d{" + (this.uniqueEnd.length - 2) + "}\\>\\]", "g");
 	}
 
 	, setup: function(changes, ast, options, src) {
@@ -480,12 +485,69 @@ let core = module.exports = {
 	 *
 	 * @param {Object} node
 	 * @param {string} value
+	 * @param {string} type
 	 */
-	defaultString: function(node, value) {
+	defaultString: function(node, value, type) {
 		assert(node.type === "Identifier");
 
 		return "if(" + node.name + " === void 0)" + node.name + " = " + value;
 	}
+
+	,
+
+	__assignmentString: function(node) {
+		assert(node.type === "AssignmentExpression" || node.type === "VariableDeclarator");
+
+		let left, right, isAssignmentExpression = node.type === "AssignmentExpression";
+
+		if( isAssignmentExpression ) {
+			left = node.left;
+			right = node.right;
+		}
+		else {
+			left = node.id;
+			right = node.init;
+		}
+
+		let destructuringDefaultNode = left.default;//TODO:: goes to latest Parser API from esprima
+
+		let result = left.name + " = ";
+		let valueString = right["object"].name + core.PropertyToString(right["property"]);
+
+		if( isAssignmentExpression ) {
+			result += "(";
+		}
+
+		if( typeof destructuringDefaultNode === "object" ) {
+			let tempVar = core.getScopeTempVar(node.$scope);
+
+			result += (
+				"((" + tempVar + " = " + valueString + ") === void 0 ? " + core.stringFromSrc(destructuringDefaultNode) + " : " + tempVar + ")"
+			);
+
+			core.setScopeTempVar(node.$scope, tempVar);
+		}
+		else {
+			result += valueString;
+		}
+
+		if( isAssignmentExpression ) {
+			result += ", " + left.name + ")";
+		}
+
+		return result;
+	}
+
+	,
+	AssignmentExpressionString: function(expression) {
+		return this.__assignmentString(expression, false);
+	}
+
+	,
+	VariableDeclaratorString: function(definition) {
+		return this.__assignmentString(definition, true);
+	}
+
 
 	,
 	/**
@@ -495,7 +557,6 @@ let core = module.exports = {
 	 * @returns {string}
 	 */
 	stringFromSrc: function(nodeOrFrom, to) {
-        let offsets = this.offsets;
         let from;
 
 		if( typeof nodeOrFrom === "object" ) {
@@ -509,151 +570,246 @@ let core = module.exports = {
 			throw new Error();
 		}
 
-		let originalFrom = from, originalTo = to;
-        if( offsets.length ) {
+		return this.uniqueStart + "[" + from + "]" + this.uniqueSeparator + "[" + to + "]" + this.uniqueEnd;
+	}
 
-            for( let offset in offsets ) if( offsets.hasOwnProperty(offset) ) {
-	            // Fast enumeration through array MAY CAUSE PROBLEM WITH WRONG ORDER OF ARRAY ITEM, but it is unlikely
-                offset = offset | 0;
-	            let offsetValue = offsets[offset];
+	, getScopeTempVar: function(scope) {
+		assert(scope instanceof Scope, scope + " is not instance of Scope");
 
-                if( offset <= originalTo ) {
-                    if( offset <= originalFrom ) {
-                        from += offsetValue;
-                    }
-                    to += offsetValue;
-                }
-                else {
-                    break;
-                }
-            }
-        }
+		scope = scope.closestHoistScope();
 
-        return this.src.substring(from, to)
+		var freeVar = scope.popFree();
+
+		if( !freeVar ) {
+			freeVar = core.unique("$D", true);
+			scope.add(freeVar, "var", {});
+
+			let hoistScopeNode = scope.node;
+			let hoistScopeNodeBody = hoistScopeNode.body;
+			let insertInto;
+
+			if( hoistScopeNodeBody.length ) {
+				hoistScopeNodeBody = hoistScopeNodeBody[0];
+			}
+			insertInto = hoistScopeNodeBody.range[0];
+			if( isFunction(hoistScopeNode) ) {
+				insertInto++;
+			}
+
+			this.changes.push({
+				start: insertInto,
+				end: insertInto,
+				str: "var " + freeVar + ";",
+				priority: 0
+			});
+		}
+		/*newDefinitions.push({
+			"type": "EmptyStatement"
+			, __semicolon: true
+		});
+		newDefinitions.push({
+			"type": "AssignmentExpression"
+			, "operator": "="
+			, "left": {
+				"type": "Identifier",
+				"name": valueIdentifierName
+			}
+			, "right": {
+				"type": "__Raw",
+				__initValue: valueIdentifierDefinition
+			}
+		});*/
+
+		return freeVar;
+	}
+
+	, setScopeTempVar: function(scope, freeVar) {
+		assert(scope instanceof Scope, scope + " is not instance of Scope");
+		assert(typeof freeVar === "string");
+
+		scope = scope.closestHoistScope();
+
+		scope.pushFree(freeVar);
 	}
 };
 
+function getPositionsWithOffset(offsets, positionFrom, positionTo) {
+	if( offsets && offsets.length ) {
+		let originalFrom = positionFrom, originalTo = positionTo;
+
+		for( let offset in offsets ) if( offsets.hasOwnProperty(offset) ) {
+			// Fast enumeration through array MAY CAUSE PROBLEM WITH WRONG ORDER OF ARRAY ITEM, but it is unlikely
+			offset = offset | 0;
+
+			let offsetValue = offsets[offset];
+
+			if( offset <= originalTo ) {
+				if( offset <= originalFrom ) {
+					positionFrom += offsetValue;
+				}
+				positionTo += offsetValue;
+			}
+			else {
+				break;
+			}
+		}
+	}
+
+	return [
+		positionFrom
+		, positionTo
+	]
+}
+
 /**
  * @this {core}
- * @param {string} str
+ * @param {string} sourceString
  * @param {Array.<{start: number, end: number}>} fragments
- * @param {boolean=} safeOffset
  * @returns {string}
  */
-function alter(str, fragments, safeOffset) {
+function alter(sourceString, fragments) {
     "use strict";
 
-    assert(typeof str === "string");
+    assert(typeof sourceString === "string");
     assert(Array.isArray(fragments));
+    assert(!!fragments.length);
 
     let offsets = this.offsets;
 
-    fragments = fragments.map(function(v, index) {
-        v.originalIndex = index;
-        return v;
-    }); // copy before destructive sort
+    if( fragments[0].originalIndex === void 0 ) {
+	    fragments = fragments.map(function(v, index) {
+		    v.originalIndex = index;
+		    return v;
+	    });
+    }
 
     fragments.sort(function(a, b) {
         var result = a.start - b.start;
+
         if( result === 0 ) {
 			if( a.reverse && b.reverse && a.start === a.end && b.start === b.end ) {
-				result = -(a.originalIndex - b.originalIndex);
+				result = -1;//-(a.originalIndex - b.originalIndex)
+			}
+			else if( a.start === a.end ) {
+				result = -1;//-(a.originalIndex - b.originalIndex)
 			}
             else {
-				result = a.originalIndex - b.originalIndex;
+				result = 1;//a.originalIndex - b.originalIndex
 			}
         }
-        return result;
+		result = a.end - b.end;
+
+		if( result === 0 ){
+			if( a.priority === 0 ) {
+				if( b.priority === 0 ) {
+					result = -(a.originalIndex - b.originalIndex);
+				}
+				else {
+					result = -1;
+				}
+			}
+			else if( b.priority === 0 ) {
+				if( a.priority === 0 ) {
+					result = (a.originalIndex - b.originalIndex);
+				}
+				else {
+					result = 1;
+				}
+			}
+		}
+
+		return (result === 0 ? ( (result = a.start - b.start) === 0 ? a.originalIndex - b.originalIndex : result) : result);
     });
 
-    // smart-filter for changes: If one change A full-overwrite one or more changes B -> remove B
-    for( let i = 0, len = fragments.length ; i < len ; i++ ) {
-        let frag = fragments[i], nextFrag;
+	// create sub fragments
+	for( let len = fragments.length - 1, lastStart, lastEnd, groupFrag ; len >= 0 ;  len-- ) {
+		let frag = fragments[len];
 
-        do {
-            if( nextFrag = fragments[i + 1] ) {
-                if( nextFrag.start === frag.start && (frag.start !== frag.end) ) {
-                    if( nextFrag.start === nextFrag.end ) {
-                        nextFrag = null;
-                    }
-                    else if( nextFrag.end === frag.end && nextFrag.originalIndex > frag.originalIndex || nextFrag.end > frag.end ) {
-                        fragments.splice(i, 1);//remove current fragment
-                        frag = nextFrag;
-                    }
-                    else {
-                        fragments.splice(i + 1, 1);//remove next fragment
-                    }
-                    len--;
-                }
-                else if( frag.end > nextFrag.start && frag.end >= nextFrag.end ) { // nextFrag.start is <= frag.start due of previous sorting
-                    fragments.splice(i + 1, 1);//remove next fragment
-                    len--;
-                }
-                else {
-                    nextFrag = null;
-                }
-            }
-        }
-        while( nextFrag );
-    }
+		if( lastEnd && frag.start >= lastStart && frag.end < lastEnd ) {
+			if( !groupFrag.subFragments ) {
+				groupFrag.subFragments = [];
+			}
+			groupFrag.subFragments.unshift(frag);
+			fragments.splice(len, 1);
+		}
+		else {
+			lastStart = frag.start;
+			lastEnd = frag.end;
+			groupFrag = frag;
+		}
+	}
 
-    var outs = [];
+    var outsStr = "", outs = [];
 
-    var pos = 0;
+    var clearPos = 0, pos = 0, posOffset = 0, posInnerOffset = 0;
 	var currentOffsets = offsets.slice();
-
-    //console.log(fragments);
 
     for (var i = 0; i < fragments.length; i++) {
         var frag = fragments[i];
-	    var from = frag.start, to = frag.end;
 
-	    if( currentOffsets.length ) {
-		    let originalFrom = from, originalTo = to;
+		var $__0 = getPositionsWithOffset(currentOffsets, frag.start, frag.end);
+	    var from = $__0[0], to = $__0[1];
 
-		    for( let offset in currentOffsets ) if( currentOffsets.hasOwnProperty(offset) ) {
-			    // Fast enumeration through array MAY CAUSE PROBLEM WITH WRONG ORDER OF ARRAY ITEM, but it is unlikely
-			    offset = offset | 0;
-
-			    let offsetValue = currentOffsets[offset];
-
-			    if( offset <= originalTo ) {
-				    if( offset <= originalFrom ) {
-					    from += offsetValue;
-				    }
-				    to += offsetValue;
-			    }
-			    else {
-				    break;
-			    }
-		    }
-	    }
-
-        assert(pos <= from
+	    assert(
+		    (pos + posOffset) <= from
 			|| from === to//nothing to remove
-			, "'pos' (" + pos + ") shoulde be lq " + from + " or " + from + " equal " + to
+			, "'pos' (" + (pos + posOffset) + ") shoulde be lq 'start' (" + from + ") or 'start' (" + from + ") equal 'end' (" + to + ")"
         );
         assert(from <= to);
 
-	    //console.log(pos, frag.str, frag.start, frag.end)
-        if( safeOffset ) {
-            let offset = frag.str.length - (to - from);
-            if(offset) {
-                offsets[from] = offset;
-            }
-        }
+		if( frag.subFragments ) {
+			this.offsets = offsets.slice();
+			outsStr += outs.join("");
+			sourceString = this.alter(outsStr + sourceString.slice(pos + posOffset, from) + sourceString.slice(from, to) + sourceString.substring(to), frag.subFragments);
+			let offsetPos = getPositionsWithOffset(offsets, 0, clearPos)[1];
+			posOffset = offsetPos - pos;
+			let posInnerOffsetAdd = 0;
+			this.offsets.forEach(function(v, index) {
+				if(index >= offsetPos) {
+					offsets[index - posOffset - posInnerOffset] = v;
+					posInnerOffsetAdd += v;
+				}
+			});
+			posInnerOffset += posInnerOffsetAdd;
+			this.offsets = offsets;
+			currentOffsets = offsets.slice();
+			$__0 = getPositionsWithOffset(currentOffsets, frag.start, frag.end);
+			from = $__0[0];
+			to = $__0[1];
+			outs = [];
+		}
 
-        outs.push(str.slice(pos, from));
-        outs.push(frag.str);
-        pos = to;
+		let string = frag.str.replace(this.uniqueRE, function(str, from, to) {
+			to |= 0;
+
+			var $__0 = getPositionsWithOffset(currentOffsets, from | 0, to);
+
+			return sourceString.substring($__0[0], $__0[1]);
+		});
+
+		if( typeof frag.transform === "function" ) {
+			string = frag.transform.call(frag, string);
+		}
+
+		let offset = string.length - ( to - from );
+		if( offset ) {
+			let newIndex = from - posOffset - posInnerOffset
+				, oldValue = offsets[newIndex] | 0
+			;
+			offsets[newIndex] = oldValue + offset;
+		}
+
+		outs.push(sourceString.slice(pos + posOffset, from));
+		outs.push(string);
+
+        pos = to - posOffset;
+	    clearPos = frag.end;
     }
-    if (pos < str.length) {
-        outs.push(str.slice(pos));
+    if ((pos + posOffset) < sourceString.length) {
+        outs.push(sourceString.slice(pos + posOffset));
     }
 
-	//offsets && console.log(offsets.map(function(a, index){ return a && index } ).filter(function(a){ return !!a }))
-
-    return outs.join("");
+    return outsStr + outs.join("");
 }
 
 

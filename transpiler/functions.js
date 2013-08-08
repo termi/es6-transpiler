@@ -76,15 +76,7 @@ var plugin = module.exports = {
 					left = node.range[0];
 				}
 
-				let str = core.stringFromSrc(left, right).replace(/=>/gi, "");
-				//console.log(str)
-				//str = "[" + str + "]";
-
-				if( fnBodyIsSequenceExpression ) {
-					// =>   (   <function body>
-					str = str.replace(/\(/gi, "");
-				}
-
+				let str = core.stringFromSrc(left, right);
 
 				// add "function" word before arrow function params list
 				changes.push({
@@ -96,7 +88,18 @@ var plugin = module.exports = {
 				changes.push({
 					start: left,
 					end: right,
-					str: str
+					str: str,
+					transform: function(str) {
+						str = str.replace(/=>/gi, "");
+
+						if( this.fnBodyIsSequenceExpression ) {
+							// =>   (   <function body>
+							str = str.replace(/\(/gi, "");
+						}
+
+						return str
+					},
+					fnBodyIsSequenceExpression: fnBodyIsSequenceExpression
 				});
 			}
 
@@ -217,18 +220,21 @@ var plugin = module.exports = {
 				}
 			}
 
-			changes.push({
-				start: fnBodyStart,
-				end: fnBodyStart,
-				str: insertIntoBodyBegin
-			});
-			if( insertIntoBodyEnd ) {
+			if( insertIntoBodyBegin ) {
 				changes.push({
-					start: fnBodyEnd,
-					end: fnBodyEnd,
-					str: insertIntoBodyEnd,
-					reverse: true
+					start: fnBodyStart,
+					end: fnBodyStart,
+					str: insertIntoBodyBegin
 				});
+
+				if( insertIntoBodyEnd ) {
+					changes.push({
+						start: fnBodyEnd,
+						end: fnBodyEnd,
+						str: insertIntoBodyEnd,
+						reverse: true
+					});
+				}
 			}
 		}
 	}

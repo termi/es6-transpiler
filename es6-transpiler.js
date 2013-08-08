@@ -33,19 +33,21 @@ module.exports = {
 
 	, applyChanges: function(config, doNotReset) {
 		if( this.changes.length ) {// has changes in classes replacement Step
-			this.src = core.alter(this.src, this.changes, doNotReset);
+			this.src = core.alter(this.src, this.changes/*, doNotReset*/);
 			if( doNotReset !== true ) {
-				//console.log("RE AST", this.changes)
 				this.ast = this.esprima.parse(this.src, {
 					loc: true,
 					range: true
 				});
 
 				error.reset();
+				core.reset();
 			}
 
 			this.changes = [];
-			this.setupPlugins(config);
+			if( config ) {
+				this.setupPlugins(config);
+			}
 		}
 	}
 	, reset: function() {
@@ -125,9 +127,10 @@ module.exports = {
 			}
 
 			if( options.applyChangesAfter ) {
-				this.applyChanges(config, options.doNotParseSrc);
+				this.applyChanges(config);
 			}
 		}, this);
+
 
 		// output
 		if( error.errors.length ) {
@@ -145,7 +148,8 @@ module.exports = {
 			// apply changes produced by varify and return the transformed src
 			//console.log(changes);var transformedSrc = "";try{ transformedSrc = alter(src, changes) } catch(e){ console.error(e+"") };
 
-			output.src = core.alter(this.src, this.changes);
+			this.applyChanges(null, true);
+			output.src = this.src;
 		}
 
 		if( config.outputToConsole === true ) {
