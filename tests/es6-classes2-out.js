@@ -27,4 +27,4 @@ var class2 = (function(_super){
 	return class2;
 })(class1);
 
-console.log((new class2({message: "test"})).say() === "class1:test|class2|test|1|2:[static:class1][static:class2]")
+console.log((new class2({message: "test"})).say() === "class1:test|class2:test|1|2:[static:class1][static:class2]")
