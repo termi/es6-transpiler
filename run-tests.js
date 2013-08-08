@@ -47,24 +47,36 @@ if( commandVariables.filter && typeof commandVariables.filter === "string" ) {
 }
 
 function stringCompare(str1, str2, compareType, removeLines) {
-	str1 = str1
+	str1 = (str1 + "")
 		.replace(/((\r\n)|\r|\n)/g, "\n")// Windows/Unix, Unicode/ASCII and IDE line break
 		.replace(/\t/g, "    ")// IDE settings
 		.trim()
 	;
-	str2 = str2
+	str2 = (str2 + "")
 		.replace(/((\r\n)|\r|\n)/g, "\n")// Windows/Unix, Unicode/ASCII and IDE line break
 		.replace(/\t/g, "    ")// IDE settings
 		.trim()
 	;
+
+	// check ansidiff.words first due something wrong with ansidiff.lines method result
+	try {
+		ansidiff.words(str1, str2, function(obj) {
+			if( obj.added || obj.removed ) {
+				throw new Error();//diff's exists
+			}
+		});
+
+		return true;//no diff
+	}
+	catch(e) {
+
+	}
 
 	const compareFunction = compareType === "lines" ? ansidiff.lines : ansidiff.chars;
 
 	let equal = true
-		, lastDiffIndex = null
-		, result = compareFunction.call(ansidiff, str1, str2, function(obj, i, array) {
+		, result = compareFunction.call(ansidiff, str1, str2, function(obj) {
 			if( obj.added || obj.removed ) {
-				lastDiffIndex = i;
 				equal = false;
 
 				/*obj.added && console.log("added", "'" + obj.value + "'")
@@ -106,8 +118,18 @@ function fail(file, type, diff1, diff2) {
 }
 
 function test(file) {
-	let result = defsMain.run({filename: path.join(pathToTests, file), fullES6: true});
-	let errors = result.errors.join("\n");
+	let result;
+	let errors;
+	try {
+		result = defsMain.run({filename: path.join(pathToTests, file), fullES6: true});
+		errors = result.errors.join("\n");
+	}
+	catch(e) {
+		result = {
+			src: ""
+		};
+		errors = [e.message];
+	}
 	let srcOut = result.src;
 
 	const noSuffix = file.slice(0, -3);
