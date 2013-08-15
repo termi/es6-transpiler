@@ -13,6 +13,7 @@ let plugins = [
 	, require("./transpiler/letConst")
 	, require("./transpiler/functions")
 	, require("./transpiler/destructuring")
+	, require("./transpiler/quasiLiterals")
 ];
 
 module.exports = {
