@@ -6,6 +6,7 @@ Supported:
  * destructuring
  * let / const
  * function default
+ * arrow functions
 
 Static scope analysis and transpilation of ES6 block scoped `const` and `let`
 variables to ES3 based on https://github.com/olov/defs.
