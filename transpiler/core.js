@@ -643,8 +643,8 @@ function getPositionsWithOffset(offsets, positionFrom, positionTo) {
 
 			let offsetValue = offsets[offset];
 
-			if( offset <= originalTo ) {
-				if( offset <= originalFrom ) {
+			if( offset < originalTo ) {
+				if( offset < originalFrom ) {
 					positionFrom += offsetValue;
 				}
 				positionTo += offsetValue;
