@@ -12,7 +12,7 @@ function test1({opt1: opt1, opt2}) {
 		let {a: opt1, b: opt2} = {a: 9, b: 8};
 		console.log(opt1 === 9, opt2 === 8);
 		{
-			let {"opt1": opt1, opt2} = {opt1: 7, opt2: 6};
+			let {"opt1": opt1, opt2} = {"opt1": 7, opt2: 6};
 			console.log(opt1 === 7, opt2 === 6);
 		}
 	}

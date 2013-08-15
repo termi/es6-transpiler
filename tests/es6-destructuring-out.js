@@ -12,7 +12,7 @@ function test1($D$0) {var $D$5;var opt1 = $D$0.opt1, opt2 = $D$0.opt2;
 		var opt1$0 = ($D$5 = {a: 9, b: 8}).a, opt2$0 = $D$5.b;
 		console.log(opt1$0 === 9, opt2$0 === 8);
 		{
-			var opt1$1 = ($D$5 = {opt1: 7, opt2: 6})["opt1"], opt2$1 = $D$5.opt2;
+			var opt1$1 = ($D$5 = {"opt1": 7, opt2: 6})["opt1"], opt2$1 = $D$5.opt2;
 			console.log(opt1$1 === 7, opt2$1 === 6);
 		}
 	}
