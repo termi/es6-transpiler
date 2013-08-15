@@ -29,7 +29,6 @@ const classesTranspiler = {
 				, classStr
 				, classBodyNodes = node.body.body
 				, classConstructor
-				, indent = classBodyNodes[0] ? core.stringFromSrc(node.body.range[0] + 1, classBodyNodes[0].range[0]) : "\t"
 				, classBodyNodesCount = classBodyNodes.length
 				, extendedClassConstructorPostfix
 			;
@@ -42,7 +41,7 @@ const classesTranspiler = {
 			if( superClass ) {
 				classStr += "_super";
 				superClass = core.stringFromSrc(superClass.range[0], superClass.range[1]);
-				extendedClassConstructorPostfix = indent +
+				extendedClassConstructorPostfix =
 					"Object.assign(" + this.__currentClassName + ", _super);" +
 					this.__currentClassName + ".prototype = Object.create(_super.prototype);" +
 					this.__currentClassName + ".prototype.constructor = " + this.__currentClassName + ";"
@@ -93,7 +92,7 @@ const classesTranspiler = {
 				changes.push({
 					start: node.body.range[0] + 1,
 					end: (classBodyNodesCount ? node.body.body[0].range[0] : node.body.range[1]) - 1,
-					str: indent + "function " + this.__currentClassName + "() {" + (superClass ? "_super.apply(this, arguments)" : "") + "}" + (extendedClassConstructorPostfix || "") + "\n"
+					str: "function " + this.__currentClassName + "() {" + (superClass ? "_super.apply(this, arguments)" : "") + "}" + (extendedClassConstructorPostfix || "") + "\n"
 				});
 			}
 
@@ -105,7 +104,7 @@ const classesTranspiler = {
 			changes.push({
 				start: node.range[1] - 1,
 				end: node.range[1] - 1,
-				str: indent + "return " + this.__currentClassName + ";\n"
+				str: "return " + this.__currentClassName + ";"
 			});
 
 			changes.push({
