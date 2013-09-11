@@ -45,13 +45,13 @@ var plugin = module.exports = {
 		this.functions = [];
 	}
 
-	, setup: function(changes, ast, options) {
+	, setup: function(alter, ast, options) {
 		if( !this.__isInit ) {
 			this.reset();
 			this.__isInit = true;
 		}
 
-		this.changes = changes;
+		this.alter = alter;
 		this.options = options;
 	}
 

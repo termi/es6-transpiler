@@ -15,11 +15,11 @@ var y = function()
 console.log(y() === 1)
 
 {
-	var test = 987;
+	var test$0 = 987;
 	var result = (function() {
 		var obj = {
 			test: 123
-			, arr: (function()  {return (function()  {return this.test + test}).bind(this)}).bind(this)
+			, arr: (function()  {return (function()  {return this.test + test$0}).bind(this)}).bind(this)
 		}
 
 		return obj.arr()();
@@ -29,11 +29,11 @@ console.log(y() === 1)
 }
 
 {
-	var test$0 = 321;
+	var test$1 = 321;
 	result = (function() {
 		var obj = {
 			test: 123
-			, arr: (function()  {return (function()  {return (function(a)  {return this.test + a + test$0}).bind(this)}).bind(this)}).bind(this)
+			, arr: (function()  {return (function()  {return (function(a)  {return this.test + a + test$1}).bind(this)}).bind(this)}).bind(this)
 		}
 
 		return obj.arr()()("|");
@@ -43,10 +43,10 @@ console.log(y() === 1)
 }
 
 {
-	var test$1 = 777;
+	var test$2 = 777;
 	result = (function() {
 		var obj = {
-			test: "testString",arr: function() { return  (function()  {return this.test + test$1}).bind(this) },test2:1
+			test: "testString",arr: function() { return  (function()  {return this.test + test$2}).bind(this) },test2:1
 		};
 
 		return obj.arr()();
@@ -54,4 +54,12 @@ console.log(y() === 1)
 
 	console.log(result === "testString777");
 
+}
+
+{
+	function test() {
+		var z = (function()  {
+			this.test();
+		}).bind(this)
+	}
 }

@@ -29,20 +29,17 @@ let plugin = module.exports = {
 
 	}
 
-	, setup: function(changes, ast, options) {
+	, setup: function(alter, ast, options) {
 		if( !this.__isInit ) {
 			this.reset();
 			this.__isInit = true;
 		}
 
-		this.changes = changes;
+		this.alter = alter;
 		this.options = options;
 		if( typeof options.stats !== "object" ) {
 			options.stats = new Stats();
 		}
-
-		//options.applyChangesAfter = true;
-		//options.doNotParseSrc = true;
 	}
 
 	, before: function(ast) {
@@ -69,19 +66,19 @@ let plugin = module.exports = {
 
 	, renameDeclarations: function renameDeclarations(node) {
 		if( node.type === "VariableDeclaration" && isConstLet(node.kind) ) {
-			const changes = this.changes;
 			const hoistScope = node.$scope.closestHoistScope();
 			const origScope = node.$scope;
 			const stats = this.options.stats;
 
 			// text change const|let => var
-			changes.push({
-				start: node.range[0],
-				end: node.range[0] + node.kind.length,
-				str: "var"
-			});
+			this.alter.replace(
+				node.range[0]
+				, node.range[0] + node.kind.length
+				, "var"
+			);
 
 			let declarations = node.declarations;
+			let hasLoopScopeBetween;
 
 			declarations.forEach(function renameDeclaration(declarator) {
 				var declaratorId = isObjectPattern(declarator) || isArrayPattern(declarator)
@@ -91,13 +88,8 @@ let plugin = module.exports = {
 							: declarator.id
 				;
 
-				//console.log(declarator.type, declarator.$parent.$type)
 				assert(
 					declarator.type === "VariableDeclarator" || declarator.$type === "VariableDeclarator"
-					/*|| (
-					 ( isObjectPattern(declarator.id) || isArrayPattern(declarator.id) )
-					 && ( declarator.$parent.type === "VariableDeclarator" || declarator.$parent.$type === "VariableDeclarator" )
-					 )*/
 				);
 
 				if( isObjectPattern(declaratorId) ) {
@@ -188,16 +180,39 @@ let plugin = module.exports = {
 
 					if( needSrcChanges ) {
 						// textchange var x => var x$1
-						changes.push({
-							start: declaratorId.range[0],
-							end: declaratorId.range[1],
-							str: prefix + newName
-						});
+						this.alter.replace(
+							declaratorId.range[0]
+							, declaratorId.range[1]
+							, prefix + newName
+						);
+					}
+				}
+
+				if( needSrcChanges ) {
+					if( declarator.init == null ) {
+						if( hasLoopScopeBetween === void 0 ) {
+							hasLoopScopeBetween = origScope.hasLoopScopeBetween(hoistScope, true);
+						}
+						if( hasLoopScopeBetween ) {
+							this.alter.insert(
+								declaratorId.range[1]
+								, " = void 0"
+							);
+//							declarator.init = {
+//								"type": "UnaryExpression",
+//								"operator": "void",
+//								"argument": {
+//									"type": "Literal",
+//									"value": 0,
+//									"raw": "0"
+//								}
+//							}
+						}
 					}
 				}
 
 				//node.kind = "var";
-			});
+			}, this);
 		}
 	}
 
@@ -220,11 +235,11 @@ let plugin = module.exports = {
 			node.originalName = node.name;
 			node.name = move.name;
 
-			this.changes.push({
-				start: node.range[0],
-				end: node.range[1],
-				str: move.name
-			});
+			this.alter.replace(
+				node.range[0]
+				, node.range[1]
+				, move.name
+			);
 		}
 	}
 };

@@ -9,21 +9,19 @@ const classesTranspiler = {
 		this.__currentClassName = null;
 	}
 
-	, setup: function(changes, ast, options) {
+	, setup: function(alter, ast, options) {
 		if( !this.__isInit ) {
 			this.reset();
 			this.__isInit = true;
 		}
 
-		this.changes = changes;
+		this.alter = alter;
 
 		options.applyChangesAfter = true;
 	}
 
 	, pre: function replaceClassBody(node) {
 		if( node.type === "ClassDeclaration" ) {
-			const changes = this.changes;
-
 			let nodeId = node.id
 				, superClass = node.superClass
 				, classStr
@@ -40,7 +38,7 @@ const classesTranspiler = {
 
 			if( superClass ) {
 				classStr += "_super";
-				superClass = core.stringFromSrc(superClass.range[0], superClass.range[1]);
+				superClass = this.alter.get(superClass.range[0], superClass.range[1]);
 				extendedClassConstructorPostfix =
 					"Object.assign(" + this.__currentClassName + ", _super);" +
 					this.__currentClassName + ".prototype = Object.create(_super.prototype);" +
@@ -51,15 +49,8 @@ const classesTranspiler = {
 			classStr += ")";
 
 			// replace class definition
-			// text change 'class A[ extends B]' => ''
-			changes.push({
-				start: node.range[0],
-				end: node.body.range[0],
-				str: classStr
-			});
-
-			//classStr = "";
-
+			// text change 'class A[ extends B]' => 'var A = (function([_super])'
+			this.alter.replace(node.range[0], node.body.range[0], classStr);
 
 			for( let i = 0 ; i < classBodyNodesCount && !classConstructor ; i++ ) {
 				classConstructor = classBodyNodes[i];
@@ -74,26 +65,18 @@ const classesTranspiler = {
 			if( classConstructor ) {
 				classBodyNodesCount--;
 
-				changes.push({
-					start: classConstructor.key.range[0],
-					end: classConstructor.key.range[1],
-					str: "function " + this.__currentClassName
-				});
+				this.alter.replace(classConstructor.key.range[0], classConstructor.key.range[1], "function " + this.__currentClassName);
 				if( extendedClassConstructorPostfix ) {
-					changes.push({
-						start: classConstructor.range[1],
-						end: classConstructor.range[1],
-						str: extendedClassConstructorPostfix
-					});
+					this.alter.insert(classConstructor.range[1], extendedClassConstructorPostfix);
 				}
 				core.traverse(classConstructor, {pre: this.replaceClassConstructorSuper});
 			}
 			else {
-				changes.push({
-					start: node.body.range[0] + 1,
-					end: (classBodyNodesCount ? node.body.body[0].range[0] : node.body.range[1]) - 1,
-					str: "function " + this.__currentClassName + "() {" + (superClass ? "_super.apply(this, arguments)" : "") + "}" + (extendedClassConstructorPostfix || "") + "\n"
-				});
+				this.alter.replace(
+					node.body.range[0] + 1
+					, (classBodyNodesCount ? node.body.body[0].range[0] : node.body.range[1]) - 1
+					, "function " + this.__currentClassName + "() {" + (superClass ? "_super.apply(this, arguments)" : "") + "}" + (extendedClassConstructorPostfix || "") + "\n"
+				);
 			}
 
 
@@ -101,17 +84,9 @@ const classesTranspiler = {
 				core.traverse(node.body, {pre: this.replaceClassMethods})
 			}
 
-			changes.push({
-				start: node.range[1] - 1,
-				end: node.range[1] - 1,
-				str: "return " + this.__currentClassName + ";"
-			});
+			this.alter.insert(node.range[1] - 1, "return " + this.__currentClassName + ";");
 
-			changes.push({
-				start: node.range[1],
-				end: node.range[1],
-				str: ")(" + (superClass || "") + ");"
-			});
+			this.alter.insert(node.range[1], ")(" + (superClass || "") + ");");
 
 			this.__currentClassName = null;
 			return false;
@@ -120,7 +95,6 @@ const classesTranspiler = {
 	}
 
 	, unwrapSuperCall: function unwrapSuperCall(node, calleeNode, isStatic, property, isConstructor) {
-		const changes = this.changes;
 		let changeStr = "_super" + (isStatic ? "" : ".prototype");
 		let callArguments = node.arguments;
 		let hasSpreadElement = !isStatic && callArguments.some(function(node){ return node.type === "SpreadElement" });
@@ -143,11 +117,7 @@ const classesTranspiler = {
 		}
 
 		// text change 'super(<some>)' => '_super(<some>)' (if <some> contains SpreadElement) or '_super.call(this, <some>)'
-		changes.push({
-			start: calleeNode.range[0],
-			end: changesEnd,
-			str: changeStr
-		});
+		this.alter.replace(calleeNode.range[0], changesEnd, changeStr);
 	}
 	
 	, replaceClassConstructorSuper: function replaceClassConstructorSuper(node) {
@@ -162,32 +132,19 @@ const classesTranspiler = {
 	
 	, replaceClassMethods: function replaceClassMethods(node) {
 		if( node.type === "MethodDefinition" && node.key.name !== "constructor" ) {
-			const changes = this.changes;
-
 			this.__currentClassMethodsStatic = node.static;
+
 			if( this.__currentClassMethodsStatic === true ) {
 				// text change 'method(<something>)' => 'ClassName.method(<something>)'
-				changes.push({
-					start: node.range[0],
-					end: node.key.range[0],
-					str: this.__currentClassName + "."
-				});
+				this.alter.replace(node.range[0], node.key.range[0], this.__currentClassName + ".");
 			}
 			else {
 				// text change 'method(<something>)' => 'ClassName.prototype.method(<something>)'
-				changes.push({
-					start: node.range[0],
-					end: node.key.range[0],
-					str: this.__currentClassName + ".prototype."
-				});
+				this.alter.replace(node.range[0], node.key.range[0], this.__currentClassName + ".prototype.");
 			}
 
 			// text change 'method(<something>)' => 'method = function(<something>)'
-			changes.push({
-				start: node.key.range[1],
-				end: node.key.range[1],
-				str: " = function"
-			});
+			this.alter.insert(node.key.range[1], " = function");
 
 			core.traverse(node.value, {pre: this.replaceClassMethodSuper})
 		}

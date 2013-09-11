@@ -9,7 +9,6 @@ function getline(node) {
 	return node.loc.start.line;
 }
 
-
 function isVarConstLet(kind) {
 	return is.someof(kind, ["var", "const", "let"]);
 }
@@ -22,22 +21,18 @@ function isArrayPattern(node) {
 	return node && node.type == 'ArrayPattern';
 }
 
-function isFunction(node) {
-	return is.someof(node.type, ["FunctionDeclaration", "FunctionExpression", "ArrowFunctionExpression"]);
-}
-
 var plugin = module.exports = {
 	reset: function() {
 
 	}
 
-	, setup: function(changes, ast, options) {
+	, setup: function(alter, ast, options) {
 		if( !this.__isInit ) {
 			this.reset();
 			this.__isInit = true;
 		}
 
-		this.changes = changes;
+		this.alter = alter;
 		this.options = options;
 	}
 
@@ -71,11 +66,11 @@ var plugin = module.exports = {
 		let isFirstVar = declarationString.substring(0, 4) === "var ";
 
 		// replace destructuring with simple variable declaration
-		this.changes.push({
-			start: declarator.range[0],
-			end: declarator.range[1],
-			str: (isFirstVar ? declarationString.substr(4) : declarationString)//remove first "var " if need
-		});
+		this.alter.replace(
+			declarator.range[0]
+			, declarator.range[1]
+			, (isFirstVar ? declarationString.substr(4) : declarationString)//remove first "var " if need
+		);
 	}
 
 	, __replaceAssignment: function(assignment, assignmentLeft) {
@@ -84,11 +79,11 @@ var plugin = module.exports = {
 		let declarationString = this.unwrapDestructuring("", assignmentLeft, assignmentRight);
 
 		// replace destructuring with simple variable assignment
-		this.changes.push({
-			start: assignment.range[0],
-			end: assignment.range[1],
-			str: declarationString
-		});
+		this.alter.replace(
+			assignment.range[0]
+			, assignment.range[1]
+			, declarationString
+		);
 	}
 
 	, unwrapDestructuring: function unwrapDestructuring(kind, definitionNode, valueNode, newVariables) {
@@ -116,7 +111,6 @@ var plugin = module.exports = {
 
 			let delimiter;
 			if( needsFirstComma ) {
-//				delimiter = "|, |";
 				delimiter = ", ";
 				needsFirstComma = false;
 			}
@@ -147,27 +141,29 @@ var plugin = module.exports = {
 		}
 		else {
 			isTemporaryVariable = true;
-			valueIdentifierDefinition = core.stringFromSrc(valueNode);
+			valueIdentifierDefinition = this.alter.get(valueNode.range[0], valueNode.range[1]) + "";
 		}
 
 		if( isTemporaryVariable ) {
-			if( isObjectPattern(definitionNode) ) {
-				if( definitionNode.properties.length < 2 ) {
-					isTemporaryVariable = false;
-				}
-			}
-			else {
-				if( definitionNode.elements.length < 2 ) {
-					isTemporaryVariable = false;
-				}
-			}
-
-			if( isTemporaryVariable == false ) {
-				if( valueIdentifierDefinition.charAt(0) !== "(") {
-					valueIdentifierName = "(" + valueIdentifierDefinition + ")";
+			if( valueNode.type === "Identifier" || type === 1 ) {
+				if( isObjectPattern(definitionNode) ) {
+					if( definitionNode.properties.length < 2 ) {
+						isTemporaryVariable = false;
+					}
 				}
 				else {
-					valueIdentifierName = valueIdentifierDefinition;
+					if( definitionNode.elements.length < 2 ) {
+						isTemporaryVariable = false;
+					}
+				}
+
+				if( isTemporaryVariable === false ) {
+					if( valueIdentifierDefinition.charAt(0) !== "(") {
+						valueIdentifierName = "(" + valueIdentifierDefinition + ")";
+					}
+					else {
+						valueIdentifierName = valueIdentifierDefinition;
+					}
 				}
 			}
 		}

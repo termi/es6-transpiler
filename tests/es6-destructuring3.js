@@ -15,15 +15,15 @@ let test1, test2;
 }
 
 {
-	let a = void 0, b = void 0, c = void 0
+	let a = void 0, b = void 0, c = void 0, test1;
 
 	let obj = {
 		test2: ( ({a = 9, b = 8, c = 7}) = {a: a, b: b, c: c} ).a
-		, test1: b
+		, test1: ( ({test1 = 777}) = {test1: test1} ).test1
 		, test3: c
 	}
 	test2 = function() {
-		console.log(this.test2 === void 0, this.test1 === 8, this.test3 === 7, a === 9, b === 8, c === 7)
+		console.log(this.test2 === void 0, this.test1 === void 0, this.test3 === 7, a === 9, b === 8, c === 7, test1 === 777)
 	}.bind(obj);
 }
 

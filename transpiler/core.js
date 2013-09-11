@@ -70,8 +70,6 @@ function isArrayPattern(node) {
 
 
 let core = module.exports = {
-    alter: alter,
-
 	traverse: traverse,
 
 	reset: function() {
@@ -79,21 +77,15 @@ let core = module.exports = {
 
 		this.outermostLoop = null;
 		this.functions = [];
-        this.offsets = [];
-
-		this.uniqueStart = "[<" + ((Math.random() * 1e8) | 0);//should matches /\[\<\d{8}/
-		this.uniqueSeparator = "" + ((Math.random() * 1e8) | 0);//should matches /\d{8}/
-		this.uniqueEnd = ((Math.random() * 1e8) | 0) + ">]";//should matches /\d{8}\>\]/
-		this.uniqueRE = new RegExp("\\[\\<\\d{" + (this.uniqueStart.length - 2) + "}\\[(\\d+)\\]\\d{" + this.uniqueSeparator.length + "}\\[(\\d+)\\]\\d{" + (this.uniqueEnd.length - 2) + "}\\>\\]", "g");
 	}
 
-	, setup: function(changes, ast, options, src) {
+	, setup: function(alter, ast, options, src) {
 		if( !this.__isInit ) {
 		this.reset();
 			this.__isInit = true;
 		}
 
-		this.changes = changes;
+		this.alter = alter;
 		this.src = src;
 		this.options = options;
 	}
@@ -133,6 +125,18 @@ let core = module.exports = {
 				return genName;
 			}
 		}
+	}
+
+	, uniqueByToken: function (token, name, newVariable, additionalFilter) {
+		if( this.__nameByToken && token in this.__nameByToken ) {
+			return this.__nameByToken[token];
+		}
+
+		if( !this.__nameByToken ) {
+			this.__nameByToken = {};
+		}
+
+		return this.__nameByToken[token] = this.unique(name, newVariable, additionalFilter);
 	}
 
 	, createScopes: function (node, parent) {
@@ -467,6 +471,21 @@ let core = module.exports = {
 		return node.name + " = [].slice.call(" + donor + ", " + fromIndex + ")";
 	}
 
+
+	,
+	/**
+	 * TODO:: update this method to unwrapp more node types
+	 * @param {Object} node
+	 */
+	unwrapNode: function(node) {
+		assert(typeof node === "object");
+		var from = node.range[0], to = node.range[1];
+
+		if( node.type === "SequenceExpression" )return "(" + this.alter.get(from, to) + ")";
+		if( node.type === "ConditionalExpression" )return "(" + this.alter.get(from, to) + ")";
+		return this.alter.get(from, to);
+	}
+
 	,
 	/**
 	 *
@@ -495,7 +514,7 @@ let core = module.exports = {
 
 	,
 
-	__assignmentString: function(node) {
+	__assignmentString: function(node, isDeclaration) {
 		assert(node.type === "AssignmentExpression" || node.type === "VariableDeclarator");
 
 		let left, right, isAssignmentExpression = node.type === "AssignmentExpression";
@@ -522,7 +541,7 @@ let core = module.exports = {
 			let tempVar = core.getScopeTempVar(node.$scope);
 
 			result += (
-				"((" + tempVar + " = " + valueString + ") === void 0 ? " + core.stringFromSrc(destructuringDefaultNode) + " : " + tempVar + ")"
+				"((" + tempVar + " = " + valueString + ") === void 0 ? " + this.alter.get(destructuringDefaultNode.range[0], destructuringDefaultNode.range[1]) + " : " + tempVar + ")"
 			);
 
 			core.setScopeTempVar(node.$scope, tempVar);
@@ -548,31 +567,6 @@ let core = module.exports = {
 		return this.__assignmentString(definition, true);
 	}
 
-
-	,
-	/**
-	 *
-	 * @param {(Object|number)} nodeOrFrom
-	 * @param {number=} to
-	 * @returns {string}
-	 */
-	stringFromSrc: function(nodeOrFrom, to) {
-        let from;
-
-		if( typeof nodeOrFrom === "object" ) {
-            from = nodeOrFrom.range[0];
-            to = nodeOrFrom.range[1];
-		}
-		else if( typeof nodeOrFrom === "number" && typeof to === "number" ) {
-            from = nodeOrFrom;
-		}
-		else {
-			throw new Error();
-		}
-
-		return this.uniqueStart + "[" + from + "]" + this.uniqueSeparator + "[" + to + "]" + this.uniqueEnd;
-	}
-
 	, getScopeTempVar: function(scope) {
 		assert(scope instanceof Scope, scope + " is not instance of Scope");
 
@@ -596,12 +590,7 @@ let core = module.exports = {
 				insertInto++;
 			}
 
-			this.changes.push({
-				start: insertInto,
-				end: insertInto,
-				str: "var " + freeVar + ";",
-				priority: 0
-			});
+			this.alter.insertBefore(insertInto, "var " + freeVar + ";");
 		}
 		/*newDefinitions.push({
 			"type": "EmptyStatement"
@@ -632,187 +621,6 @@ let core = module.exports = {
 		scope.pushFree(freeVar);
 	}
 };
-
-function getPositionsWithOffset(offsets, positionFrom, positionTo) {
-	if( offsets && offsets.length ) {
-		let originalFrom = positionFrom, originalTo = positionTo;
-
-		for( let offset in offsets ) if( offsets.hasOwnProperty(offset) ) {
-			// Fast enumeration through array MAY CAUSE PROBLEM WITH WRONG ORDER OF ARRAY ITEM, but it is unlikely
-			offset = offset | 0;
-
-			let offsetValue = offsets[offset];
-
-			if( offset < originalTo ) {
-				if( offset < originalFrom ) {
-					positionFrom += offsetValue;
-				}
-				positionTo += offsetValue;
-			}
-			else {
-				break;
-			}
-		}
-	}
-
-	return [
-		positionFrom
-		, positionTo
-	]
-}
-
-/**
- * @this {core}
- * @param {string} sourceString
- * @param {Array.<{start: number, end: number}>} fragments
- * @returns {string}
- */
-function alter(sourceString, fragments) {
-    "use strict";
-
-    assert(typeof sourceString === "string");
-    assert(Array.isArray(fragments));
-    assert(!!fragments.length);
-
-    let offsets = this.offsets;
-
-    if( fragments[0].originalIndex === void 0 ) {
-	    fragments = fragments.map(function(v, index) {
-		    v.originalIndex = index;
-		    return v;
-	    });
-    }
-
-    fragments.sort(function(a, b) {
-        var result = a.start - b.start;
-
-        if( result === 0 ) {
-			if( a.reverse && b.reverse && a.start === a.end && b.start === b.end ) {
-				result = -1;//-(a.originalIndex - b.originalIndex)
-			}
-			else if( a.start === a.end ) {
-				result = -1;//-(a.originalIndex - b.originalIndex)
-			}
-            else {
-				result = 1;//a.originalIndex - b.originalIndex
-			}
-        }
-		result = a.end - b.end;
-
-		if( result === 0 ){
-			if( a.priority === 0 ) {
-				if( b.priority === 0 ) {
-					result = -(a.originalIndex - b.originalIndex);
-				}
-				else {
-					result = -1;
-				}
-			}
-			else if( b.priority === 0 ) {
-				if( a.priority === 0 ) {
-					result = (a.originalIndex - b.originalIndex);
-				}
-				else {
-					result = 1;
-				}
-			}
-		}
-
-		return (result === 0 ? ( (result = a.start - b.start) === 0 ? a.originalIndex - b.originalIndex : result) : result);
-    });
-
-	// create sub fragments
-	for( let len = fragments.length - 1, lastStart, lastEnd, groupFrag ; len >= 0 ;  len-- ) {
-		let frag = fragments[len];
-
-		if( lastEnd && frag.start >= lastStart && frag.end < lastEnd ) {
-			if( !groupFrag.subFragments ) {
-				groupFrag.subFragments = [];
-			}
-			groupFrag.subFragments.unshift(frag);
-			fragments.splice(len, 1);
-		}
-		else {
-			lastStart = frag.start;
-			lastEnd = frag.end;
-			groupFrag = frag;
-		}
-	}
-
-    var outsStr = "", outs = [];
-
-    var clearPos = 0, pos = 0, posOffset = 0, posInnerOffset = 0;
-	var currentOffsets = offsets.slice();
-
-    for (var i = 0; i < fragments.length; i++) {
-        var frag = fragments[i];
-
-		var $__0 = getPositionsWithOffset(currentOffsets, frag.start, frag.end);
-	    var from = $__0[0], to = $__0[1];
-
-	    assert(
-		    (pos + posOffset) <= from
-			|| from === to//nothing to remove
-			, "'pos' (" + (pos + posOffset) + ") shoulde be lq 'start' (" + from + ") or 'start' (" + from + ") equal 'end' (" + to + ")"
-        );
-        assert(from <= to);
-
-		if( frag.subFragments ) {
-			this.offsets = offsets.slice();
-			outsStr += outs.join("");
-			sourceString = this.alter(outsStr + sourceString.slice(pos + posOffset, from) + sourceString.slice(from, to) + sourceString.substring(to), frag.subFragments);
-			let offsetPos = getPositionsWithOffset(offsets, 0, clearPos)[1];
-			posOffset = offsetPos - pos;
-			let posInnerOffsetAdd = 0;
-			this.offsets.forEach(function(v, index) {
-				if(index >= offsetPos) {
-					offsets[index - posOffset - posInnerOffset] = v;
-					posInnerOffsetAdd += v;
-				}
-			});
-			posInnerOffset += posInnerOffsetAdd;
-			this.offsets = offsets;
-			currentOffsets = offsets.slice();
-			$__0 = getPositionsWithOffset(currentOffsets, frag.start, frag.end);
-			from = $__0[0];
-			to = $__0[1];
-			outs = [];
-		}
-
-		let string = frag.str.replace(this.uniqueRE, function(str, from, to) {
-			to |= 0;
-
-			var $__0 = getPositionsWithOffset(currentOffsets, from | 0, to);
-
-			return sourceString.substring($__0[0], $__0[1]);
-		});
-
-		if( typeof frag.transform === "function" ) {
-			string = frag.transform.call(frag, string);
-		}
-
-		let offset = string.length - ( to - from );
-		if( offset ) {
-			let newIndex = from - posOffset - posInnerOffset
-				, oldValue = offsets[newIndex] | 0
-			;
-			offsets[newIndex] = oldValue + offset;
-		}
-
-		outs.push(sourceString.slice(pos + posOffset, from));
-		outs.push(string);
-
-        pos = to - posOffset;
-	    clearPos = frag.end;
-    }
-    if ((pos + posOffset) < sourceString.length) {
-        outs.push(sourceString.slice(pos + posOffset));
-    }
-
-    return outsStr + outs.join("");
-}
-
-
 
 for(let i in core) if( core.hasOwnProperty(i) && typeof core[i] === "function" ) {
 	core[i] = core[i].bind(core);

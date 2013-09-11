@@ -15,7 +15,7 @@ test1({someValue: 999, b: "bValue"});
 	console.log(a === 123, b === 321);
 })({});
 
-function test2(auto) {var $D$3;var $D$2;var c = (($D$3 = ($D$2 = (arguments[1] !== void 0 ? arguments[1] : {a: {test: 1, q: 2}}).a).test) === void 0 ? "test" : $D$3), q = (($D$3 = $D$2.q) === void 0 ? "default" : $D$3);var a = (($D$3 = ($D$2 = (arguments[2] !== void 0 ? arguments[2] : ["9", null, void 0, "6", "5", "4"]))[0]) === void 0 ? 1 : $D$3), b = (($D$3 = $D$2[2]) === void 0 ? 2 : $D$3), rest = [].slice.call($D$2, 3);var def = arguments[3];if(def === void 0)def = "def";
+function test2(auto) {var $D$2;var $D$3;var c = (($D$3 = ($D$2 = (arguments[1] !== void 0 ? arguments[1] : {a: {test: 1, q: 2}}).a).test) === void 0 ? "test" : $D$3), q = (($D$3 = $D$2.q) === void 0 ? "default" : $D$3);var a = (($D$3 = ($D$2 = (arguments[2] !== void 0 ? arguments[2] : ["9", null, void 0, "6", "5", "4"]))[0]) === void 0 ? 1 : $D$3), b = (($D$3 = $D$2[2]) === void 0 ? 2 : $D$3), rest = [].slice.call($D$2, 3);var def = arguments[3];if(def === void 0)def = "def";
 	if( auto ) {
 		console.log(c === 1, q === 2, a === "9", b === 2, rest.join("|") === "6|5|4", def === "def")
 	}

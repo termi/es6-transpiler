@@ -5,6 +5,7 @@ const traverse = require("./lib/traverse");
 const error = require("./lib/error");
 const defaultOptions = require("./options");
 const core = require("./transpiler/core");
+const StringAlter = require("./lib/StringAlter-es5");
 
 let plugins = [
 	require("./transpiler/classes")
@@ -12,6 +13,7 @@ let plugins = [
 	, core
 	, require("./transpiler/letConst")
 	, require("./transpiler/functions")
+	, require("./transpiler/spread")
 	, require("./transpiler/destructuring")
 	, require("./transpiler/quasiLiterals")
 ];
@@ -27,14 +29,15 @@ module.exports = {
 			for(let i in config)if(config.hasOwnProperty(i))options[i] = config[i];
 
 			if( typeof plugin.setup === "function" ) {
-				plugin.setup(this.changes, this.ast, options, this.src);
+				plugin.setup(this.alter, this.ast, options, this.src);
 			}
 		}, this);
 	}
 
 	, applyChanges: function(config, doNotReset) {
-		if( this.changes.length ) {// has changes in classes replacement Step
-			this.src = core.alter(this.src, this.changes/*, doNotReset*/);
+		if( this.alter.hasChanges() ) {// has changes in classes replacement Step
+			this.src = this.alter.apply();
+
 			if( doNotReset !== true ) {
 				this.ast = this.esprima.parse(this.src, {
 					loc: true,
@@ -43,9 +46,10 @@ module.exports = {
 
 				error.reset();
 				core.reset();
+
+				this.alter = new StringAlter(this.src);
 			}
 
-			this.changes = [];
 			if( config ) {
 				this.setupPlugins(config);
 			}
@@ -69,8 +73,6 @@ module.exports = {
 			this.reset();
 		}
 		this.runned = true;
-
-		this.changes = [];
 
 		// esprima
 		let esprima;
@@ -106,6 +108,8 @@ module.exports = {
 		else {
 			throw new Error("Input not found " + config.filename);
 		}
+
+		this.alter = new StringAlter(this.src);
 
 		// output
 		const output = {errors: [], src: ""};
@@ -153,8 +157,11 @@ module.exports = {
 			output.src = this.src;
 		}
 
-		if( config.outputToConsole === true ) {
+		if( config.outputToConsole === true	) {
 			outputToConsole(output, config);
+		}
+		if( config.outputFilename ) {
+			fs.writeFileSync(config.outputFilename, output.src)
 		}
 		return output;
 	}

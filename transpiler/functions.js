@@ -29,21 +29,21 @@ var plugin = module.exports = {
 
 	}
 
-	, setup: function(changes, ast, options) {
+	, setup: function(alter, ast, options) {
 		if( !this.__isInit ) {
 			this.reset();
 			this.__isInit = true;
 		}
 
-		this.changes = changes;
+		this.alter = alter;
 		this.options = options;
 	}
 
 	, pre: function functionDestructuringAndDefaultsAndRest(node) {
 		if ( isFunction(node) ) {
-			const changes = this.changes;
 			const functionBody = node.body;
-			const isArrowFunction = node.type === "ArrowFunctionExpression", fnBodyIsSequenceExpression = isArrowFunction && functionBody.type === "SequenceExpression";
+			const isArrowFunction = node.type === "ArrowFunctionExpression";
+			const fnBodyIsSequenceExpression = isArrowFunction && functionBody.type === "SequenceExpression";
 			const defaults = node.defaults;
 			const params = node.params;
 			const rest = node.rest;
@@ -76,31 +76,32 @@ var plugin = module.exports = {
 					left = node.range[0];
 				}
 
-				let str = core.stringFromSrc(left, right);
+				let str = this.alter.get(left, right);
 
 				// add "function" word before arrow function params list
-				changes.push({
-					start: node.range[0],
-					end: node.range[0],
-					str: (doesThisInsideArrowFunction ? "(" : "") + "function"// + "|"
-				});
+				this.alter.insert(
+					node.range[0]
+					, (doesThisInsideArrowFunction ? "(" : "") + "function"// + "|"
+				);
+
 				// remove "=>"
-				changes.push({
-					start: left,
-					end: right,
-					str: str,
-					transform: function(str) {
-						str = str.replace(/=>/gi, "");
+				this.alter.replace(
+					left
+					, right
+					, str
+					, {
+						transform: function(str) {
+							str = str.replace(/=>/gi, "");
 
-						if( this.fnBodyIsSequenceExpression ) {
-							// =>   (   <function body>
-							str = str.replace(/\(/gi, "");
+							if( fnBodyIsSequenceExpression ) {
+								// =>   (   <function body>
+								str = str.replace(/\(/gi, "");
+							}
+
+							return str
 						}
-
-						return str
-					},
-					fnBodyIsSequenceExpression: fnBodyIsSequenceExpression
-				});
+					}
+				);
 			}
 
 			if( paramsCount ) {
@@ -124,11 +125,11 @@ var plugin = module.exports = {
 						insertIntoBodyBegin += paramStr;
 
 						// cleanup
-						changes.push({
-							start: (prevParam ? prevParam.range[1] + 1 : param.range[0]) - (prevParam ? 1 : 0),
-							end: param.range[1],
-							str: (i === 0 ? "" : ", ") + newParamName
-						});
+						this.alter.replace(
+							(prevParam ? prevParam.range[1] + 1 : param.range[0]) - (prevParam ? 1 : 0)
+							, param.range[1]
+							, (i === 0 ? "" : ", ") + newParamName
+						);
 					}
 				}
 			}
@@ -151,13 +152,13 @@ var plugin = module.exports = {
 							destructuring.unwrapDestructuring(
 								"var"
 								, param
-								, {type: "Identifier", name: "(arguments[" + paramIndex + "] !== void 0 ? arguments[" + paramIndex + "] : " + core.stringFromSrc(dflt) + ")"}
+								, {type: "Identifier", name: "(arguments[" + paramIndex + "] !== void 0 ? arguments[" + paramIndex + "] : " + this.alter.get(dflt.range[0], dflt.range[1]) + ")"}
 							) + ";"
 						;
 					}
 					else {
 						defaultStr = "var "
-							+ core.definitionWithDefaultString(param, "arguments[" + paramIndex + "]", core.stringFromSrc(dflt))
+							+ core.definitionWithDefaultString(param, "arguments[" + paramIndex + "]", this.alter.get(dflt.range[0], dflt.range[1]))
 							+ ";"
 					}
 
@@ -168,11 +169,10 @@ var plugin = module.exports = {
 
 					// cleanup default definition
 					// text change 'param = value' => ''
-					changes.push({
-						start: ((prevDflt || prevParam) ? ((prevDflt || prevParam).range[1] + 1) : param.range[0]) - (prevParam ? 1 : 0),
-						end: dflt.range[1],
-						str: ""
-					});
+					this.alter.remove(
+						((prevDflt || prevParam) ? ((prevDflt || prevParam).range[1] + 1) : param.range[0]) - (prevParam ? 1 : 0)
+						, dflt.range[1]
+					);
 				}
 			}
 
@@ -185,11 +185,10 @@ var plugin = module.exports = {
 				insertIntoBodyBegin += restStr;
 
 				// cleanup rest definition
-				changes.push({
-					start: ((lastDflt || lastParam) ? ((lastDflt || lastParam).range[1] + 1) : rest.range[0]) - (lastParam ? 1 : 3),
-					end: rest.range[1],
-					str: ""
-				});
+				this.alter.remove(
+					((lastDflt || lastParam) ? ((lastDflt || lastParam).range[1] + 1) : rest.range[0]) - (lastParam ? 1 : 3)
+					, rest.range[1]
+				);
 			}
 
 			if( isArrowFunction && functionBody.type !== "BlockStatement" ) {
@@ -219,22 +218,18 @@ var plugin = module.exports = {
 					"loc": functionBody.loc//WARNING!!! loc is not accurate
 				}
 			}
+			else {
+				if( doesThisInsideArrowFunction ) {
+					insertIntoBodyEnd = ").bind(this)";
+				}
+			}
 
 			if( insertIntoBodyBegin ) {
-				changes.push({
-					start: fnBodyStart,
-					end: fnBodyStart,
-					str: insertIntoBodyBegin
-				});
+				this.alter.insert(fnBodyStart, insertIntoBodyBegin);
+			}
 
-				if( insertIntoBodyEnd ) {
-					changes.push({
-						start: fnBodyEnd,
-						end: fnBodyEnd,
-						str: insertIntoBodyEnd,
-						reverse: true
-					});
-				}
+			if( insertIntoBodyEnd ) {
+				this.alter.insertAfter(fnBodyEnd, insertIntoBodyEnd);
 			}
 		}
 	}

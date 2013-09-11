@@ -55,3 +55,11 @@ console.log(y() === 1)
 	console.log(result === "testString777");
 
 }
+
+{
+	function test() {
+		var z = () => {
+			this.test();
+		}
+	}
+}

@@ -9,13 +9,13 @@ var plugin = module.exports = {
 
 	}
 
-	, setup: function(changes, ast, options) {
+	, setup: function(alter, ast, options) {
 		if( !this.__isInit ) {
 			this.reset();
 			this.__isInit = true;
 		}
 
-		this.changes = changes;
+		this.alter = alter;
 		this.options = options;
 	}
 
@@ -64,17 +64,17 @@ var plugin = module.exports = {
 				+ (expression ? "(" : "")
 				+ "\""
 				+ quasiString
-				+ (expression ? ("\" + " + (expressionType === 2 ? "(" : "") + core.stringFromSrc(expression)) + (expressionType === 2 ? ")" : "") + ")" : "\"")
+				+ (expression ? ("\" + " + (expressionType === 2 ? "(" : "") + this.alter.get(expression.range[0], expression.range[1])) + (expressionType === 2 ? ")" : "") + ")" : "\"")
 			);
 		}
 
 		resultString += ")";
 
-		this.changes.push({
-			start: node.range[0],
-			end: node.range[1],
-			str: resultString
-		})
+		this.alter.replace(
+			node.range[0]
+			, node.range[1]
+			, resultString
+		);
 	}
 };
 

@@ -1,4 +1,4 @@
-var $D$2;var $D$1;var $D$0;var a = ($D$0 = [1, 2, 3, 4, 5, 6])[0], b = $D$0[1], c = [].slice.call($D$0, 2)
+var $D$0;var $D$1;var $D$2;var a = ($D$0 = [1, 2, 3, 4, 5, 6])[0], b = $D$0[1], c = [].slice.call($D$0, 2)
 console.log(a === 1, b === 2, c.join("|") === "3|4|5|6")
 
 {
