@@ -6,7 +6,7 @@ function test() {
 		this.c = c;
 	}
 
-	function test1(_arr) {var SLICE$0 = Array.prototype.slice;var rest = SLICE$0.call(arguments, 1);function ITER$0(v){if(v){if(Array.isArray(v))return v;if(typeof v==='object'&&typeof v['iterator']==='function')return Array['from'](v);}throw new Error(v+' is not iterable')};var BIND$0 = Function.prototype.bind;
+	function test1(_arr) {var SLICE$0 = Array.prototype.slice;var rest = SLICE$0.call(arguments, 1);function ITER$0(v,f){if(v){if(Array.isArray(v))return f?v.slice():v;if(typeof v==='object'&&typeof v['iterator']==='function')return Array['from'](v);}throw new Error(v+' is not iterable')};var BIND$0 = Function.prototype.bind;
 
 		var arr = [6].concat([].concat(ITER$0(_arr)), ITER$0(rest));
 
@@ -47,7 +47,7 @@ function test() {
 		}
 
 		{
-			var T$4 = new (BIND$0.apply(test, [null].concat([].concat(ITER$0((function(){ var a = 0; {var b = 1; a+=b;} {var b$0 = 2; a+=b$0;} return [a] })()), ITER$0(arr)))))();
+			var T$4 = new (BIND$0.apply(test, [null].concat([].concat(ITER$0((function(){ var a = 0; {var b = 1; a+=b;} {var b$0 = 2; a+=b$0;} return [a] })(), true), ITER$0(arr)))))();
 			console.log( T$4.a === 3, T$4.b === 6, T$4.c === 3 )
 		}
 

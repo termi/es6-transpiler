@@ -1,10 +1,10 @@
-function ITER$0(v){if(v){if(Array.isArray(v))return v;if(typeof v==='object'&&typeof v['iterator']==='function')return Array['from'](v);}throw new Error(v+' is not iterable')};{
+function ITER$0(v,f){if(v){if(Array.isArray(v))return f?v.slice():v;if(typeof v==='object'&&typeof v['iterator']==='function')return Array['from'](v);}throw new Error(v+' is not iterable')};{
     var a = [1].concat([2, 3], 4, [,,[5, 6]], [7]);
     console.log(a.join("|") == "1|2|3|4|||5,6|7");
 }
 
 {
-	var a$0 = [].concat([parseInt("1qwe")], ITER$0((function(){var a = arguments[0];if(a === void 0)a = 2;var b = arguments[1];if(b === void 0)b = 3; return [a, b] })()), [4], 5);
+	var a$0 = [].concat([parseInt("1qwe")], ITER$0((function(){var a = arguments[0];if(a === void 0)a = 2;var b = arguments[1];if(b === void 0)b = 3; return [a, b] })(), true), [4], 5);
     console.log(a$0.join("|") == "1|2|3|4|5");
 }
 

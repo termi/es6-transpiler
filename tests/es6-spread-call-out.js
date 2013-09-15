@@ -1,4 +1,4 @@
-function test() {function ITER$0(v){if(v){if(Array.isArray(v))return v;if(typeof v==='object'&&typeof v['iterator']==='function')return Array['from'](v);}throw new Error(v+' is not iterable')};var $D$0;
+function test() {function ITER$0(v,f){if(v){if(Array.isArray(v))return f?v.slice():v;if(typeof v==='object'&&typeof v['iterator']==='function')return Array['from'](v);}throw new Error(v+' is not iterable')};var $D$0;
 
 
 	function test() {var a = arguments[0];if(a === void 0)a = 0;var b = arguments[1];if(b === void 0)b = 0;var c = arguments[2];if(c === void 0)c = 0;var d = arguments[3];if(d === void 0)d = "";
@@ -46,7 +46,7 @@ function test() {function ITER$0(v){if(v){if(Array.isArray(v))return v;if(typeof
 	}
 
 	{
-		var T$4 = test.apply(null, ITER$0([].concat(ITER$0((function(){ var a = 0; {var b = 1; a+=b;} {var b$0 = 2; a+=b$0;} return [a] })()), ITER$0(arr))));
+		var T$4 = test.apply(null, ITER$0([].concat(ITER$0((function(){ var a = 0; {var b = 1; a+=b;} {var b$0 = 2; a+=b$0;} return [a] })(), true), ITER$0(arr))));
 		console.log( T$4 === "3|6|3" )
 	}
 

@@ -15,9 +15,9 @@ function hasSpreadArgument(node) {
 }
 
 const callIteratorBody =
-	"(v){" +
+	"(v,f){" +
 		"if(v){" +
-			"if(Array.isArray(v))return v;" +
+			"if(Array.isArray(v))return f?v.slice():v;" +
 			"if(typeof v==='object'&&typeof v['iterator']==='function')return Array['from'](v);" +
 		"}" +
 		"throw new Error(v+' is not iterable')"+
@@ -66,6 +66,7 @@ var plugin = module.exports = {
 //		const functionNameNode = isMemberExpression ? node.callee.property : node.callee;
 		let expressionString;
 		let tempVar;
+		const valueNode = node["arguments"];
 
 		if( isMemberExpression ) {
 			if( isSimpleMemberExpression ) {
@@ -98,17 +99,18 @@ var plugin = module.exports = {
 			;
 		}
 
-		if( node["arguments"].length === 1 ) {
+		if( valueNode.length === 1 ) {
+			const isSequenceExpression = valueNode[0].type === "SequenceExpression";
 			const callIteratorFunctionName = core.bubbledVariableDeclaration(node.$scope, "ITER", callIteratorBody, true);
 			expressionString += (
 				callIteratorFunctionName
-				+ "("
-				+ this.alter.get(node["arguments"][0].range[0] + 3, node["arguments"][0].range[1])
-				+ ")"
+				+ "(" + (isSequenceExpression ? "(" : "")
+				+ this.alter.get(valueNode[0].range[0] + 3, valueNode[0].range[1])
+				+ ")" + (isSequenceExpression ? ")" : "")
 			);
 		}
 		else {
-			expressionString += this.__unwrapSpread(node, node["arguments"]);
+			expressionString += this.__unwrapSpread(node, valueNode);
 		}
 
 		this.alter.replace(
@@ -222,8 +224,19 @@ var plugin = module.exports = {
 			nonSpreadStart = nonSpreadEnd = null;
 		}
 
-		for(let currentIndex = 0 ; spreadIndex < argsLength ; spreadIndex++, currentIndex++ ) {
-			let arg = elements[spreadIndex]
+		let spreadExpressionsCount = 0;
+		let currentSpread = 0;
+
+		for(let currentIndex = spreadIndex ; currentIndex < argsLength ; currentIndex++ ) {
+			let arg = elements[currentIndex];
+
+			if( arg && arg.type !== "Literal" && arg.type !== "Identifier" ) {
+				spreadExpressionsCount++;
+			}
+		}
+
+		for(let currentIndex = spreadIndex ; currentIndex < argsLength ; currentIndex++ ) {
+			let arg = elements[currentIndex]
 				, isSpread = isSpreadElement(arg)
 				, spreadTypeIsArrayExpression
 			;
@@ -233,7 +246,7 @@ var plugin = module.exports = {
 			}
 			else {
 				if( nonSpreadStart ) {
-					nonSpreadEnd = spreadIndex;
+					nonSpreadEnd = currentIndex;
 				}
 				else {
 					if( arg && arg.type === "Literal" ) {
@@ -243,19 +256,26 @@ var plugin = module.exports = {
 						);
 					}
 					else {
-						nonSpreadStart = spreadIndex;
+						nonSpreadStart = currentIndex;
 					}
 				}
 			}
 
 			if( isSpread ) {
+				currentSpread++;
 				spreadTypeIsArrayExpression = arg.argument.type === "ArrayExpression";
+				const isSequenceExpression = arg.argument.type === "SequenceExpression";
+				const forcedCopyFlag = currentSpread < spreadExpressionsCount;
+
+				//console.log(spreadIndex, argsLength)
 
 				expressionString += (
-					(currentIndex ? ", " : "")
+					(currentIndex !== spreadIndex ? ", " : "")
 					+ (spreadTypeIsArrayExpression ? "" : callIteratorFunctionName + "(")
+						+ (isSequenceExpression ? "(" : "")
 					+ this.alter.get(arg.argument.range[0], arg.argument.range[1])
-					+ (spreadTypeIsArrayExpression ? "" : ")")
+						+ (isSequenceExpression ? ")" : "")
+					+ (spreadTypeIsArrayExpression ? "" : (forcedCopyFlag ? ", true" : "") + ")")
 				);
 			}
 		}
