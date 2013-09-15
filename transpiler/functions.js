@@ -43,13 +43,16 @@ var plugin = module.exports = {
 		if ( isFunction(node) ) {
 			const functionBody = node.body;
 			const isArrowFunction = node.type === "ArrowFunctionExpression";
+			const isNakedArrowFunction = isArrowFunction && functionBody.type !== "BlockStatement";
 			const fnBodyIsSequenceExpression = isArrowFunction && functionBody.type === "SequenceExpression";
 			const defaults = node.defaults;
 			const params = node.params;
 			const rest = node.rest;
 			let paramsCount = params.length;
 			const initialParamsCount = paramsCount;
-			let fnBodyStart = functionBody.range[0] + (isArrowFunction ? 0 : 1), fnBodyEnd = functionBody.range[1];
+			let fnBodyStart = functionBody.range[0] + (isArrowFunction ? 0 : 1)
+				, fnBodyEnd = functionBody.range[1]
+			;
 			const defaultsCount = defaults.length;
 			const lastParam = params[paramsCount - 1];
 			const lastDflt = defaults[defaultsCount - 1];
@@ -62,6 +65,13 @@ var plugin = module.exports = {
 
 			if( isArrowFunction ) {
 				doesThisInsideArrowFunction = node.$scope.doesThisUsing();
+
+				if( isArrowFunction && functionBody.type !== "BlockStatement" ) {
+					if( fnBodyIsSequenceExpression ) {
+						// ()=>( <function body> )
+						fnBodyEnd = node.range[1];
+					}
+				}
 
 				// find '=>'
 				const right = fnBodyStart;
@@ -102,6 +112,11 @@ var plugin = module.exports = {
 						}
 					}
 				);
+
+				// add { and }
+				if( isNakedArrowFunction ) {
+					this.alter.wrap(fnBodyStart, fnBodyEnd, "{", "}");
+				}
 			}
 
 			if( paramsCount ) {
@@ -192,19 +207,15 @@ var plugin = module.exports = {
 			}
 
 			if( isArrowFunction && functionBody.type !== "BlockStatement" ) {
-				if( fnBodyIsSequenceExpression ) {
-					// ()=>( <function body> )
-					fnBodyEnd = node.range[1];
-				}
+				// ()=>a
 				// add "{return " and "}"
 
 				insertIntoBodyBegin =
-					"{"
-						+ insertIntoBodyBegin
-						+ "return "
-						+ (fnBodyIsSequenceExpression ? "(" : "")
+					insertIntoBodyBegin
+					+ "return "
+					+ (fnBodyIsSequenceExpression ? "(" : "")
 				;
-				insertIntoBodyEnd = "}" + (doesThisInsideArrowFunction ? ").bind(this)" : "");
+				insertIntoBodyEnd = (doesThisInsideArrowFunction ? ").bind(this)" : "");
 
 				node.body = {
 					"type": "BlockStatement",
@@ -229,7 +240,7 @@ var plugin = module.exports = {
 			}
 
 			if( insertIntoBodyEnd ) {
-				this.alter.insertAfter(fnBodyEnd, insertIntoBodyEnd);
+				this.alter.insert(fnBodyEnd, insertIntoBodyEnd);
 			}
 		}
 	}
