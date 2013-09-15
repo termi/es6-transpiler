@@ -68,6 +68,8 @@ function isArrayPattern(node) {
 	return node && node.type === 'ArrayPattern';
 }
 
+let UUID_PREFIX = "uuid" + ((Math.random() * 1e6) | 0);
+let UUID = 1;
 
 let core = module.exports = {
 	traverse: traverse,
@@ -77,11 +79,12 @@ let core = module.exports = {
 
 		this.outermostLoop = null;
 		this.functions = [];
+		this.bubbledVariables = {}
 	}
 
 	, setup: function(alter, ast, options, src) {
 		if( !this.__isInit ) {
-		this.reset();
+			this.reset();
 			this.__isInit = true;
 		}
 
@@ -444,6 +447,70 @@ let core = module.exports = {
 		}
 	}
 
+	, getNodeVariableNames: function(node) {
+		let vars = [];
+
+		function addParam(param) {
+			if( param === null ){
+				return;
+			}
+
+			if( isObjectPattern(param) ) {
+				param.properties.forEach(addParam);
+			}
+			else if( param.type === "Property" ) {//from objectPattern
+				addParam(param.value);
+			}
+			else if( isArrayPattern(param) ) {
+				param.elements.forEach(addParam);
+			}
+			else {
+				vars.push(param.name);
+			}
+		}
+
+		function addVariable(variable) {
+			if( !variable ) {
+				return;
+			}
+
+			if( isObjectPattern(variable) ) {
+				variable.properties.forEach(addVariable);
+			}
+			else if( variable.type === "Property" ) {//from objectPattern
+				addVariable(variable.value);
+			}
+			else if( isArrayPattern(variable) ) {
+				variable.elements.forEach(addVariable);
+			}
+			else if( variable.type === "SpreadElement" ) {//from arrayPattern
+				vars.push(variable.argument.name);
+			}
+			else {
+				vars.push(variable.name);
+			}
+		}
+
+		if( isFunction(node) ) {
+			node.params.forEach(addParam);
+		}
+		else if( node.type === "VariableDeclaration" ) {
+			node.declarations.forEach(function(declarator) {
+				addVariable(declarator.id);
+			}, this);
+		}
+		else if( node.type === "AssignmentExpression" ) {
+			addVariable(node.left)
+		}
+		else {
+			addVariable(node)
+		}
+
+//		console.log()
+
+		return vars;
+	}
+
 	, PropertyToString: function PropertyToString(node) {
 		assert(node.type === "Literal" || node.type === "Identifier");
 
@@ -468,7 +535,9 @@ let core = module.exports = {
 	unwrapSpreadDeclaration: function(node, donor, fromIndex) {
 		assert(node.type === "Identifier");
 
-		return node.name + " = [].slice.call(" + donor + ", " + fromIndex + ")";
+		const sliceFunctionName = this.bubbledVariableDeclaration(node.$scope, "SLICE", "Array.prototype.slice");
+
+		return node.name + " = " + sliceFunctionName + ".call(" + donor + ", " + fromIndex + ")";
 	}
 
 
@@ -530,7 +599,8 @@ let core = module.exports = {
 
 		let destructuringDefaultNode = left.default;//TODO:: goes to latest Parser API from esprima
 
-		let result = left.name + " = ";
+		let variableName = left.name;
+		let result = variableName + " = ";
 		let valueString = right["object"].name + core.PropertyToString(right["property"]);
 
 		if( isAssignmentExpression ) {
@@ -538,13 +608,18 @@ let core = module.exports = {
 		}
 
 		if( typeof destructuringDefaultNode === "object" ) {
-			let tempVar = core.getScopeTempVar(node.$scope);
+//			let tempVar = core.getScopeTempVar(node.$scope);
+//
+//			result += (
+//				"((" + tempVar + " = " + valueString + ") === void 0 ? " + this.alter.get(destructuringDefaultNode.range[0], destructuringDefaultNode.range[1]) + " : " + tempVar + ")"
+//			);
+//
+//			core.setScopeTempVar(node.$scope, tempVar);
 
+			// TODO:: tests
 			result += (
-				"((" + tempVar + " = " + valueString + ") === void 0 ? " + this.alter.get(destructuringDefaultNode.range[0], destructuringDefaultNode.range[1]) + " : " + tempVar + ")"
-			);
-
-			core.setScopeTempVar(node.$scope, tempVar);
+				"((" + variableName + " = " + valueString + ") === void 0 ? " + this.alter.get(destructuringDefaultNode.range[0], destructuringDefaultNode.range[1]) + " : " + variableName + ")"
+				);
 		}
 		else {
 			result += valueString;
@@ -567,6 +642,30 @@ let core = module.exports = {
 		return this.__assignmentString(definition, true);
 	}
 
+	, __getNodeBegin: function(node) {
+		let begin;
+		let hoistScopeNodeBody = node.body;
+
+		if( node.type === "Program" ) {
+			begin = 0;
+		}
+		else if( node.type === "ArrowFunctionExpression" ) {
+			begin = hoistScopeNodeBody.range[0];
+		}
+		else {
+			if( hoistScopeNodeBody.length ) {
+				hoistScopeNodeBody = hoistScopeNodeBody[0];
+			}
+			begin = hoistScopeNodeBody.range[0];
+
+			if( isFunction(node) ) {
+				begin++;
+			}
+		}
+
+		return begin;
+	}
+
 	, getScopeTempVar: function(scope) {
 		assert(scope instanceof Scope, scope + " is not instance of Scope");
 
@@ -576,21 +675,9 @@ let core = module.exports = {
 
 		if( !freeVar ) {
 			freeVar = core.unique("$D", true);
-			scope.add(freeVar, "var", {});
+			this.createScopeVariableDeclaration(scope, "var", freeVar);
 
-			let hoistScopeNode = scope.node;
-			let hoistScopeNodeBody = hoistScopeNode.body;
-			let insertInto;
-
-			if( hoistScopeNodeBody.length ) {
-				hoistScopeNodeBody = hoistScopeNodeBody[0];
-			}
-			insertInto = hoistScopeNodeBody.range[0];
-			if( isFunction(hoistScopeNode) ) {
-				insertInto++;
-			}
-
-			this.alter.insertBefore(insertInto, "var " + freeVar + ";");
+			this.alter.insert(this.__getNodeBegin(scope.node), "var " + freeVar + ";");
 		}
 		/*newDefinitions.push({
 			"type": "EmptyStatement"
@@ -619,6 +706,140 @@ let core = module.exports = {
 		scope = scope.closestHoistScope();
 
 		scope.pushFree(freeVar);
+	}
+
+	, findParentForScopes: function() {
+		let parentScope
+			, scopes = [].slice.call(arguments)
+			, scopesLength = scopes.length
+			, maxCounter = 0
+		;
+
+		assert(scopesLength);
+
+		if( scopesLength.length === 1 ) {
+			return scopes[0].closestHoistScope();
+		}
+
+		for( let i = 0 ; i < scopesLength ; ++i ) {
+			let scope = scopes[i];
+			scope = scopes[i] = scope.closestHoistScope();
+
+			if( scope.node.type === "Program" ) {
+				return scope;
+			}
+		}
+
+		let uniquePathId = UUID_PREFIX + UUID++;
+
+		while( !parentScope && scopesLength && ++maxCounter < 1000 ) {
+			for( let i = 0 ; i < scopesLength ; ++i ) {
+				let scope = scopes[i];
+
+				let hoistScope = scope.closestHoistScope();
+
+				if( hoistScope === scope ) {
+					scope = scope.parent;
+				}
+
+				if( hoistScope.$__path === uniquePathId ) {
+					parentScope = hoistScope;
+					break;
+				}
+
+				if( scope ) {
+					hoistScope.$__path = uniquePathId;
+					scopes[i] = scope;
+				}
+				else {
+					scopesLength--;
+					i--;
+					scopes.splice(i, 1);
+				}
+			}
+		}
+
+		assert(!!parentScope);
+
+		return parentScope;
+	}
+
+	, createScopeVariableDeclaration: function(scope, kind, variableName, parentNode) {
+		scope.add(variableName, kind, {
+			//TODO:
+		});
+	}
+
+	, bubbledVariableDeclaration: function(scope, variableName, variableInitValue, isFunction) {
+		scope = scope.closestHoistScope();
+
+		let bubbledVariable = this.__isBubbledVariableDeclaration(variableName, variableInitValue);
+
+		if( bubbledVariable ) {
+			if( scope.lookup(bubbledVariable.name) ) {
+				return bubbledVariable.name;
+			}
+
+			scope = this.findParentForScopes(scope, bubbledVariable.scope);
+			return this.__rebaseBubbledVariableDeclaration(scope, variableName);
+		}
+		else {
+			return this.__createBubbledVariableDeclaration(scope, variableName, variableInitValue, isFunction);
+		}
+	}
+
+	, __isBubbledVariableDeclaration: function(variableName, variableInitValue) {
+		let bubbledVariable = this.bubbledVariables[variableName];
+
+		if( bubbledVariable && bubbledVariable.value === variableInitValue ) {
+			return bubbledVariable;
+		}
+		return false;
+	}
+
+	, __createBubbledVariableDeclaration: function(scope, variableName, variableInitValue, isFunction, bubbledVariable) {
+		if( bubbledVariable ) {
+			isFunction = bubbledVariable.isFunction;
+			variableName = bubbledVariable.name;
+			variableInitValue = bubbledVariable.value;
+
+			bubbledVariable.scope = scope;//rebase to the new scope
+			bubbledVariable.changesOptions = {};//create new options for new changes
+		}
+		else {
+			bubbledVariable = {
+				name: core.unique(variableName, true)
+				, value: variableInitValue
+				, isFunction: isFunction
+				, scope: scope
+				, changesOptions: {}
+			};
+			this.bubbledVariables[variableName] = bubbledVariable;
+			variableName = bubbledVariable.name;
+		}
+
+		// remove previous VariableDeclaration ?
+		this.createScopeVariableDeclaration(scope, "var", variableName);
+
+		if( isFunction ) {
+			variableInitValue = "function " + variableName + variableInitValue
+		}
+		else {
+			variableInitValue = "var " + variableName + " = " + variableInitValue + ";";
+		}
+
+		this.alter.insert(this.__getNodeBegin(scope.node), variableInitValue, bubbledVariable.changesOptions);
+
+		return variableName;
+	}
+
+	, __rebaseBubbledVariableDeclaration: function(scope, variableName) {
+		let bubbledVariable = this.bubbledVariables[variableName];
+		let latestChangesOptions = bubbledVariable.changesOptions;
+
+		latestChangesOptions.inactive = true;//deactivate this changes
+
+		return this.__createBubbledVariableDeclaration(scope, void 0, void 0, void 0, bubbledVariable);
 	}
 };
 
