@@ -131,6 +131,18 @@ var plugin = module.exports = {
 		let isTemporaryVariable = false, valueIdentifierName, temporaryVariableIndexOrName, valueIdentifierDefinition;
 		let isTemporaryValueAssignment = false;
 
+		let _isObjectPattern = isObjectPattern(definitionNode)
+			, elementsList = _isObjectPattern ? definitionNode.properties : definitionNode.elements
+			, localFreeVariables
+			, isLocalFreeVariable = type === 1
+		;
+
+		if( isLocalFreeVariable ) {
+			//TODO:: tests
+			//TODO:: get only last variable name
+			localFreeVariables = core.getNodeVariableNames(definitionNode);
+		}
+
 		if( valueNode.type === "Identifier" ) {
 			valueIdentifierName = valueNode.name;
 
@@ -141,20 +153,14 @@ var plugin = module.exports = {
 		}
 		else {
 			isTemporaryVariable = true;
-			valueIdentifierDefinition = this.alter.get(valueNode.range[0], valueNode.range[1]) + "";
+			let isSequenceExpression = valueNode.type === "SequenceExpression";
+			valueIdentifierDefinition = (isSequenceExpression ? "(" : "") + this.alter.get(valueNode.range[0], valueNode.range[1]) + (isSequenceExpression ? ")" : "");
 		}
 
 		if( isTemporaryVariable ) {
-			if( valueNode.type === "Identifier" || type === 1 ) {
-				if( isObjectPattern(definitionNode) ) {
-					if( definitionNode.properties.length < 2 ) {
-						isTemporaryVariable = false;
-					}
-				}
-				else {
-					if( definitionNode.elements.length < 2 ) {
-						isTemporaryVariable = false;
-					}
+			if( valueNode.type === "Identifier" || isLocalFreeVariable ) {
+				if( elementsList.length < 2 ) {
+					isTemporaryVariable = false;
 				}
 
 				if( isTemporaryVariable === false ) {
@@ -169,20 +175,29 @@ var plugin = module.exports = {
 		}
 
 		if( isTemporaryVariable ) {
-			if( !hoistScope ) {
-				hoistScope = definitionNode.$scope.closestHoistScope();
+			if( isLocalFreeVariable ) {
+				valueIdentifierName = localFreeVariables.pop();
+			}
+			else {
+				valueIdentifierName = null;
 			}
 
-			valueIdentifierName = core.getScopeTempVar(hoistScope);
+			if( !valueIdentifierName ) {
+				isLocalFreeVariable = false;
+				if( !hoistScope ) {
+					hoistScope = definitionNode.$scope.closestHoistScope();
+				}
+
+				valueIdentifierName = core.getScopeTempVar(hoistScope);
+			}
+			else {
+				isLocalFreeVariable = true;
+			}
 
 			temporaryVariableIndexOrName = valueIdentifierName;
 			valueIdentifierName = "(" + valueIdentifierName + " = " + valueIdentifierDefinition + ")";
 			isTemporaryValueAssignment = true;
 		}
-
-		let _isObjectPattern = isObjectPattern(definitionNode)
-			, elementsList = _isObjectPattern ? definitionNode.properties : definitionNode.elements
-		;
 
 		for( let k = 0, len = elementsList.length ; k < len ; k++ ) {
 			const element = elementsList[k], elementId = _isObjectPattern ? element.value : element;
@@ -267,7 +282,7 @@ var plugin = module.exports = {
 
 		assert(!isTemporaryValueAssignment);
 
-		if( isTemporaryVariable && temporaryVariableIndexOrName != void 0 ) {
+		if( !isLocalFreeVariable && isTemporaryVariable && temporaryVariableIndexOrName != void 0 ) {
 			core.setScopeTempVar(hoistScope, temporaryVariableIndexOrName)
 		}
 	}

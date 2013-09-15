@@ -1,9 +1,9 @@
 "use strict";
 
-function test0(y = 1) {
+function test0(y = 1, [{x}, {z}] = [{x: 2}, {z: 3}]) {
 	const {someValue: a = "defaultValue", b, c = 2} = {}, h = {}, t = 1;
 
-	console.log(y === 1, a === "defaultValue", b === void 0, c === 2, typeof h === "object", t === 1);
+	console.log(y === 1, x === 2, z === 3, a === "defaultValue", b === void 0, c === 2, typeof h === "object", t === 1);
 }
 test0();
 
@@ -30,7 +30,8 @@ function test3(array) {
 	let a = 1, b = 2, b$0;
 	{
 		let [a, , b, c] = array;
-		console.log(a === 9, b === 7, c === 6, ([a, , b, c] = array)[2] === 7);
+		console.log(a === 9, b === 7, c === 6, ([a, , b, c] = (array.unshift(777), array))[3] === 7);
+		console.log(a === 777, b === 9, c === 7);
 	}
 	console.log(a === 1, b === 2, b$0 === void 0);
 }
