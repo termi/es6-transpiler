@@ -5,7 +5,7 @@ console.log(((function(){return function(a){return a*22.032}})())("321") === "32
 
 var obj = {
 	a: 1,
-	some: function(){var rest = [].slice.call(arguments, 0);return rest.map(function(a){return a + 1})},
+	some: function(){var SLICE$0 = Array.prototype.slice;var rest = SLICE$0.call(arguments, 0);return rest.map(function(a){return a + 1})},
 	b: 6
 }
 console.log((obj.a + obj.some(1, 2, 3, 4).join("") + obj.b) === "123456")
