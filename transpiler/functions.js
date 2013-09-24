@@ -1,7 +1,6 @@
 "use strict";
 
 const assert = require("assert");
-const is = require("simple-is");
 const error = require("./../lib/error");
 const core = require("./core");
 const destructuring = require("./destructuring");
@@ -13,7 +12,8 @@ function getline(node) {
 }
 
 function isFunction(node) {
-	return is.someof(node.type, ["FunctionDeclaration", "FunctionExpression", "ArrowFunctionExpression"]);
+	const type = node.type;
+	return type === "FunctionDeclaration" || type === "FunctionExpression" || type === "ArrowFunctionExpression";
 }
 
 function isObjectPattern(node) {

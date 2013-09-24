@@ -1,7 +1,6 @@
 "use strict";
 
 const assert = require("assert");
-const is = require("simple-is");
 const core = require("./core");
 const error = require("./../lib/error");
 
@@ -10,7 +9,7 @@ function getline(node) {
 }
 
 function isVarConstLet(kind) {
-	return is.someof(kind, ["var", "const", "let"]);
+	return kind === "var" || kind === "const" || kind === "let";
 }
 
 function isObjectPattern(node) {

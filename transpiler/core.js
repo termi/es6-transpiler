@@ -13,15 +13,20 @@ function getline(node) {
 }
 
 function isConstLet(kind) {
-	return is.someof(kind, ["const", "let"]);
+	return kind === "const" || kind === "let";
 }
 
 function isVarConstLet(kind) {
-	return is.someof(kind, ["var", "const", "let"]);
+	return kind === "var" || kind === "const" || kind === "let";
+}
+
+function isFunction(node) {
+	const type = node.type;
+	return type === "FunctionDeclaration" || type === "FunctionExpression" || type === "ArrowFunctionExpression";
 }
 
 function isNonFunctionBlock(node) {
-	return node.type === "BlockStatement" && is.noneof(node.$parent.type, ["FunctionDeclaration", "FunctionExpression", "ArrowFunctionExpression"]);
+	return node.type === "BlockStatement" && !isFunction(node.$parent.type);
 }
 
 function isForWithConstLet(node) {
@@ -32,32 +37,35 @@ function isForInWithConstLet(node) {
 	return node.type === "ForInStatement" && node.left.type === "VariableDeclaration" && isConstLet(node.left.kind);
 }
 
-function isFunction(node) {
-	return is.someof(node.type, ["FunctionDeclaration", "FunctionExpression", "ArrowFunctionExpression"]);
-}
-
 function isLoop(node) {
-	return is.someof(node.type, ["ForStatement", "ForInStatement", "WhileStatement", "DoWhileStatement"]);
+	const type = node.type;
+	return type === "ForStatement" || type === "ForInStatement" || type === "WhileStatement" || type === "DoWhileStatement";
 }
 
 function isReference(node) {
 	const parent = node.$parent;
-	return node.$refToScope ||
-		node.type === "Identifier" &&
-			!(parent.type === "VariableDeclarator" && parent.id === node) && // var|let|const $
-			!(parent.type === "MemberExpression" && parent.computed === false && parent.property === node) && // obj.$
-			!(parent.type === "Property" && parent.key === node) && // {$: ...}
-			!(parent.type === "LabeledStatement" && parent.label === node) && // $: ...
-			!(parent.type === "CatchClause" && parent.param === node) && // catch($)
-			!(isFunction(parent) && parent.id === node) && // function $(..
-			!(isFunction(parent) && is.someof(node, parent.params)) && // function f($)..
-			true;
+	const parentType = parent && parent.type;
+
+	return node.$refToScope
+		|| node.type === "Identifier"
+			&& !(parentType === "VariableDeclarator" && parent.id === node) // var|let|const $
+			&& !(parentType === "MemberExpression" && parent.computed === false && parent.property === node) // obj.$
+			&& !(parentType === "Property" && parent.key === node) // {$: ...}
+			&& !(parentType === "LabeledStatement" && parent.label === node) // $: ...
+			&& !(parentType === "CatchClause" && parent.param === node) // catch($)
+			&& !(isFunction(parent) && parent.id === node) // function $(..
+			&& !(isFunction(parent) && parent.params.indexOf(node) !== -1) // function f($)..
+			&& true
+	;
 }
 
 function isLvalue(node) {
 	return isReference(node) &&
-		((node.$parent.type === "AssignmentExpression" && node.$parent.left === node) ||
-			(node.$parent.type === "UpdateExpression" && node.$parent.argument === node));
+		(
+			(node.$parent.type === "AssignmentExpression" && node.$parent.left === node)
+			|| (node.$parent.type === "UpdateExpression" && node.$parent.argument === node)
+		)
+	;
 }
 
 function isObjectPattern(node) {
@@ -109,8 +117,7 @@ let core = module.exports = {
 		// also collects all referenced names to allIdentifiers
 		traverse(ast, {pre: this.setupReferences});
 
-		// static analysis passes//TODO:: separate transpiler
-		traverse(ast, {pre: this.detectLoopClosuresPre, post: this.detectLoopClosuresPost});
+		// static analysis passes
 		traverse(ast, {pre: this.detectConstAssignment});
 
 		return false;
@@ -355,7 +362,8 @@ let core = module.exports = {
 				error(getline(node), "reference to unknown global variable {0}", node.name);
 			}
 			// check const and let for referenced-before-declaration
-			if (scope && is.someof(scope.getKind(node.name), ["const", "let"])) {
+			let kind;
+			if (scope && ((kind = scope.getKind(node.name)) === "const" || kind === "let")) {
 				const allowedFromPos = scope.getFromPos(node.name);
 				const referencedAtPos = node.range[0];
 				assert(is.finitenumber(allowedFromPos));
@@ -506,8 +514,6 @@ let core = module.exports = {
 			addVariable(node)
 		}
 
-//		console.log()
-
 		return vars;
 	}
 
@@ -573,9 +579,8 @@ let core = module.exports = {
 	 *
 	 * @param {Object} node
 	 * @param {string} value
-	 * @param {string} type
 	 */
-	defaultString: function(node, value, type) {
+	defaultString: function(node, value) {
 		assert(node.type === "Identifier");
 
 		return "if(" + node.name + " === void 0)" + node.name + " = " + value;

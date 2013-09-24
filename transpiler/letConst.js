@@ -1,8 +1,6 @@
 "use strict";
 
 const assert = require("assert");
-const is = require("simple-is");
-const fmt = require("simple-fmt");
 const stringmap = require("stringmap");
 const core = require("./core");
 const Stats = require("./../lib/stats");
@@ -12,7 +10,7 @@ function getline(node) {
 }
 
 function isConstLet(kind) {
-	return is.someof(kind, ["const", "let"]);
+	return kind === "const" || kind === "let";
 }
 
 function isObjectPattern(node) {
@@ -217,16 +215,16 @@ let plugin = module.exports = {
 	}
 
 	, renameReferences: function renameReferences(node) {
-		if (!node.$refToScope) {
+		if( !node.$refToScope ) {
 			return;
 		}
 		const move = node.$refToScope.moves && node.$refToScope.moves.get(node.name);
-		if (!move) {
+		if( !move ) {
 			return;
 		}
 		node.$refToScope = move.scope;
 
-		if (node.name !== move.name
+		if( node.name !== move.name
 			&& (//not a destructuring
 				node.$parentType !== "ObjectPattern"
 				&& node.$parentType !== "ArrayPattern"
