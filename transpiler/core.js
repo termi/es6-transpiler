@@ -216,22 +216,27 @@ let core = module.exports = {
 		} else if (isFunction(node)) {
 			// Function is a scope, with params in it
 			// There's no block-scope under it
-			// Function name goes in parent scope
-			if (node.id) {
-	//            if (node.type === "FunctionExpression") {
-	//                console.dir(node.id);
-	//            }
-	//            assert(node.type === "FunctionDeclaration"); // no support for named function expressions yet
-
-				assert(node.id.type === "Identifier");
-				node.$parent.$scope.add(node.id.name, "fun", node.id, null);
-			}
 
 			node.$scope = new Scope({
 				kind: "hoist",
 				node: node,
 				parent: node.$parent.$scope
 			});
+
+			// function has a name
+			if (node.id) {
+				assert(node.id.type === "Identifier");
+
+				if (node.type === "FunctionDeclaration") {
+					// Function name goes in parent scope for declared functions
+					node.$parent.$scope.add(node.id.name, "fun", node.id, null);
+				} else if (node.type === "FunctionExpression") {
+					// Function name goes in function's scope for named function expressions
+					node.$scope.add(node.id.name, "fun", node.id, null);
+				} else {
+					assert(false);
+				}
+			}
 
 			node.params.forEach(addParamToScope);
 
@@ -242,7 +247,7 @@ let core = module.exports = {
 				assert(declarator.type === "VariableDeclarator");
 
 				if (this.options.disallowVars && node.kind === "var") {
-					error(getline(declarator), "var {0} is not allowed (use let or const)", name);
+					error(getline(declarator), "var {0} is not allowed (use let or const)", declarator.id.name);
 				}
 
 				addVariableToScope(declarator.id, node.kind, declarator);
