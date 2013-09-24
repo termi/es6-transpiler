@@ -1,4 +1,4 @@
-function test() {
+function test() {var BIND$0 = Function.prototype.bind;function ITER$0(v,f){if(v){if(Array.isArray(v))return f?v.slice():v;if(typeof v==='object'&&typeof v['iterator']==='function')return Array['from'](v);}throw new Error(v+' is not iterable')};
 
 	function test(a, b, c) {
 		this.a = a;
@@ -6,7 +6,12 @@ function test() {
 		this.c = c;
 	}
 
-	function test1(_arr) {var SLICE$0 = Array.prototype.slice;var rest = SLICE$0.call(arguments, 1);function ITER$0(v,f){if(v){if(Array.isArray(v))return f?v.slice():v;if(typeof v==='object'&&typeof v['iterator']==='function')return Array['from'](v);}throw new Error(v+' is not iterable')};var BIND$0 = Function.prototype.bind;
+	{
+		var T = new (BIND$0.apply(test, [null].concat([11, 22, 33])))();
+		console.log( T.a === 11, T.b === 22, T.c === 33 )
+	}
+
+	function test1(_arr) {var SLICE$0 = Array.prototype.slice;var rest = SLICE$0.call(arguments, 1);
 
 		var arr = [6].concat([].concat(ITER$0(_arr)), ITER$0(rest));
 

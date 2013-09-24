@@ -6,6 +6,11 @@ function test() {
 		this.c = c;
 	}
 
+	{
+		let T = new test(...[11, 22, 33]);
+		console.log( T.a === 11, T.b === 22, T.c === 33 )
+	}
+
 	function test1(_arr, ...rest) {
 
 		let arr = [6, ...[..._arr], ...rest];
