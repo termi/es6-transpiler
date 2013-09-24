@@ -1,23 +1,22 @@
 # es6-transpiler.js
-es6 -> es3
+es6 -> es5
 
 Supported:
  * classes
  * destructuring
- * let / const
- * function default
- * arrow functions
+ * blockBinding (let / const)
+ * defaultParameters
+ * arrowFunctions
+ * spread
+ * templateLiterals
 
-Static scope analysis and transpilation of ES6 block scoped `const` and `let`
-variables to ES3 based on https://github.com/olov/defs.
+Static scope analysis and transpilation of ES6 block scoped `const` and `let` variables to ES3 (based on https://github.com/olov/defs).
 
 ## Installation
 
-Not in npm for now!
+Install using npm
 
-Use local copy of es6-transpiler.js
-
-	git clone https://github.com/termi/es6-transpiler.git
+	npm install es6-transpiler
 
 ## Usage
 
@@ -28,14 +27,24 @@ the transpiled source to `stdout`, so redirect it like `es6toes3 file.js > outpu
 
 ### Node.js
 
-require("./es6-transpiler").run(\<Options\>)
+require("es6-transpiler").run(\<Options\>)
+
+Options is:
+
+	{
+		filename: string // input file
+		source: string // input source if not filename
+		outputToConsole: boolean // if true -> result would be outputted to console
+		outputFilename: string // if specific -> result would be written to file
+	}
+Other options below in "Options" section.
 
 ```javascript
 var es6tr = require("./es6-transpiler");
-var result = es6tr.run({filename: "test.js", fullES6: true});
+var result = es6tr.run({filename: "test.js"});
 console.log(result.src);//result
 ```
-res object:
+result object is:
 
     {
         src: string or "" // on success
@@ -49,6 +58,11 @@ res object:
 Example of `options` object:
 
     {
+    	//described above:
+    	//"filename" or "source": "string"
+    	//outputToConsole: false
+    	//outputFilename: true
+
         "environments": ["node", "browser"],
 
         "globals": {
@@ -57,8 +71,7 @@ Example of `options` object:
         },
         "disallowVars": false,
         "disallowDuplicated": true,
-        "disallowUnknownReferences": true,
-        "fullES6": false
+        "disallowUnknownReferences": true
     }
 
 `globals` lets you list your program's globals, and indicate whether they are
@@ -76,9 +89,6 @@ usage of `var` an error.
 
 `disallowUnknownReferences` (defaults to `true`) errors on references to
 unknown global variables.
-
-'fullES6' (defaults to `false`) use local copy of esprima harmony branch with es6 features
-support
 
 ## License
 `MIT`, see [LICENSE](LICENSE) file.

@@ -1,7 +1,8 @@
 {
   "name": "es6-transpiler",
-  "version": "0.1.0",
-  "description": "es6 -> es3",
+  "version": "0.5.1",
+  "description": "es6 -> es5",
+  "main": "es6-transpiler.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/termi/es6-transpiler.git"
@@ -11,12 +12,12 @@
     "simple-is": "~0.2.0",
     "stringmap": "~0.2.0",
     "stringset": "~0.2.0",
-    "tryor": "~0.1.0",
-    "esprima": "~1.0.0",
-	"ansidiff": "~1.0.0"
+    "esprima": "git://github.com/ariya/esprima.git#harmony",
+	"ansidiff": "~1.0.0",
+	"string-alter": "0.4.1"
   },
   "keywords": [
-    "defs",
+    "es6-transpiler",
     "scope",
     "blockscope",
     "block-scope",
@@ -25,9 +26,7 @@
     "var",
     "es6",
     "transpile",
-    "transpiler",
-    "lint",
-    "linter"
+    "transpiler"
   ],
   "scripts": {
     "test": "node --harmony run-tests"

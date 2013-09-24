@@ -1,9 +1,7 @@
 "use strict";
 
 const fs = require("fs");
-const fmt = require("simple-fmt");
 const path = require("path");
-const exec = require("child_process").exec;
 const ansidiff = require("ansidiff");
 const defsMain = require("./es6-transpiler");
 
@@ -112,7 +110,7 @@ function colorGreen(text) {
 }
 
 function fail(file, type, diff1, diff2) {
-	console.log(fmt("FAILED test {0} TYPE {1} (" + colorRed("EXPECTED") + "/" + colorGreen("CURRENT") + ")", file, type));
+	console.log("FAILED test " + file + " TYPE " + type + " (" + colorRed("EXPECTED") + "/" + colorGreen("CURRENT") + ")");
 	console.log(diff1, "\n", diff2 || "");
 	console.log("\n---------------------------\n");
 }
@@ -134,8 +132,8 @@ function test(file) {
 
 	const noSuffix = file.slice(0, -3);
 
-	const expectedStderr = slurp(fmt("{0}/{1}-stderr", pathToTests, noSuffix));
-	const expectedStdout = slurp(fmt("{0}/{1}-out.js", pathToTests, noSuffix));
+	const expectedStderr = slurp(pathToTests + "/" + noSuffix + "-stderr");
+	const expectedStdout = slurp(pathToTests + "/" + noSuffix + "-out.js");
 
 	const compare1 = stringCompare(expectedStderr, errors, "lines");
 	const compare2 = stringCompare(expectedStdout, srcOut, "lines", true);

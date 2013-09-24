@@ -9,13 +9,32 @@ const StringAlter = require("./lib/StringAlter-es5");
 
 let plugins = [
 	require("./transpiler/classes")
-	//, require("./transpiler/loopClosures")TODO::
 	, core
+	, require("./transpiler/loopClosures")
 	, require("./transpiler/letConst")
 	, require("./transpiler/functions")
 	, require("./transpiler/spread")
 	, require("./transpiler/destructuring")
 	, require("./transpiler/quasiLiterals")
+	, require("./transpiler/arrayComprehension")
+
+	, {
+		setup: function(config) {
+			this.__cleanup = config.cleanup;
+		}
+
+		, before: function() {
+			return !!this.__cleanup;
+		}
+
+		, pre: function cleanupTree(node) {
+			for (let prop in node) {
+				if (prop[0] === "$") {
+					delete node[prop];
+				}
+			}
+		}
+	}
 ];
 
 module.exports = {
@@ -24,11 +43,14 @@ module.exports = {
 	, setupPlugins: function(config) {
 		var optionsList = this.optionsList = [];
 
+		config.esprima = this.esprima;
+
 		plugins.forEach(function(plugin, index) {
 			var options = optionsList[index] = {};
-			for(let i in config)if(config.hasOwnProperty(i))options[i] = config[i];
 
 			if( typeof plugin.setup === "function" ) {
+				for(let i in config)if(config.hasOwnProperty(i))options[i] = config[i];
+
 				plugin.setup(this.alter, this.ast, options, this.src);
 			}
 		}, this);
@@ -74,7 +96,9 @@ module.exports = {
 		}
 		this.runned = true;
 
-		// esprima
+		config.fullES6 = true;// by default for now
+
+		//esprima
 		let esprima;
 		if( config.fullES6 === true ) {
 			esprima = require("./lib/esprima_harmony");
@@ -120,15 +144,19 @@ module.exports = {
 			var options = this.optionsList[index];
 
 			if( typeof plugin.before === "function" ) {
-				plugin.before(this.ast);
+				if( plugin.before(this.ast) === false ) {
+					return;
+				}
 			}
 
-			if( typeof plugin.pre === "function" ) {
-				traverse(this.ast, {pre: plugin.pre});
+			if( typeof plugin.pre === "function" || typeof plugin.post === "function" ) {
+				traverse(this.ast, {pre: plugin.pre, post: plugin.post});
 			}
 
 			if( typeof plugin.after === "function" ) {
-				plugin.after(this.ast, output);
+				if( plugin.after(this.ast, output) === false ) {
+					return;
+				}
 			}
 
 			if( options.applyChangesAfter ) {
@@ -136,6 +164,8 @@ module.exports = {
 			}
 		}, this);
 
+
+		output.errors = [];//empty errors list
 
 		// output
 		if( error.errors.length ) {
@@ -169,7 +199,7 @@ module.exports = {
 };
 
 function outputToConsole(output, config) {
-	if (output.errors.length) {
+	if ( output.errors.length ) {
 		process.stderr.write(output.errors.join("\n"));
 		process.stderr.write("\n");
 		process.exit(-1);

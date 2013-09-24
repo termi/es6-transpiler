@@ -4,29 +4,45 @@ let obj = {
 		{
 			let d = 888;
 			let {a: h, b} = {a, b: ([c] = [...(([a])=>[a])([a + d]),1,2])}
-			res = ([...b, h, d]);
+			res = ([1, 2, ...b, h, d]);
 		}
 		return res.join("|") + "|" + d
 	})()
 }
 
-console.log(obj.test === "889|1|2|1|888|123")
+[for (x of ['a', 'b', 'c']) for (y of [1, 2, 3]) for (z of [9, 8, 7]) (x+y+z)];// ->
+//function ITER$0(v,f,fn){if(v){var ia=Array.isArray(v);if(ia&&!fn)return f?v.slice():v;if(ia||(typeof v==='object'&&typeof v['iterator']==='function'))return Array['from'](v,fn);}throw new Error(v+' is not iterable')};var x, y, z;
+//[].concat.apply([], ITER$0(['a', 'b', 'c'], false, function(x){return [].concat.apply([], ITER$0([1, 2, 3], false, function(y){return ITER$0([9, 8, 7], false, function(z){return (x+y+z)})}))}));
 
-{
-	let i = 0;
-	let a = [];
-	let b = [-2, -1, ...(a.push(i++),a), i, 0, ...(a.push(i++),a), i, 0, ...(a.push(i++),a), i, 0]
-	//var b = [-2, -1].concat((a.push(i++), a), [i, 0], (a.push(i++), a), [i, 0], (a.push(i++), a), [i, 0])
-	//var b = (  ( $__0 = [-2, -1] ).push.apply( $__0, (a.push(i++),a) ), $__0.push(i, 0), $__0.push.apply( $__0, (a.push(i++),a)), $__0.push(i, 0), $__0.push.apply( $__0, (a.push(i++),a)), $__0.push(i, 0), $__0 )
+
+var arr = [1, 2, 3];
+var arr2 = [5, 6, 7];
+
+[ for(x of arr) for(y of arr2) if(x % 2) (x * 2 * y) ]
+
+function forOf(result, $a, fun) {
+	if(Array.isArray($a))for(var $__i = 0, $__len = $a.length ; $__i < $__len ; $__i++)fun.call(result, $a[$__i]);
+	else Array.from($a, fun.bind(result))
+	return result;
 }
 
-{
-	let a = [1, 2, 3];
-	let b =
-		[0, ...a, 4, ...a.reverse()];// -> (($__0=[0, 4]).splice.bind($__0, 0, 0).apply(null, a == null ? false : a),$__0.splice.bind($__0, 0, 0).apply(null, a == null ? false : a))
+forOf([], arr, function(x){  forOf(this, arr2, function(){ if(x % 2)this.push(x * 2 * y); })   })
+
+// --------------------------------------------------------------------
+
+function test1({a}) {
+	function test2() {
+		console.log(test1.arguments, a)
+	}
+
+	test2()
 }
+test1({a: 1})
 
 
-{
-	let a = [0, 1, ...[5, 6], 7, ...[8, 9]];// -> (($__0=[0, 1, null, null, 7, null, null]).splice(2, 2, 5, 6),$__0.splice(5, 2, 8, 9),$__0)
+function test1(a) {
+	var a = a.a;
+
+	console.log(arguments[0], a)
 }
+test1({a: 1})
