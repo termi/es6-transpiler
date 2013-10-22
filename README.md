@@ -1,16 +1,44 @@
 # es6-transpiler.js
 es6 -> es5
 
-Supported:
+## status
+
+first release
+
+## Supported
+
  * classes
  * destructuring
  * blockBinding (let / const)
  * defaultParameters
  * arrowFunctions
- * spread
+ * spread (with iterator protocol)
  * templateLiterals
+ * for-of (with iterator protocol)
+ * objectLiteral
 
 Static scope analysis and transpilation of ES6 block scoped `const` and `let` variables to ES3 (based on https://github.com/olov/defs).
+
+## Supported iterator protocol
+
+```javascript
+var obj = {a: 1, b: 2, c: 3};
+obj.iterator = function() {
+	var iterableObject = this;
+	var keys = ["a", "b", "c"];
+
+	return {
+		next: function() {
+			var currentKey = keys.shift();
+
+			return {
+				value: currentKey ? iterableObject[currentKey] : void 0
+				, done: !currentKey
+			}
+		}
+	}
+}
+```
 
 ## Installation
 
