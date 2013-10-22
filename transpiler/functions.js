@@ -12,10 +12,9 @@ function getline(node) {
 }
 
 function isFunction(node) {
-	const type = node.type;
-	return type === "FunctionDeclaration" || type === "FunctionExpression" || type === "ArrowFunctionExpression";
+	let type;
+	return node && ((type = node.type) === "FunctionDeclaration" || type === "FunctionExpression" || type === "ArrowFunctionExpression");
 }
-
 function isObjectPattern(node) {
 	return node && node.type == 'ObjectPattern';
 }
@@ -42,80 +41,126 @@ var plugin = module.exports = {
 	, pre: function functionDestructuringAndDefaultsAndRest(node) {
 		if ( isFunction(node) ) {
 			const functionBody = node.body;
+
 			const isArrowFunction = node.type === "ArrowFunctionExpression";
-			const isNakedArrowFunction = isArrowFunction && functionBody.type !== "BlockStatement";
-			const fnBodyIsSequenceExpression = isArrowFunction && functionBody.type === "SequenceExpression";
+			const isNakedFunction = node.expression === true;//isArrowFunction && functionBody.type !== "BlockStatement";
+			const fnBodyIsNotABlockStatement = isNakedFunction && functionBody.type !== "BlockStatement";
+			const fnBodyIsSequenceExpression = fnBodyIsNotABlockStatement && functionBody.type === "SequenceExpression";
+			const fnBodyHasHiddenBrackets =
+				fnBodyIsNotABlockStatement && !fnBodyIsSequenceExpression && node.range[1] != functionBody.range[1];//(x) => (x+1), '(' and ')' in '(x+1)' is hidden brackets
+
 			const defaults = node.defaults;
 			const params = node.params;
 			const rest = node.rest;
 			let paramsCount = params.length;
 			const initialParamsCount = paramsCount;
-			let fnBodyStart = functionBody.range[0] + (isArrowFunction ? 0 : 1)
+			let fnBodyStart = core.__getNodeBegin(node)
 				, fnBodyEnd = functionBody.range[1]
 			;
 			const defaultsCount = defaults.length;
 			const lastParam = params[paramsCount - 1];
 			const lastDflt = defaults[defaultsCount - 1];
 
-			let insertIntoBodyBegin = "", insertIntoBodyEnd;
+			const fnHasNoParams = paramsCount === 0 && !rest;
+
+			let insertIntoBodyBegin = "", insertIntoBodyEnd = "";
 
 			let doesThisInsideArrowFunction;
 
 			paramsCount -= defaultsCount;
 
-			if( isArrowFunction ) {
-				doesThisInsideArrowFunction = node.$scope.doesThisUsing();
+			if( isNakedFunction || isArrowFunction ) {
+				if( fnBodyHasHiddenBrackets || isArrowFunction || fnBodyIsSequenceExpression ) {
+					// find '=>' (isArrowFunction) or '=>(' (isArrowFunction && fnBodyHasHiddenBrackets) or first '(' (fnBodyHasHiddenBrackets)
+					let left;
 
-				if( isArrowFunction && functionBody.type !== "BlockStatement" ) {
+					let lastDefinition = rest || (lastDflt || lastParam);
+
+					if( lastDefinition ) {
+						left = lastDefinition.range[1];
+					}
+					else {// function without params
+						if( node.id ) {
+							left = node.id.range[1]
+						}
+						else {
+							left = node.range[0] + (
+								isArrowFunction ? 1//pass first '('
+									: 8 //pass 'function' + [' '<name>]
+								)
+							;
+						}
+					}
+
+					let str = this.alter.get(left, fnBodyStart);
+
+					if( isArrowFunction ) {
+						doesThisInsideArrowFunction = node.$scope.doesThisUsing();
+
+						// add "function" word before arrow function params list
+						this.alter.insert(
+							node.range[0]
+							, (doesThisInsideArrowFunction ? "(" : "") + "function"
+						);
+					}
+
+					// remove '=>' (isArrowFunction) or '=>(' (isArrowFunction && fnBodyHasHiddenBrackets) or first '(' (fnBodyHasHiddenBrackets)
+					this.alter.replace(//TODO:: use this.alter.transform(functionBody.range[1], node.range[1], function(){});
+						left
+						, fnBodyStart
+						, str
+						, {
+							transformUniq: 1
+							, transform: function(str) {
+								if( isArrowFunction ) {
+									str = str.replace(/=>/gi, "");
+								}
+
+								if( fnBodyIsSequenceExpression || fnBodyHasHiddenBrackets ) {
+									// =>   (   <function body>
+									// or Remove first '(' for fnBodyHasHiddenBrackets == true
+									str =
+										(isArrowFunction ? ""
+											: (fnHasNoParams ? "(" : "")//add first '(' for non-arrow function declaration without parameters
+										)
+										+ str.replace(/\(/gi, "")
+									;
+								}
+
+								return str
+							}
+						}
+					);
+				}
+
+				if( isNakedFunction ) {
 					if( fnBodyIsSequenceExpression ) {
 						// ()=>( <function body> )
 						fnBodyEnd = node.range[1];
 					}
-				}
+					// add { and }
+					this.alter.insertBefore(fnBodyStart, "{", {extend: true});
+					this.alter.insert(fnBodyEnd, "}", {extend: true});
 
-				// find '=>'
-				const right = fnBodyStart;
-				let left;
+					if( fnBodyHasHiddenBrackets ) {
+						// => (1)   ->   {return 1}
+						//  Remove last ')'
+						//
+						this.alter.replace(//TODO:: use this.alter.transform(functionBody.range[1], node.range[1], function(){});
+							functionBody.range[1]
+							, node.range[1]
+							, this.alter.get(functionBody.range[1], node.range[1])
+							, {
+								transformUniq: 2
+								, transform: function(str) {
+									// =>   (   <function body>
+									// or Remove first '(' for fnBodyHasHiddenBrackets == true
 
-				let lastDefinition = rest || (lastDflt || lastParam);
-
-				if( lastDefinition ) {
-					left = lastDefinition.range[1];
-				}
-				else {// function without params
-					left = node.range[0];
-				}
-
-				let str = this.alter.get(left, right);
-
-				// add "function" word before arrow function params list
-				this.alter.insert(
-					node.range[0]
-					, (doesThisInsideArrowFunction ? "(" : "") + "function"// + "|"
-				);
-
-				// remove "=>"
-				this.alter.replace(
-					left
-					, right
-					, str
-					, {
-						transform: function(str) {
-							str = str.replace(/=>/gi, "");
-
-							if( fnBodyIsSequenceExpression ) {
-								// =>   (   <function body>
-								str = str.replace(/\(/gi, "");
+									return str.replace(/\)/gi, " ");
+								}
 							}
-
-							return str
-						}
+						);
 					}
-				);
-
-				// add { and }
-				if( isNakedArrowFunction ) {
-					this.alter.wrap(fnBodyStart, fnBodyEnd, "{", "}");
 				}
 			}
 
@@ -183,7 +228,7 @@ var plugin = module.exports = {
 					insertIntoBodyBegin += defaultStr;
 
 					// cleanup default definition
-					// text change 'param = value' => ''
+					// text change 'param = value' into ''
 					this.alter.remove(
 						((prevDflt || prevParam) ? ((prevDflt || prevParam).range[1] + 1) : param.range[0]) - (prevParam ? 1 : 0)
 						, dflt.range[1]
@@ -206,16 +251,15 @@ var plugin = module.exports = {
 				);
 			}
 
-			if( isArrowFunction && functionBody.type !== "BlockStatement" ) {
-				// ()=>a
-				// add "{return " and "}"
+			if( isNakedFunction ) {
+				// '()=>a' or 'function test()a'
+				// add "return "
 
-				insertIntoBodyBegin =
-					insertIntoBodyBegin
-					+ "return "
+				insertIntoBodyBegin += (
+					"return "
 					+ (fnBodyIsSequenceExpression ? "(" : "")
-				;
-				insertIntoBodyEnd = (doesThisInsideArrowFunction ? ").bind(this)" : "");
+				);
+				insertIntoBodyEnd += (doesThisInsideArrowFunction ? ").bind(this)" : "");
 
 				node.body = {
 					"type": "BlockStatement",
@@ -231,12 +275,12 @@ var plugin = module.exports = {
 			}
 			else {
 				if( doesThisInsideArrowFunction ) {
-					insertIntoBodyEnd = ").bind(this)";
+					insertIntoBodyEnd += ").bind(this)";
 				}
 			}
 
 			if( insertIntoBodyBegin ) {
-				this.alter.insert(fnBodyStart, insertIntoBodyBegin);
+				this.alter.insert(fnBodyStart, insertIntoBodyBegin, {__newTransitionalSubLogic: true});
 			}
 
 			if( insertIntoBodyEnd ) {
