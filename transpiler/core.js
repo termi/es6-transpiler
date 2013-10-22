@@ -26,20 +26,20 @@ function isFunction(node) {
 }
 
 function isNonFunctionBlock(node) {
-	return node.type === "BlockStatement" && !isFunction(node.$parent.type);
+	return node && node.type === "BlockStatement" && !isFunction(node.$parent.type);
 }
 
 function isForWithConstLet(node) {
-	return node.type === "ForStatement" && node.init && node.init.type === "VariableDeclaration" && isConstLet(node.init.kind);
+	return node && node.type === "ForStatement" && node.init && node.init.type === "VariableDeclaration" && isConstLet(node.init.kind);
 }
 
-function isForInWithConstLet(node) {
-	return node.type === "ForInStatement" && node.left.type === "VariableDeclaration" && isConstLet(node.left.kind);
+function isForInOfWithConstLet(node) {
+	return node && (node.type === "ForInStatement" || node.type === "ForOfStatement") && node.left.type === "VariableDeclaration" && isConstLet(node.left.kind);
 }
 
 function isLoop(node) {
 	const type = node.type;
-	return type === "ForStatement" || type === "ForInStatement" || type === "WhileStatement" || type === "DoWhileStatement";
+	return type === "ForStatement" || type === "ForInStatement" || type === "ForOfStatement" || type === "WhileStatement" || type === "DoWhileStatement";
 }
 
 function isReference(node) {
@@ -170,7 +170,7 @@ let core = module.exports = {
 				param.elements.forEach(addParamToScope);
 			}
 			else {
-				node.$scope.add(param.name, "param", param, null);
+				node.$scope.add(param.name, "param", param);
 			}
 		}
 
@@ -191,10 +191,11 @@ let core = module.exports = {
 				});
 			}
 			else if( variable.type === "SpreadElement" ) {//from arrayPattern
-				node.$scope.add(variable.argument.name, kind, variable, variable.range[1], originalDeclarator);
+				addVariableToScope(variable.argument, kind, originalDeclarator);
+//				node.$scope.add(variable.argument.name, kind, variable, variable.range[1], 0, originalDeclarator);
 			}
 			else {
-				node.$scope.add(variable.name, kind, variable, variable.range[1], originalDeclarator);
+				node.$scope.add(variable.name, kind, variable, variable.range[1], 0, originalDeclarator);
 			}
 		}
 
@@ -211,7 +212,7 @@ let core = module.exports = {
 			 } else if (node.type === "ClassDeclaration") {
 			 assert(node.id.type === "Identifier");
 
-			 node.$parent.$scope.add(node.id.name, "fun", node.id, null);
+			 node.$parent.$scope.add(node.id.name, "fun", node.id);
 			 */
 		} else if (isFunction(node)) {
 			// Function is a scope, with params in it
@@ -229,16 +230,29 @@ let core = module.exports = {
 
 				if (node.type === "FunctionDeclaration") {
 					// Function name goes in parent scope for declared functions
-					node.$parent.$scope.add(node.id.name, "fun", node.id, null);
+					node.$parent.$scope.add(node.id.name, "fun", node.id);
 				} else if (node.type === "FunctionExpression") {
 					// Function name goes in function's scope for named function expressions
-					node.$scope.add(node.id.name, "fun", node.id, null);
+					node.$scope.add(node.id.name, "fun", node.id);
 				} else {
 					assert(false);
 				}
 			}
 
 			node.params.forEach(addParamToScope);
+
+		} else if (node.type === "ImportDeclaration") {
+			// Variable declarations names in import's
+			assert( node.kind === "default" || node.kind === "named" );
+			node.specifiers.forEach(function(declarator) {
+				assert(declarator.type === "ImportSpecifier");
+
+				addVariableToScope(
+					declarator.id
+					, "var"//, node.kind
+					, declarator
+				);
+			}, this);
 
 		} else if (node.type === "VariableDeclaration") {
 			// Variable declarations names goes in current scope
@@ -253,7 +267,7 @@ let core = module.exports = {
 				addVariableToScope(declarator.id, node.kind, declarator);
 			}, this);
 
-		} else if (isForWithConstLet(node) || isForInWithConstLet(node)) {
+		} else if (isForWithConstLet(node) || isForInOfWithConstLet(node)) {
 			// For(In) loop with const|let declaration is a scope, with declaration in it
 			// There may be a block-scope under it
 			node.$scope = new Scope({
@@ -278,7 +292,7 @@ let core = module.exports = {
 				node: node,
 				parent: node.$parent.$scope
 			});
-			node.$scope.add(identifier.name, "caught", identifier, null);
+			node.$scope.add(identifier.name, "caught", identifier);
 
 			// All hoist-scope keeps track of which variables that are propagated through,
 			// i.e. an reference inside the scope points to a declaration outside the scope.
@@ -591,8 +605,10 @@ let core = module.exports = {
 		if( node.type === "Program" ) {
 			begin = 0;
 		}
-		else if( node.type === "ArrowFunctionExpression" ) {
-			begin = hoistScopeNodeBody.range[0];
+		else if( isFunction(node) ) {
+			const isNakedFunction = node.expression === true;
+
+			begin = hoistScopeNodeBody.range[0] + (isNakedFunction ? 0 : 1);
 		}
 		else {
 			if( hoistScopeNodeBody.length ) {
@@ -608,18 +624,22 @@ let core = module.exports = {
 		return begin;
 	}
 
-	, getScopeTempVar: function(scope) {
+	, getScopeTempVar: function(startsFrom, scope, hoistScope) {
 		assert(scope instanceof Scope, scope + " is not instance of Scope");
 
-		scope = scope.closestHoistScope();
+		if( !hoistScope ) {
+			hoistScope = scope.closestHoistScope();
+		}
 
-		var freeVar = scope.popFree();
+		var freeVar = hoistScope.popFree(startsFrom);
 
 		if( !freeVar ) {
 			freeVar = core.unique("$D", true);
-			this.createScopeVariableDeclaration(scope, "var", freeVar);
+			hoistScope.add(freeVar, "var", {
+				//TODO:
+			});
 
-			this.alter.insert(this.__getNodeBegin(scope.node), "var " + freeVar + ";");
+			this.alter.insertBefore(this.__getNodeBegin(hoistScope.node), "var " + freeVar + ";");
 		}
 		/*newDefinitions.push({
 			"type": "EmptyStatement"
@@ -641,13 +661,15 @@ let core = module.exports = {
 		return freeVar;
 	}
 
-	, setScopeTempVar: function(scope, freeVar) {
+	, setScopeTempVar: function(freeVar, endsFrom, scope, hoistScope) {
 		assert(scope instanceof Scope, scope + " is not instance of Scope");
 		assert(typeof freeVar === "string");
 
-		scope = scope.closestHoistScope();
+		if( !hoistScope ) {
+			hoistScope = scope.closestHoistScope();
+		}
 
-		scope.pushFree(freeVar);
+		hoistScope.pushFree(freeVar, endsFrom);
 	}
 
 	, findParentForScopes: function() {
@@ -706,12 +728,6 @@ let core = module.exports = {
 		return parentScope;
 	}
 
-	, createScopeVariableDeclaration: function(scope, kind, variableName, parentNode) {
-		scope.add(variableName, kind, {
-			//TODO:
-		});
-	}
-
 	, bubbledVariableDeclaration: function(scope, variableName, variableInitValue, isFunction) {
 		scope = scope.closestHoistScope();
 
@@ -761,7 +777,9 @@ let core = module.exports = {
 		}
 
 		// remove previous VariableDeclaration ?
-		this.createScopeVariableDeclaration(scope, "var", variableName);
+		scope.add(variableName, "var", {
+			//TODO:
+		});
 
 		if( isFunction ) {
 			variableInitValue = "function " + variableName + variableInitValue
@@ -770,7 +788,7 @@ let core = module.exports = {
 			variableInitValue = "var " + variableName + " = " + variableInitValue + ";";
 		}
 
-		this.alter.insert(this.__getNodeBegin(scope.node), variableInitValue, bubbledVariable.changesOptions);
+		this.alter.insertBefore(this.__getNodeBegin(scope.node), variableInitValue, bubbledVariable.changesOptions);
 
 		return variableName;
 	}
