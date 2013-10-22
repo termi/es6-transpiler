@@ -1,4 +1,6 @@
-function ITER$0(v,f){if(v){if(Array.isArray(v))return f?v.slice():v;if(typeof v==='object'&&typeof v['iterator']==='function')return Array['from'](v);}throw new Error(v+' is not iterable')};{
+function ITER$0(v,f){if(v){if(Array.isArray(v))return f?v.slice():v;if(typeof v==='object'&&typeof v['iterator']==='function')return Array['from'](v);}throw new Error(v+' is not iterable')};// Important: finalize file. Do not add new tests!!!
+
+{
 	var i = 0;
 	var a = [];
 	var b = [-2, -1, "|"].concat(ITER$0((a.push(i++),a), true), "idx", [i, "-"], ITER$0((a.push(i++),a), true), "idx", [i, "-"], ITER$0((a.push(i++),a)), "idx", [i, "-"])
@@ -25,3 +27,23 @@ function test(a, b, c) {
 	console.log(a === 1, b === 2, c.join() === "3")
 }
 test.apply(null, [1].concat([].concat([2], [[3]])))
+
+{
+	var a$2 = [].concat([5, 6], 7);
+
+	var b$1 = (function(a, b, c){return [
+		a, b, c
+	]}).apply(null, ITER$0(a$2))
+
+	console.log(b$1.join("|") === [5, 6, 7].join("|"))
+}
+
+{
+	var a$3 = [].concat([9, void 0], [void 0, 6, 5, 4]);
+
+	var b$2 = (function(){var SLICE$0 = Array.prototype.slice;var a = arguments[0];if(a === void 0)a = 9;var b = arguments[1];if(b === void 0)b = 8;var c = arguments[2];if(c === void 0)c = 7;var rest = SLICE$0.call(arguments, 3);return [a, b, c].concat(ITER$0(rest))
+
+	}).apply(null, ITER$0(a$3))
+
+	console.log(b$2.join("|") === [9, 8, 7, 6, 5, 4].join("|"))
+}

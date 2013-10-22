@@ -1,3 +1,5 @@
+// Important: finalize file. Do not add new tests!!!
+
 {
 	let i = 0;
 	let a = [];
@@ -25,3 +27,23 @@ function test(a, b, c) {
 	console.log(a === 1, b === 2, c.join() === "3")
 }
 test(1, ...[...[2], [3]])
+
+{
+	let a = [...[5, 6], 7];
+
+	let b = (function(a, b, c)[
+		a, b, c
+	])(...a)
+
+	console.log(b.join("|") === [5, 6, 7].join("|"))
+}
+
+{
+	let a = [...[9, void 0], void 0, 6, 5, 4];
+
+	let b = (function(a = 9, b = 8, c = 7, ...rest)[
+		a, b, c, ...rest
+	])(...a)
+
+	console.log(b.join("|") === [9, 8, 7, 6, 5, 4].join("|"))
+}

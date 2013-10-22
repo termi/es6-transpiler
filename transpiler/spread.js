@@ -68,33 +68,42 @@ var plugin = module.exports = {
 		let tempVar;
 		const valueNode = node["arguments"];
 
+		let expressionBody = this.alter.get(node.callee.range[0], node.callee.range[1]);
+
 		if( isMemberExpression ) {
 			if( isSimpleMemberExpression ) {
 				expressionString =
-					this.alter.get(node.callee.range[0], node.callee.range[1])
+					expressionBody
 					+ ".apply("
 					+ this.alter.get(node.callee.object.range[0], node.callee.object.range[1])
 					+ ", "
 				;
 			}
 			else {
-				tempVar = core.getScopeTempVar(node.$scope);
+				let startsFrom = node.callee.object.range[0]
+					, endsFrom = node.range[1]
+				;
+
+				tempVar = core.getScopeTempVar(startsFrom, node.$scope);
 
 				expressionString =
 					"(" + tempVar + " = "
-					+ this.alter.get(node.callee.object.range[0], node.callee.object.range[1])
-					+ ")"
-					+ core.PropertyToString(node.callee.property)
-					+ ".apply(" + tempVar
-					+ ", "
+						+ this.alter.get(startsFrom, node.callee.object.range[1])
+						+ ")"
+						+ core.PropertyToString(node.callee.property)
+						+ ".apply(" + tempVar
+						+ ", "
 				;
 
-				core.setScopeTempVar(node.$scope, tempVar);
+				core.setScopeTempVar(tempVar, endsFrom, node.$scope);
 			}
 		}
 		else {
+			if( node.callee.type === "FunctionExpression" ) {
+				expressionBody = "(" + expressionBody + ")";
+			}
 			expressionString =
-				this.alter.get(node.callee.range[0], node.callee.range[1])
+				expressionBody
 				+ ".apply(null, "
 			;
 		}
@@ -141,10 +150,17 @@ var plugin = module.exports = {
 	}
 
 	, replaceArrayExpression: function(node) {
+		// found new line symbols
+		const str =
+			this.alter._source.substring(node.range[0], node.range[1])//TODO this.alter.getSource(node.range[0], node.range[1])
+		;
+		const newLines = str.match(/(\n\r)|(\n)|(\r)/g);
+
+		let arrayExpressionStr = this.__unwrapSpread(node) + (newLines ? newLines.join("") : "");
 		this.alter.replace(
 			node.range[0]
 			, node.range[1]
-			, this.__unwrapSpread(node)
+			, arrayExpressionStr
 		);
 	}
 
