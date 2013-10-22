@@ -17,7 +17,10 @@ test2()
 
 function test3 ( // function lvl comment
 // function declaration comment
-	
+
+
+
+
 )// function declaration comment
 {var a = arguments[0];if(a === void 0)a = 123;var b = arguments[1];if(b === void 0)b = 234;var c = arguments[2];if(c === void 0)c = 345;var d = arguments[3];if(d === void 0)d = 456;// function body comment
 	"use strict";
