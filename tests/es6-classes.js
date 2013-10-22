@@ -8,7 +8,7 @@ class Greeter {
 	}
 
 	greet() {
-		return "Hello, " + this.greeting;
+		return "Hello 1, " + this.greeting;
 	}
 }
 
@@ -18,10 +18,11 @@ class Greeter1 extends Greeter {
 		this.greeting = message;
 	}
 	greet() {
-		return super.greet() + "Hello, " + this.greeting;
+		return super.greet() + "Hello 2, " + this.greeting;
 	}
 }
 
-console.log(Greeter1.A);
-console.log(Greeter1.test());
-console.log((new Greeter1("test | ")).greet());
+console.log(Greeter.A === 123);
+console.log(Greeter1.A === 123);
+console.log(Greeter1.test() === "test");
+console.log((new Greeter1("test | 3")).greet() === "Hello 1, test | 3Hello 2, test | 3");

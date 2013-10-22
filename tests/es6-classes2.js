@@ -22,4 +22,5 @@ class class2 extends class1 {
 	}
 }
 
+console.log(class2.A === 123);
 console.log((new class2({message: "test"})).say() === "class1:test|class2:test|1|2:[static:class1][static:class2]")

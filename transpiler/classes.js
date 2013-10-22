@@ -25,6 +25,7 @@ const classesTranspiler = {
 			let nodeId = node.id
 				, superClass = node.superClass
 				, classStr
+				, insertAfterBodyBegin_string
 				, classBodyNodes = node.body.body
 				, classConstructor
 				, classBodyNodesCount = classBodyNodes.length
@@ -39,18 +40,18 @@ const classesTranspiler = {
 			if( superClass ) {
 				classStr += "_super";
 				superClass = this.alter.get(superClass.range[0], superClass.range[1]);
+
+				insertAfterBodyBegin_string = "Object.assign(" + this.__currentClassName + ", _super);";
+
 				extendedClassConstructorPostfix =
-					"Object.assign(" + this.__currentClassName + ", _super);" +
-					this.__currentClassName + ".prototype = Object.create(_super.prototype);" +
-					this.__currentClassName + ".prototype.constructor = " + this.__currentClassName + ";"
+					this.__currentClassName
+						+ ".prototype = Object.create(_super.prototype"
+							+ ", {\"__proto__\": null, \"constructor\": {\"value\": " + this.__currentClassName + ", \"configurable\": true, \"writable\": true, \"enumerable\": false} }"
+						+ ");"
 				;
 			}
 
 			classStr += ")";
-
-			// replace class definition
-			// text change 'class A[ extends B]' => 'var A = (function([_super])'
-			this.alter.replace(node.range[0], node.body.range[0], classStr);
 
 			for( let i = 0 ; i < classBodyNodesCount && !classConstructor ; i++ ) {
 				classConstructor = classBodyNodes[i];
@@ -83,6 +84,14 @@ const classesTranspiler = {
 			if( classBodyNodesCount ) {
 				core.traverse(node.body, {pre: this.replaceClassMethods})
 			}
+
+			if( insertAfterBodyBegin_string ) {
+				this.alter.insert(node.body.range[0] + 1, insertAfterBodyBegin_string);
+			}
+
+			// replace class definition
+			// text change 'class A[ extends B]' => 'var A = (function([_super])'
+			this.alter.replace(node.range[0], node.body.range[0], classStr);
 
 			this.alter.insert(node.range[1] - 1, "return " + this.__currentClassName + ";");
 
