@@ -17,13 +17,13 @@ function isConstLet(kind) {
 }
 
 function isFunction(node) {
-	const type = node.type;
-	return type === "FunctionDeclaration" || type === "FunctionExpression" || type === "ArrowFunctionExpression";
+	let type;
+	return node && ((type = node.type) === "FunctionDeclaration" || type === "FunctionExpression" || type === "ArrowFunctionExpression");
 }
 
 function isLoop(node) {
-	const type = node.type;
-	return type === "ForStatement" || type === "ForInStatement" || type === "WhileStatement" || type === "DoWhileStatement";
+	let type;
+	return node && ((type = node.type) === "ForStatement" || type === "ForInStatement" || type === "ForOfStatement" || type === "WhileStatement" || type === "DoWhileStatement");
 }
 
 function isReference(node) {
@@ -72,7 +72,7 @@ var plugin = module.exports = {
 			// if we hit a function (before a loop) - ok!
 			// if we hit a loop - maybe-ouch
 			// if we reach root - ok!
-			for (let n = node.$refToScope.node; ; ) {
+			for (let n = node.$refToScope.node ; ; ) {
 				if (isFunction(n)) {
 					// we're ok (function-local)
 					return;
@@ -175,7 +175,7 @@ var plugin = module.exports = {
 			: loopNode.body.range[1])	// just after existing expression
 		;
 
-		let forInVariableNode = (loopNode.type === "ForInStatement" && loopNode.left.declarations[0].id);
+		let forInVariableNode = ( (loopNode.type === "ForInStatement" || loopNode.type === "ForOfStatement") && loopNode.left.declarations[0].id);
 		let forInName;
 		if( forInVariableNode ) {
 			forInName = forInVariableNode.name;
@@ -191,7 +191,7 @@ var plugin = module.exports = {
 
 		// Update scope's
 		if( hasBlock ) {
-			loopNode.body.$scope.kind = "hoist";
+			loopNode.body.$scope.mutate("hoist");
 			variableNode.$refToScope = loopNode.body.$scope;
 		}
 		else {

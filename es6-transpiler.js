@@ -17,6 +17,7 @@ let plugins = [
 	, require("./transpiler/destructuring")
 	, require("./transpiler/quasiLiterals")
 	, require("./transpiler/arrayComprehension")
+	, require("./transpiler/forOf")
 
 	, {
 		setup: function(config) {
@@ -97,6 +98,8 @@ module.exports = {
 		this.runned = true;
 
 		config.fullES6 = true;// by default for now
+		config.environments = config.environments || [];
+		config.environments.push("node");// by default for now
 
 		//esprima
 		let esprima;
@@ -164,9 +167,6 @@ module.exports = {
 			}
 		}, this);
 
-
-		output.errors = [];//empty errors list
-
 		// output
 		if( error.errors.length ) {
 			output.exitcode = -1;
@@ -187,9 +187,18 @@ module.exports = {
 			output.src = this.src;
 		}
 
+		if( config.errorsToConsole ) {
+			if ( output.errors.length ) {
+				process.stderr.write(output.errors.join("\n"));
+				process.stderr.write("\n");
+				process.exit(-1);
+			}
+		}
+
 		if( config.outputToConsole === true	) {
 			outputToConsole(output, config);
 		}
+
 		if( config.outputFilename ) {
 			fs.writeFileSync(config.outputFilename, output.src)
 		}
@@ -199,12 +208,6 @@ module.exports = {
 };
 
 function outputToConsole(output, config) {
-	if ( output.errors.length ) {
-		process.stderr.write(output.errors.join("\n"));
-		process.stderr.write("\n");
-		process.exit(-1);
-	}
-
 	if (config.outputType === "stats" && output.stats) {
 		process.stdout.write(output.stats.toString());
 		process.exit(0);

@@ -20,6 +20,10 @@ function isArrayPattern(node) {
 	return node && node.type == 'ArrayPattern';
 }
 
+function isForInOf(node) {
+	return node && (node.type === "ForInStatement" || node.type === "ForOfStatement");
+}
+
 var plugin = module.exports = {
 	reset: function() {
 
@@ -36,13 +40,17 @@ var plugin = module.exports = {
 	}
 
 	, pre: function replaceDestructuringVariableDeclaration(node) {
-		let parentNode;
+		let parentNode, declarationNode;
 
 		if( isObjectPattern(node) || isArrayPattern(node) ) {
 			parentNode = node.$parent;
 
 			if( parentNode.type === "VariableDeclarator" ) {
-				if( isVarConstLet(parentNode.$parent.kind) ) {
+				declarationNode = parentNode.$parent;
+				if( isForInOf(declarationNode.$parent) ) {
+					//TODO::
+				}
+				else if( isVarConstLet(declarationNode.kind) ) {
 					this.__replaceDeclaration(parentNode, node);
 				}
 			}
@@ -85,12 +93,12 @@ var plugin = module.exports = {
 		);
 	}
 
-	, unwrapDestructuring: function unwrapDestructuring(kind, definitionNode, valueNode, newVariables) {
+	, unwrapDestructuring: function unwrapDestructuring(kind, definitionNode, valueNode, newVariables, newDefinitions) {
 		assert(isObjectPattern(definitionNode) || isArrayPattern(definitionNode));
 		if( !newVariables )newVariables = [];
 		assert(Array.isArray(newVariables));
 
-		let newDefinitions = [];
+		newDefinitions = newDefinitions || [];
 
 		this.__unwrapDestructuring(kind === "var" ? 1 : 0, definitionNode, valueNode, newVariables, newDefinitions);
 
@@ -117,9 +125,9 @@ var plugin = module.exports = {
 				delimiter = "";
 			}
 
-			assert( typeof definition["__stringValue"] === "string" );//"__stringValue" defined in this.__unwrapDestructuring
+			assert( typeof definition["$raw"] === "string" );//"$raw" defined in this.__unwrapDestructuring
 
-			destructurisationString += ( delimiter + definition["__stringValue"] );
+			destructurisationString += ( delimiter + definition["$raw"] );
 			needsFirstComma = true;
 		}
 
@@ -142,7 +150,15 @@ var plugin = module.exports = {
 			localFreeVariables = core.getNodeVariableNames(definitionNode);
 		}
 
-		if( valueNode.type === "Identifier" ) {
+		if( typeof valueNode["$raw"] === "string" ) {
+			valueIdentifierName = valueNode["$raw"];
+
+			if( valueIdentifierName.indexOf("[") !== -1 || valueIdentifierName.indexOf(".") !== -1 ) {
+				isTemporaryVariable = true;
+				valueIdentifierDefinition = valueIdentifierName;
+			}
+		}
+		else if( valueNode.type === "Identifier" ) {
 			valueIdentifierName = valueNode.name;
 
 			if( valueIdentifierName.indexOf("[") !== -1 || valueIdentifierName.indexOf(".") !== -1 ) {
@@ -187,7 +203,7 @@ var plugin = module.exports = {
 					hoistScope = definitionNode.$scope.closestHoistScope();
 				}
 
-				valueIdentifierName = core.getScopeTempVar(hoistScope);
+				valueIdentifierName = core.getScopeTempVar(definitionNode.range[0], hoistScope);
 			}
 			else {
 				isLocalFreeVariable = true;
@@ -251,14 +267,14 @@ var plugin = module.exports = {
 //					}
 
 					if( element.type === "SpreadElement" ) {
-						newDefinition["__stringValue"] = core.unwrapSpreadDeclaration(element.argument, valueIdentifierName, k);
+						newDefinition["$raw"] = core.unwrapSpreadDeclaration(element.argument, valueIdentifierName, k);
 					}
 					else {
 //						if( type === 1 ) {//VariableDeclarator
-							newDefinition["__stringValue"] = core.VariableDeclaratorString(newDefinition);
+							newDefinition["$raw"] = core.VariableDeclaratorString(newDefinition);
 //						}
 //						else {//AssignmentExpression
-//							newDefinition["__stringValue"] = core.AssignmentExpressionString(newDefinition);
+//							newDefinition["$raw"] = core.AssignmentExpressionString(newDefinition);
 //						}
 					}
 
@@ -275,14 +291,14 @@ var plugin = module.exports = {
 		if( type === 0 ) {//AssignmentExpression
 			newDefinitions.push({
 				"type": "VariableDeclarator"
-				, "__stringValue": temporaryVariableIndexOrName || valueIdentifierName
+				, "$raw": temporaryVariableIndexOrName || valueIdentifierName
 			});
 		}
 
 		assert(!isTemporaryValueAssignment);
 
 		if( !isLocalFreeVariable && isTemporaryVariable && temporaryVariableIndexOrName != void 0 ) {
-			core.setScopeTempVar(hoistScope, temporaryVariableIndexOrName)
+			core.setScopeTempVar(temporaryVariableIndexOrName, valueNode.range[1], hoistScope)
 		}
 	}
 };
