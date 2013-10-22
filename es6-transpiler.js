@@ -12,6 +12,7 @@ let plugins = [
 	, core
 	, require("./transpiler/loopClosures")
 	, require("./transpiler/letConst")
+	, require("./transpiler/objectLiteral")
 	, require("./transpiler/functions")
 	, require("./transpiler/spread")
 	, require("./transpiler/destructuring")
