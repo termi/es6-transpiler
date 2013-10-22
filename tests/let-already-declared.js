@@ -14,3 +14,17 @@ function f() {
         var y;
     }
 }
+
+{
+	function test1()1
+
+	let test1;
+}
+
+{
+	function test2()1
+
+	for( let {test2} of [] ) {
+
+	}
+}
