@@ -7,3 +7,12 @@ node_modules
 .settings
 *.iml
 .builder_cache
+
+tests/test.js
+tests/test-out.js
+test.js
+testout.js
+
+transpiler/module
+transpiler/arrayComprehension.js
+transpiler/typeofNull.js

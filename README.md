@@ -3,7 +3,7 @@ es6 -> es5
 
 ## status
 
-first release
+Beta
 
 ## Supported
 
