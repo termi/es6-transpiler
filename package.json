@@ -1,6 +1,6 @@
 {
   "name": "es6-transpiler",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "es6 -> es5",
   "main": "es6-transpiler.js",
   "repository": {
