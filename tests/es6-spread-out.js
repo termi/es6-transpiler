@@ -3,9 +3,10 @@ function ITER$0(v,f){if(v){if(Array.isArray(v))return f?v.slice():v;if(typeof v=
 {
 	var i = 0;
 	var a = [];
-	var b = [-2, -1, "|"].concat(ITER$0((a.push(i++),a), true), "idx", [i, "-"], ITER$0((a.push(i++),a), true), "idx", [i, "-"], ITER$0((a.push(i++),a)), "idx", [i, "-"])
+	var c = ["c"];
+	var b = [-2, -1, "|"].concat(ITER$0((a.push(i++),a), true), "idx", [i, "-"], ITER$0((a.push(i++),a), true), "idx", [i, "-"], ITER$0((a.push(i++),a), true), "idx", [i, "-"], ITER$0(c))
 
-	console.log( b.join("|") === [-2, -1, "|", 0, "idx", 1, "-", 0, 1, "idx", 2, "-", 0, 1, 2, "idx", 3, "-"].join("|") )
+	console.log( b.join("|") === [-2, -1, "|", 0, "idx", 1, "-", 0, 1, "idx", 2, "-", 0, 1, 2, "idx", 3, "-", "c"].join("|") )
 }
 
 {

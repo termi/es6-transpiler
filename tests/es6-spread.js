@@ -3,9 +3,10 @@
 {
 	let i = 0;
 	let a = [];
-	let b = [-2, -1, "|", ...(a.push(i++),a), "idx", i, "-", ...(a.push(i++),a), "idx", i, "-", ...(a.push(i++),a), "idx", i, "-"]
+	let c = ["c"];
+	let b = [-2, -1, "|", ...(a.push(i++),a), "idx", i, "-", ...(a.push(i++),a), "idx", i, "-", ...(a.push(i++),a), "idx", i, "-", ...c];
 
-	console.log( b.join("|") === [-2, -1, "|", 0, "idx", 1, "-", 0, 1, "idx", 2, "-", 0, 1, 2, "idx", 3, "-"].join("|") )
+	console.log( b.join("|") === [-2, -1, "|", 0, "idx", 1, "-", 0, 1, "idx", 2, "-", 0, 1, 2, "idx", 3, "-", "c"].join("|") )
 }
 
 {
