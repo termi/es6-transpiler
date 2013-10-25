@@ -7,11 +7,11 @@ const core = require("./core");
 
 
 function isObjectPattern(node) {
-	return node && node.type == 'ObjectPattern';
+	return node && node.type === 'ObjectPattern';
 }
 
 function isArrayPattern(node) {
-	return node && node.type == 'ArrayPattern';
+	return node && node.type === 'ArrayPattern';
 }
 
 var plugin = module.exports = {
@@ -36,7 +36,11 @@ var plugin = module.exports = {
 			}
 			else if( node.shorthand === true) {
 				var parent = node.$parent;
-				if( !parent || !(isArrayPattern(parent.$parent) || isObjectPattern(parent.$parent)) ) {//filter destructuring
+				if( !isArrayPattern(parent)
+					&& !isObjectPattern(parent)
+//					&& !isArrayPattern(parent.$parent)
+//					&& !isObjectPattern(parent.$parent)
+				) {//filter destructuring
 					this.replaceShorthand(node);
 				}
 			}

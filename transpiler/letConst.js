@@ -222,6 +222,7 @@ let plugin = module.exports = {
 		if( !move ) {
 			return;
 		}
+
 		node.$refToScope = move.scope;
 
 		if( node.name !== move.name
@@ -230,8 +231,14 @@ let plugin = module.exports = {
 				&& node.$parentType !== "ArrayPattern"
 			)
 		) {
+			const parent = node.$parent;
+
 			node.originalName = node.name;
 			node.name = move.name;
+
+			if( parent.type === "Property" && parent.shorthand === true ) {
+				return;//this is work for objectLiteral transpiler
+			}
 
 			this.alter.replace(
 				node.range[0]
