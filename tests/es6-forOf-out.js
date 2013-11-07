@@ -13,7 +13,7 @@ var output;
 	$D$3 = ([1, 2, 3]);$D$0 = GET_ITER$0($D$3);$D$1 = $D$0 === 0;$D$2 = ($D$1 ? $D$3.length : void 0);for(var f$0 ; $D$1 ? ($D$0 < $D$2) : !($D$2 = $D$0["next"]())["done"]; ){f$0 = ($D$1 ? $D$3[$D$0++] : $D$2["value"]);
 		output.push(f$0)
 	};$D$0 = $D$1 = $D$2 = $D$3 = void 0;
-	console.log(output.join("|") === [1, 2, 3].join("|"))}
+console.log(output.join("|") === [1, 2, 3].join("|"))}
 
 {
 	output = [];$D$3 = (( function(x) {return [x + 1, x + 2, x + 3]})(1));$D$0 = GET_ITER$0($D$3);$D$1 = $D$0 === 0;$D$2 = ($D$1 ? $D$3.length : void 0);for(var test ; $D$1 ? ($D$0 < $D$2) : !($D$2 = $D$0["next"]())["done"]; ){test = ($D$1 ? $D$3[$D$0++] : $D$2["value"]);

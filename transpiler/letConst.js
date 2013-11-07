@@ -14,11 +14,11 @@ function isConstLet(kind) {
 }
 
 function isObjectPattern(node) {
-	return node && node.type == 'ObjectPattern';
+	return node && node.type === 'ObjectPattern';
 }
 
 function isArrayPattern(node) {
-	return node && node.type == 'ArrayPattern';
+	return node && node.type === 'ArrayPattern';
 }
 
 
@@ -167,10 +167,11 @@ let plugin = module.exports = {
 
 					if (declarator.$parentType === "ObjectPattern") {
 						declarator.value.name = newName;
-						declarator.originalName = name;
+						declarator.value.originalName = name;
 					}
 					else if (declarator.$parentType === "ArrayPattern") {
 						declarator.name = newName;
+						declarator.originalName = name;
 					}
 					else {
 						declaratorId.name = newName;

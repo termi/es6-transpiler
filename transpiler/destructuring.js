@@ -301,6 +301,57 @@ var plugin = module.exports = {
 			core.setScopeTempVar(temporaryVariableIndexOrName, valueNode.range[1], hoistScope)
 		}
 	}
+
+	, traverseDestructuringVariables: function(definitionNode, traverse) {
+		assert(isObjectPattern(definitionNode) || isArrayPattern(definitionNode));
+
+		let _isObjectPattern = isObjectPattern(definitionNode)
+			, elementsList = _isObjectPattern ? definitionNode.properties : definitionNode.elements
+		;
+
+		for( let k = 0, len = elementsList.length ; k < len ; k++ ) {
+			let element = elementsList[k], elementId = _isObjectPattern ? element.value : element;
+			if (element) {
+				if( isObjectPattern(elementId) || isArrayPattern(elementId) ) {
+					this.traverseDestructuringVariables(
+						_isObjectPattern ? element.value : element
+						, traverse
+					);
+				}
+				else {
+					element = _isObjectPattern ? element.value : element;
+					assert(element.type === "Identifier");
+					traverse(element);
+				}
+			}
+		}
+	}
+
+	, getDestructuringVariablesName: function(definitionNode) {
+		let names = [];
+		this.traverseDestructuringVariables(definitionNode, function(element) {
+			names.push(element.name);
+		});
+		return names;
+	}
+
+	, detectDestructuringParent: function(node) {
+		let parent = node.$parent;
+
+		if( parent ) {
+			if( parent.type === 'Property' ) {
+				parent = parent.$parent;
+				if( isObjectPattern(parent) ) {
+					return parent;
+				}
+			}
+			else if( isArrayPattern(parent) ) {
+				return parent;
+			}
+		}
+
+		return null;
+	}
 };
 
 for(let i in plugin) if( plugin.hasOwnProperty(i) && typeof plugin[i] === "function" ) {

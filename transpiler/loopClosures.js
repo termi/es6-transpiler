@@ -5,6 +5,7 @@ const error = require("./../lib/error");
 const traverse = require("./../lib/traverse");
 const core = require("./core");
 const Scope = require("./../lib/scope");
+const destructuring = require("./destructuring");
 
 
 
@@ -19,6 +20,10 @@ function isConstLet(kind) {
 function isFunction(node) {
 	let type;
 	return node && ((type = node.type) === "FunctionDeclaration" || type === "FunctionExpression" || type === "ArrowFunctionExpression");
+}
+
+function isForInOfWithConstLet(node) {
+	return node && (node.type === "ForInStatement" || node.type === "ForOfStatement") && node.left.type === "VariableDeclaration" && isConstLet(node.left.kind);
 }
 
 function isLoop(node) {
@@ -42,6 +47,56 @@ function isReference(node) {
 			&& true
 	;
 }
+
+function isDeclaration(node) {
+	return node && (node.$variableDeclaration === true || node.$paramDefinition === true);
+}
+
+let transformLoop_fragmentOption_functionHeadAndTail = {
+	applyChanges: true
+	, extend: true
+
+	, onbefore: function() {
+		let fragmentOption = this.options;
+		let forVariableNode = fragmentOption.variableDeclarationNode;
+		let forVariableNode_newName = fragmentOption.newName || ""
+			, forVariableNode_oldName = fragmentOption.oldName || ""
+		;
+
+		let isHead = this.data === "--head--";
+
+		if( forVariableNode && !fragmentOption.secondTime ) {
+			let destructuringVariableDeclarationNode = destructuring.detectDestructuringParent(forVariableNode);
+
+			if ( destructuringVariableDeclarationNode ) {
+				forVariableNode_newName = destructuring.getDestructuringVariablesName(destructuringVariableDeclarationNode).join(", ");
+				let names = [];
+				destructuring.traverseDestructuringVariables(destructuringVariableDeclarationNode, function(element) {
+					names.push(element.originalName || element.name);
+				});
+				forVariableNode_oldName = names.join(", ");
+			}
+			else if( forVariableNode.type === "Identifier" ) {
+				forVariableNode_newName = (forVariableNode ? forVariableNode.name : void 0);
+				forVariableNode_oldName = (forVariableNode ? forVariableNode.originalName : void 0);
+			}
+			else {
+				assert(false, forVariableNode);
+			}
+
+			fragmentOption.newName = forVariableNode_newName;
+			fragmentOption.oldName = forVariableNode_oldName;
+			fragmentOption.variableDeclarationNode = null;//cleanup
+			fragmentOption.secondTime = true;
+		}
+
+		this.data =
+			isHead
+				? "(function(" + (forVariableNode_oldName || "") + "){"
+				: "}).call(this" + (forVariableNode_newName ? ", " + forVariableNode_newName : "") + ");"
+		;
+	}
+};
 
 var plugin = module.exports = {
 	reset: function() {
@@ -105,13 +160,13 @@ var plugin = module.exports = {
 						return error(getline(node), "can't transform closure. {0} is defined outside closure, inside loop", node.name);
 					}
 
-					const declarationNode = defScope.getNode(node.name);
+					const variableDeclarationNode = defScope.getNode(node.name);
 
 					// here be dragons
 					// for (let x = ..; .. ; ..) { (function(){x})() } is forbidden because of current
 					// spec and VM status
 					if (loopNode.type === "ForStatement" && defScope.node === loopNode) {
-						return error(getline(declarationNode), "Not yet specced ES6 feature. {0} is declared in for-loop header and then captured in loop closure", declarationNode.name);
+						return error(getline(variableDeclarationNode), "Not yet specced ES6 feature. {0} is declared in for-loop header and then captured in loop closure", variableDeclarationNode.name);
 					}
 
 					// speak now or forever hold your peace
@@ -123,7 +178,7 @@ var plugin = module.exports = {
 
 					// mark loop for IIFE-insertion
 					loopNode.$iify = true;
-					this.transformLoop(loopNode, node, declarationNode);
+					this.transformLoop(loopNode, node, variableDeclarationNode);
 					break;
 				}
 			}
@@ -170,44 +225,64 @@ var plugin = module.exports = {
 			? loopNode.body.range[0] + 1// just after body {
 			: loopNode.body.range[0])	// just before existing expression
 		;
-		const insertFootPosition = (hasBlock
+		const insertTailPosition = (hasBlock
 			? loopNode.body.range[1] - 1// just before body }
 			: loopNode.body.range[1])	// just after existing expression
 		;
 
-		let forInVariableNode = ( (loopNode.type === "ForInStatement" || loopNode.type === "ForOfStatement") && loopNode.left.declarations[0].id);
-		let forInName;
-		if( forInVariableNode ) {
-			forInName = forInVariableNode.name;
-		}
-		let iifeHeadString = "(function(" + (forInName || "") + "){";
-		if( forInVariableNode ) {
-			forInName = this.alter.get(forInVariableNode.range[0], forInVariableNode.range[1]);
-		}
-		let iifeTailString = "}).call(this" + (forInName ? ", " + forInName : "") + ");";
+		let fragmentOption = Object.create(transformLoop_fragmentOption_functionHeadAndTail);
+		fragmentOption.variableDeclarationNode = isForInOfWithConstLet(loopNode) && variableNode && variableDeclarationNode;
 
-		this.alter.insert(insertHeadPosition, iifeHeadString, {applyChanges: true, extend: true});
-		this.alter.insert(insertFootPosition, iifeTailString, {applyChanges: true, extend: true});
+		this.alter.insert(insertHeadPosition, "--head--", fragmentOption);
+		this.alter.insert(insertTailPosition, "--tail--", fragmentOption);
+
+		this.transformLoopScope(loopNode, variableDeclarationNode, hasBlock);
+	}
+
+	, transformLoopScope: function(loopNode, variableDeclarationNode, hasBlock) {
+		if( hasBlock === void 0 ) {
+			hasBlock = (loopNode.body.type === "BlockStatement")
+		}
+
+		let newScope;
 
 		// Update scope's
 		if( hasBlock ) {
 			loopNode.body.$scope.mutate("hoist");
-			variableNode.$refToScope = loopNode.body.$scope;
+			newScope = loopNode.body.$scope;
 		}
 		else {
 			let chs = loopNode.body.$scope.children;
-			let newScope = new Scope({
+			newScope = new Scope({
 				kind: "hoist",
 				node: loopNode.body,
 				parent: loopNode.body.$scope
 			});
 			chs.forEach(function(scope) {
 				scope.parent = newScope;
-			})
+			});
 			loopNode.body.$scope.children = [newScope];
-			variableNode.$refToScope = newScope;
 		}
-	}};
+
+		function setNewRefToScope(variableNode, i) {
+			variableNode.$refToScope = newScope;
+
+			if( isDeclaration(variableNode) ) {
+				let refs = variableNode.$scope.getRefs(variableNode.name) || [];
+				refs.forEach(setNewRefToScope);
+			}
+		}
+
+		let destructuringVariableDeclarationNode = destructuring.detectDestructuringParent(variableDeclarationNode);
+
+		if( destructuringVariableDeclarationNode ) {
+			destructuring.traverseDestructuringVariables(destructuringVariableDeclarationNode, setNewRefToScope);
+		}
+		else if( variableDeclarationNode.type === "Identifier" ) {
+			setNewRefToScope(variableDeclarationNode);
+		}
+	}
+};
 
 for(let i in plugin) if( plugin.hasOwnProperty(i) && typeof plugin[i] === "function" ) {
 	plugin[i] = plugin[i].bind(plugin);

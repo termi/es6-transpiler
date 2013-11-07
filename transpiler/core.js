@@ -59,6 +59,10 @@ function isReference(node) {
 	;
 }
 
+function isDeclaration(node) {
+	return node && (node.$variableDeclaration === true || node.$paramDefinition === true);
+}
+
 function isLvalue(node) {
 	return isReference(node) &&
 		(
@@ -172,31 +176,39 @@ let core = module.exports = {
 			else {
 				node.$scope.add(param.name, "param", param);
 			}
+
+			param.$paramDefinition = true;
 		}
 
-		function addVariableToScope(variable, kind, originalDeclarator) {
+		function addVariableToScope(variable, kind, originalDeclarator, scope) {
 			if( isObjectPattern(variable) ) {
 				variable.properties.forEach(function(variable) {
-					addVariableToScope(variable, kind, originalDeclarator);
+					addVariableToScope(variable, kind, originalDeclarator, scope);
 				});
 			}
 			else if( variable.type === "Property" ) {//from objectPattern
-				addVariableToScope(variable.value, kind, originalDeclarator);
+				addVariableToScope(variable.value, kind, originalDeclarator, scope);
 			}
 			else if( isArrayPattern(variable) ) {
 				variable.elements.forEach(function(variable) {
 					if( variable ) {
-						addVariableToScope(variable, kind, originalDeclarator);
+						addVariableToScope(variable, kind, originalDeclarator, scope);
 					}
 				});
 			}
 			else if( variable.type === "SpreadElement" ) {//from arrayPattern
-				addVariableToScope(variable.argument, kind, originalDeclarator);
+				addVariableToScope(variable.argument, kind, originalDeclarator, scope);
 //				node.$scope.add(variable.argument.name, kind, variable, variable.range[1], 0, originalDeclarator);
 			}
 			else {
-				node.$scope.add(variable.name, kind, variable, variable.range[1], 0, originalDeclarator);
+				let referableFromPos;
+				if( is.someof(kind, ["var", "const", "let"]) ) {
+					referableFromPos = variable.range[1];
+				}
+				(scope || node.$scope).add(variable.name, kind, variable, referableFromPos, 0, originalDeclarator);
 			}
+
+			variable.$variableDeclaration = true;
 		}
 
 		if (node.type === "Program") {
@@ -230,16 +242,19 @@ let core = module.exports = {
 
 				if (node.type === "FunctionDeclaration") {
 					// Function name goes in parent scope for declared functions
-					node.$parent.$scope.add(node.id.name, "fun", node.id);
+					addVariableToScope(node.id, "fun", node.id, node.$parent.$scope);
 				} else if (node.type === "FunctionExpression") {
 					// Function name goes in function's scope for named function expressions
-					node.$scope.add(node.id.name, "fun", node.id);
+					addVariableToScope(node.id, "fun", node.id);
 				} else {
 					assert(false);
 				}
 			}
 
 			node.params.forEach(addParamToScope);
+			if( node.rest ) {
+				addParamToScope(node.rest)
+			}
 
 		} else if (node.type === "ImportDeclaration") {
 			// Variable declarations names in import's
@@ -292,7 +307,7 @@ let core = module.exports = {
 				node: node,
 				parent: node.$parent.$scope
 			});
-			node.$scope.add(identifier.name, "caught", identifier);
+			addVariableToScope(identifier, "caught", identifier);
 
 			// All hoist-scope keeps track of which variables that are propagated through,
 			// i.e. an reference inside the scope points to a declaration outside the scope.
@@ -306,7 +321,9 @@ let core = module.exports = {
 			node.$scope.closestHoistScope().markPropagates(identifier.name);
 		}
 		else if ( node.type === "ThisExpression" ) {
-			let thisFunctionScope = node.$scope.closestHoistScope(), functionNode = thisFunctionScope.node;
+			let thisFunctionScope = node.$scope.closestHoistScope()
+				, functionNode = thisFunctionScope.node
+			;
 
 			if( functionNode.type === "ArrowFunctionExpression" ) {
 				do {
@@ -371,6 +388,7 @@ let core = module.exports = {
 
 	/**
 	 * traverse: pre
+	 * after 'createScopes'
 	 */
 	, setupReferences: function(node) {
 		if (isReference(node)) {
@@ -380,11 +398,19 @@ let core = module.exports = {
 			if (!scope && this.options.disallowUnknownReferences) {
 				error(getline(node), "reference to unknown global variable {0}", node.name);
 			}
+
+			if( !isDeclaration(node) ) {
+				if( this.options.disallowUnknownReferences || scope ) {
+					scope.addRef(node);
+				}
+			}
+
 			// check const and let for referenced-before-declaration
 			let kind;
 			if (scope && ((kind = scope.getKind(node.name)) === "const" || kind === "let")) {
 				const allowedFromPos = scope.getFromPos(node.name);
 				const referencedAtPos = node.range[0];
+
 				assert(is.finitenumber(allowedFromPos));
 				assert(is.finitenumber(referencedAtPos));
 				if (referencedAtPos < allowedFromPos) {
@@ -452,6 +478,10 @@ let core = module.exports = {
 
 		if( isFunction(node) ) {
 			node.params.forEach(addParam);
+
+			if( node.rest ) {
+				addParam(node.rest)
+			}
 		}
 		else if( node.type === "VariableDeclaration" ) {
 			node.declarations.forEach(function(declarator) {

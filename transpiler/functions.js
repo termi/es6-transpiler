@@ -237,12 +237,8 @@ var plugin = module.exports = {
 			}
 
 			if( rest ) {
-				const restStr = "var " + core.unwrapSpreadDeclaration(rest, "arguments", initialParamsCount) + ";";
-
-				node.$scope.closestHoistScope().add(rest.name, "var", rest, -1);
-
 				// add rest
-				insertIntoBodyBegin += restStr;
+				insertIntoBodyBegin += ("var " + core.unwrapSpreadDeclaration(rest, "arguments", initialParamsCount) + ";");
 
 				// cleanup rest definition
 				this.alter.remove(
