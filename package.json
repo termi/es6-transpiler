@@ -31,6 +31,9 @@
   "scripts": {
     "test": "node --harmony run-tests"
   },
+  "bin": {
+    "es6toes5": "es6toes5"
+  },
   "author": "Egor Khalimonenko <1+es6transpiler@h123.ru>",
   "license": "MIT"
 }
