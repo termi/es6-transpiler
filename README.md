@@ -13,8 +13,9 @@ Beta
  * defaultParameters
  * arrowFunctions
  * spread (with iterator protocol)
- * templateLiterals
  * for-of (with iterator protocol)
+ * array comprehensions (with iterator protocol)
+ * templateLiterals
  * objectLiteral
 
 Static scope analysis and transpilation of ES6 block scoped `const` and `let` variables to ES3 (based on https://github.com/olov/defs).

@@ -325,6 +325,8 @@ let core = module.exports = {
 				, functionNode = thisFunctionScope.node
 			;
 
+			thisFunctionScope.markThisUsing();
+
 			if( functionNode.type === "ArrowFunctionExpression" ) {
 				do {
 					// ArrowFunction should transpile to the function with .bind(this) at the end
@@ -335,6 +337,25 @@ let core = module.exports = {
 						&& functionNode.type === "ArrowFunctionExpression"
 						&& (thisFunctionScope = functionNode.$scope.closestHoistScope())
 					);
+			}
+		}
+		else if ( node.type === "ComprehensionExpression" ) {
+			// TODO:: when I write this, I not looking to spec
+			// TODO:: check the logic below
+
+			node.$scope = new Scope({
+				kind: "hoist",
+				node: node,
+				parent: node.$parent.$scope
+			});
+
+			let blocks = node.blocks;
+			for( let i = 0, len = blocks.length ; i < len ; i++) {
+				let block = blocks[i];
+
+				if( block.type === "ComprehensionBlock" ) {
+					addVariableToScope(block.left, "let", node);
+				}
 			}
 		}
 	}
@@ -400,7 +421,7 @@ let core = module.exports = {
 			}
 
 			if( !isDeclaration(node) ) {
-				if( this.options.disallowUnknownReferences || scope ) {
+				if( scope ) {
 					scope.addRef(node);
 				}
 			}
@@ -639,6 +660,9 @@ let core = module.exports = {
 			const isNakedFunction = node.expression === true;
 
 			begin = hoistScopeNodeBody.range[0] + (isNakedFunction ? 0 : 1);
+		}
+		else if( node.type === "ComprehensionExpression" ) {
+			begin = node.range[0] + 1;
 		}
 		else {
 			if( hoistScopeNodeBody.length ) {

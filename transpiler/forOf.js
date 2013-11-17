@@ -58,12 +58,45 @@ var plugin = module.exports = {
 			: nodeStartsFrom)	// just before existing expression
 		;
 
+
+		const replacementObj = this.createForOfReplacement(node, nodeStartsFrom, nodeEndsFrom, true);
+
+
+		this.alter.insert(//before for of
+			node.range[0]
+			, replacementObj.before
+			, {extend: true, applyChanges: true}
+		);
+		this.alter.insertBefore(//after for of body begin, but before any other insert (loop closure function start, for example)
+			insertHeadPosition
+			, (hasBlock ? "" : "{") + replacementObj.inner
+		);
+		this.alter.insertAfter(//after for of
+			node.range[1]
+			, (hasBlock ? "" : "}") + replacementObj.after
+			, {extend: true}
+		);
+		this.alter.setState("replaceForOf");
+		if( replacementObj.remove ) {
+			// remove 'var {des, truc, turing}' from for(var {des, truc, turing} of something){  }
+			this.alter.remove(
+				replacementObj.remove[0]
+				, replacementObj.remove[1]
+			);
+		}
+		this.alter.replace(//instead for of declaration body: for(var a of b) -> for(var a <forOfString>)
+			node.left.range[1] + 1
+			, insertHeadPosition - (hasBlock ? 1 : 0)//just before {
+			, replacementObj.loop + ")"
+		);
+		this.alter.restoreState();
+	}
+
+	, createForOfReplacement: function(node, nodeStartsFrom, nodeEndsFrom, needTemporaryVariableCleaning) {
 		const getIteratorFunctionName = core.bubbledVariableDeclaration(node.$scope, "GET_ITER", getIteratorBody, true);
 
 		const variableBlock = node.left;
 		const isDeclaration = variableBlock.type === "VariableDeclaration";
-
-		assert(variableBlock.type === "Identifier" || isDeclaration);
 
 		const declarations = isDeclaration ? variableBlock.declarations : null
 			, declaration = isDeclaration ? declarations[0] : null
@@ -84,6 +117,13 @@ var plugin = module.exports = {
 				, core.getScopeTempVar(nodeStartsFrom, node.$scope)	// length or current value
 			]
 		;
+
+		assert(
+			isDeclaration
+			|| variableBlock.type === "Identifier"
+			|| variableIdIsDestructuring
+			, variableBlock.type + " is a wrong type for forOf left part");
+
 		if( !variableInitIsIdentifier ) {
 			tempVars.push(
 				core.getScopeTempVar(nodeStartsFrom, node.$scope)// empty string or variable name
@@ -91,7 +131,7 @@ var plugin = module.exports = {
 		}
 
 		let variableInitString;
-		let beforeBeginString = "";
+		let beforeBeginString = "";//Init string
 
 
 		if( variableInitIsIdentifier ) {
@@ -117,7 +157,7 @@ var plugin = module.exports = {
 			, initString =
 				"(" + tempVars[1] + " ? " + variableInitString + "[" + tempVars[0] + "++] : " + tempVars[2] + "[\"value\"])"
 
-			, afterString = ";" + tempVars.join(" = ") + " = void 0;"
+			, afterString = ";" + (needTemporaryVariableCleaning ? (tempVars.join(" = ") + " = void 0;") : "")//cleanup string
 		;
 
 		if( variableIdIsDestructuring ) {
@@ -141,34 +181,13 @@ var plugin = module.exports = {
 			core.setScopeTempVar(tempVars.shift(), nodeEndsFrom, node.$scope)
 		}
 
-		this.alter.insert(//before for of
-			node.range[0]
-			, beforeBeginString
-			, {extend: true, applyChanges: true}
-		);
-		this.alter.insertBefore(//after for of body begin, but before any other insert (loop closure function start, for example)
-			insertHeadPosition
-			, innerString
-		);
-		this.alter.insertAfter(//after for of
-			node.range[1]
-			, afterString
-			, {extend: true}
-		);
-		this.alter.setState("replaceForOf");
-		if( variableIdIsDestructuring ) {
-			// remove 'var {des, truc, turing}' from for(var {des, truc, turing} of something){  }
-			this.alter.remove(
-				variableBlock.range[0]
-				, variableBlock.range[1]
-			);
+		return {
+			before: beforeBeginString
+			, loop: forOfString
+			, inner: innerString
+			, after: afterString
+			, remove: variableIdIsDestructuring ? variableBlock.range : void 0
 		}
-		this.alter.replace(//instead for of declaration body: for(var a of b) -> for(var a <forOfString>)
-			variableBlock.range[1] + 1
-			, insertHeadPosition - (hasBlock ? 1 : 0)//just before {
-			, forOfString + ")"
-		);
-		this.alter.restoreState();
 	}
 };
 

@@ -1,9 +1,14 @@
 function GET_ITER$0(v){if(v){if(Array.isArray(v))return 0;if(typeof v==='object'&&typeof v['iterator']==='function')return v['iterator']();}throw new Error(v+' is not iterable')};var $D$0;var $D$1;var $D$2;var $D$3;
-
 var output = [];
 var i = 0;
 {
-	var arr,f;
+	var arr = [{a: 1}, {a: 2}, {a: 3}, {a: 4}, {b: 999}];
+	var output$0 = [];
+
+	var f;$D$0 = GET_ITER$0(arr);$D$1 = $D$0 === 0;$D$2 = ($D$1 ? arr.length : void 0);for(  ; $D$1 ? ($D$0 < $D$2) : !($D$2 = $D$0["next"]())["done"]; ){;f = ((f = ($D$1 ? arr[$D$0++] : $D$2["value"]).a) === void 0 ? 9 : f);1,output$0.push(f),2
+
+
+	};$D$0 = $D$1 = $D$2 = void 0;console.log(output$0.join("|") === [1, 2, 3, 4, 9].join("|"))
 }
 
 {
@@ -30,4 +35,3 @@ var i = 0;
 {
 	var arr$3,f$3;
 }
-

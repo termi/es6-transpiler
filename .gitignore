@@ -14,5 +14,4 @@ test.js
 testout.js
 
 transpiler/module
-transpiler/arrayComprehension.js
 transpiler/typeofNull.js
