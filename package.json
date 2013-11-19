@@ -14,7 +14,8 @@
     "stringset": "~0.2.0",
     "esprima": "git://github.com/ariya/esprima.git#harmony",
 	"ansidiff": "~1.0.0",
-	"string-alter": "0.6.1"
+	"string-alter": "0.6.1",
+	"regenerator": "0.2.10"
   },
   "keywords": [
     "es6-transpiler",
