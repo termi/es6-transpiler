@@ -46,7 +46,7 @@ const classesTranspiler = {
 				extendedClassConstructorPostfix =
 					this.__currentClassName
 						+ ".prototype = Object.create(_super.prototype"
-							+ ", {\"__proto__\": null, \"constructor\": {\"value\": " + this.__currentClassName + ", \"configurable\": true, \"writable\": true, \"enumerable\": false} }"
+							+ ", {\"constructor\": {\"value\": " + this.__currentClassName + ", \"configurable\": true, \"writable\": true, \"enumerable\": false} }"
 						+ ");"
 				;
 			}

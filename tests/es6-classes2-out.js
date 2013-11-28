@@ -16,7 +16,7 @@ var class2 = (function(_super){Object.assign(class2, _super);
 	function class2($D$0) {var message = $D$0.message;
 		_super.call(this, message);
 		this.property2 = message;
-	}class2.prototype = Object.create(_super.prototype, {"__proto__": null, "constructor": {"value": class2, "configurable": true, "writable": true, "enumerable": false} });
+	}class2.prototype = Object.create(_super.prototype, {"constructor": {"value": class2, "configurable": true, "writable": true, "enumerable": false} });
 
 	class2.prototype.say = function() {var a = arguments[0];if(a === void 0)a = 1;var b = (arguments[1] !== void 0 ? arguments[1] : [2])[0];
 		return _super.prototype.say.call(this) + "|class2" + ":" + this.property2 + "|" + a + "|" + b + ":" + class2.sayStatic();
