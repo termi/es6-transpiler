@@ -51,8 +51,8 @@ Install using npm
 
 ### In console
 
-Run it as `es6toes3 file.js`. The errors (if any) will go to stderr,
-the transpiled source to `stdout`, so redirect it like `es6toes3 file.js > output.js`.
+Run it as `es6toes5 file.js`. The errors (if any) will go to stderr,
+the transpiled source to `stdout`, so redirect it like `es6toes5 file.js > output.js`.
 
 ### Node.js
 
