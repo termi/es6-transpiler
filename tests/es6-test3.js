@@ -1,6 +1,8 @@
-(function(...r){const {b} = (function(...args)({b: args[1]}))(...r);//destructuring / rest / spread
+let result = (function(...r){const {b} = (function(...args)({b: args[1]}))(...r);//destructuring / rest / spread
 	return b;
 })(...[1, 2, 3]);
+
+console.log(result === 2);
 
 /*
  Test note:
