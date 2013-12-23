@@ -1,6 +1,6 @@
 {
   "name": "es6-transpiler",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "es6 -> es5",
   "main": "es6-transpiler.js",
   "repository": {
@@ -12,9 +12,7 @@
     "simple-is": "~0.2.0",
     "stringmap": "~0.2.0",
     "stringset": "~0.2.0",
-    "esprima": "git://github.com/ariya/esprima.git#harmony",
-	"ansidiff": "~1.0.0",
-	"string-alter": "0.6.1"
+	"ansidiff": "~1.0.0"
   },
   "keywords": [
     "es6-transpiler",
