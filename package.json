@@ -1,8 +1,9 @@
 {
   "name": "es6-transpiler",
-  "version": "0.7.3",
+  "version": "0.7.4",
   "description": "es6 -> es5",
-  "main": "es6-transpiler.js",
+  "main": "./build/es5/es6-transpiler.js",
+  "bin": "./build/es5/es6toes5",
   "repository": {
     "type": "git",
     "url": "https://github.com/termi/es6-transpiler.git"
@@ -28,9 +29,6 @@
   ],
   "scripts": {
     "test": "node --harmony run-tests"
-  },
-  "bin": {
-    "es6toes5": "es6toes5"
   },
   "author": "Egor Khalimonenko <1+es6transpiler@h123.ru>",
   "license": "MIT"

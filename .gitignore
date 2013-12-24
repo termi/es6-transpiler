@@ -8,6 +8,9 @@ node_modules
 *.iml
 .builder_cache
 
+build/es5
+build/npm
+
 tests/test.js
 tests/test-out.js
 test.js
