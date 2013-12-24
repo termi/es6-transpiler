@@ -116,8 +116,8 @@ module.exports = {
 		if( typeof config.filename === "string" ) {
 			this.src = String(fs.readFileSync(config.filename));
 		}
-		else if( typeof config.source === "string" || typeof config.source === "object" ) {
-			this.src = String(config.source);
+		else if( typeof config.src === "string" || typeof config.src === "object" ) {
+			this.src = String(config.src);
 		}
 		else if( typeof config.ast === "object" ) {
 			throw new Error("Currently unsupported");

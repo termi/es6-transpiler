@@ -23,7 +23,11 @@ function slurp(filename) {
     return fs.existsSync(filename) ? String(fs.readFileSync(filename)) : "";
 }
 
-const pathToTests = (fs.existsSync("tests") ? "tests" : "../../tests");
+let pathToTests = commandVariables.path;
+
+if( !pathToTests ) {
+	pathToTests = fs.existsSync("tests") ? "tests" : path.join("..", "..", "tests");
+}
 
 let tests;
 if( commandVariables.file && typeof commandVariables.file === "string" ) {
@@ -32,7 +36,7 @@ if( commandVariables.file && typeof commandVariables.file === "string" ) {
 	]
 }
 else {
-	tests = fs.readdirSync("tests").filter(function(filename) {
+	tests = fs.readdirSync(pathToTests).filter(function(filename) {
 		return !/-out\.js$/.test(filename) && !/-stderr$/.test(filename);
 	});
 }
