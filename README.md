@@ -47,12 +47,60 @@ Install using npm
 
 	npm install es6-transpiler
 
+Or just using [Grunt task](https://github.com/termi/grunt-es6-transpiler) (see below).
+
 ## Usage
+
+### Important note: temporary limitation
+
+For the output code works you need an implementations of Object.assign and Object.create in the target browser.
+You can get it here: [es5-shim](https://github.com/kriskowal/es5-shim/) and [es6-shim](https://github.com/paulmillr/es6-shim/), or copy and past this code:
+```
+if(!Object.assign)Object.assign = function(target, source) {
+	for (var prop in source) {
+		if (source.hasOwnProperty(prop)) {
+			target[prop] = source[prop];
+		}
+	}
+	return target;
+};
+
+if(!Object.create)Object.create = function(_prototype) {//[Warning!!!]This is PURE and UNSAFE implementation of Object.create
+	var Type = function () {};
+	Type.prototype = _prototype;
+	var _object = new Type();
+	_object.__proto__ = _prototype;
+
+	return _object;
+};
+```
+I will provide a polyfill's in the future.
+
+### Grunt task
+
+[Grunt](http://gruntjs.com/) task can be fount here: https://github.com/termi/grunt-es6-transpiler
+
+Install:
+`npm install grunt-es6-transpiler`
+
+Usage:
+```javascript
+grunt.loadNpmTasks('grunt-es6-transpiler');
+
+grunt.initConfig({
+  "es6-transpiler": {
+    test: {
+        src: 'test.js'
+        , dest: 'test.es5.js'
+    }
+  },
+})
+```
 
 ### In console
 
-Run it as `es6toes5 file.js`. The errors (if any) will go to stderr,
-the transpiled source to `stdout`, so redirect it like `es6toes5 file.js > output.js`.
+Run it as `es6toes5 <input file>`. Or `node --harmony es6toes5 <input file>`. Also you can run a compiled es5 version `node build/es5/es6toes5 <input file>`.
+The errors (if any) will go to stderr, the transpiled source to `stdout`, so redirect it like `es6toes5 file.js > output.js`.
 
 ### Node.js
 
@@ -62,7 +110,7 @@ Options is:
 
 	{
 		filename: string // input file
-		source: string // input source if not filename
+		src: string // input source if not filename
 		outputToConsole: boolean // if true -> result would be outputted to console
 		outputFilename: string // if specific -> result would be written to file
 	}
@@ -88,7 +136,7 @@ Example of `options` object:
 
     {
     	//described above:
-    	//"filename" or "source": "string"
+    	//"filename" or "scr": "string"
     	//outputToConsole: false
     	//outputFilename: true
 
