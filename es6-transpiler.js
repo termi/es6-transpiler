@@ -99,8 +99,11 @@ module.exports = {
 		this.runned = true;
 
 		config.fullES6 = true;// by default for now
-		config.environments = config.environments || [];
-		config.environments.push("node");// by default for now
+		config.environments = Array.isArray(config.environments) ? config.environments : [
+			// by default
+			"browser"
+			, "node"
+		];
 
 		//esprima
 		let esprima;
