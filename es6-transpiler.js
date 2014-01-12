@@ -8,8 +8,8 @@ const core = require("./transpiler/core");
 const StringAlter = require("./lib/StringAlter-es5");
 
 let plugins = [
-	require("./transpiler/classes")
-	, core
+	core
+	, require("./transpiler/classes")
 	, require("./transpiler/loopClosures")
 	, require("./transpiler/letConst")
 	, require("./transpiler/objectLiteral")

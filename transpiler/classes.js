@@ -3,10 +3,21 @@
 const assert = require("assert");
 const core = require("./core");
 
+const objectAssign =
+		"Object['assign']||function(t,s){"
+			+ "for(var p in s){"
+				+ "if(s.hasOwnProperty(p)){"
+					+ "t[p]=s[p];"
+				+ "}"
+			+ "}"
+		+ "return t}"
+	;
+
 const classesTranspiler = {
 	reset: function() {
 		this.__currentClassMethodsStatic = null;
 		this.__currentClassName = null;
+		this.__currentSuperRefName = null;
 	}
 
 	, setup: function(alter, ast, options) {
@@ -16,12 +27,15 @@ const classesTranspiler = {
 		}
 
 		this.alter = alter;
-
-		options.applyChangesAfter = true;
 	}
 
 	, pre: function replaceClassBody(node) {
 		if( node.type === "ClassDeclaration" ) {
+			if( !this.__currentSuperRefName ) {
+				// We need only one unique 'super' name for the entire file
+				this.__currentSuperRefName = core.unique("super", true);
+			}
+
 			let nodeId = node.id
 				, superClass = node.superClass
 				, classStr
@@ -30,6 +44,8 @@ const classesTranspiler = {
 				, classConstructor
 				, classBodyNodesCount = classBodyNodes.length
 				, extendedClassConstructorPostfix
+				, objectAssignFunctionName
+				, superRefName = this.__currentSuperRefName
 			;
 
 			assert(nodeId && nodeId.type === "Identifier");
@@ -38,14 +54,16 @@ const classesTranspiler = {
 			classStr = "var " + this.__currentClassName + " = (function(";
 
 			if( superClass ) {
-				classStr += "_super";
-				superClass = this.alter.get(superClass.range[0], superClass.range[1]);
+				objectAssignFunctionName = core.bubbledVariableDeclaration(node.$scope, "ASSIGN", objectAssign);
 
-				insertAfterBodyBegin_string = "Object.assign(" + this.__currentClassName + ", _super);";
+				classStr += superRefName;
+				superClass = superClass.name;
+
+				insertAfterBodyBegin_string = objectAssignFunctionName + "(" + this.__currentClassName + ", " + superRefName + ");";
 
 				extendedClassConstructorPostfix =
 					this.__currentClassName
-						+ ".prototype = Object.create(_super.prototype"
+						+ ".prototype = Object.create(" + superRefName + ".prototype"
 							+ ", {\"constructor\": {\"value\": " + this.__currentClassName + ", \"configurable\": true, \"writable\": true, \"enumerable\": false} }"
 						+ ");"
 				;
@@ -70,13 +88,14 @@ const classesTranspiler = {
 				if( extendedClassConstructorPostfix ) {
 					this.alter.insert(classConstructor.range[1], extendedClassConstructorPostfix);
 				}
+
 				core.traverse(classConstructor, {pre: this.replaceClassConstructorSuper});
 			}
 			else {
 				this.alter.replace(
 					node.body.range[0] + 1
 					, (classBodyNodesCount ? node.body.body[0].range[0] : node.body.range[1]) - 1
-					, "function " + this.__currentClassName + "() {" + (superClass ? "_super.apply(this, arguments)" : "") + "}" + (extendedClassConstructorPostfix || "") + "\n"
+					, "function " + this.__currentClassName + "() {" + (superClass ? superRefName + ".apply(this, arguments)" : "") + "}" + (extendedClassConstructorPostfix || "") + "\n"
 				);
 			}
 
@@ -90,10 +109,10 @@ const classesTranspiler = {
 			}
 
 			// replace class definition
-			// text change 'class A[ extends B]' => 'var A = (function([_super])'
+			// text change 'class A[ extends B]' => 'var A = (function([0$0])'
 			this.alter.replace(node.range[0], node.body.range[0], classStr);
 
-			this.alter.insert(node.range[1] - 1, "return " + this.__currentClassName + ";");
+			this.alter.insert(node.range[1] - 1, ";return " + this.__currentClassName + ";");
 
 			this.alter.insert(node.range[1], ")(" + (superClass || "") + ");");
 
@@ -104,7 +123,10 @@ const classesTranspiler = {
 	}
 
 	, unwrapSuperCall: function unwrapSuperCall(node, calleeNode, isStatic, property, isConstructor) {
-		let changeStr = "_super" + (isStatic ? "" : ".prototype");
+		let superRefName = this.__currentSuperRefName;
+		assert(superRefName);
+
+		let changeStr = superRefName + (isStatic ? "" : ".prototype");
 		let callArguments = node.arguments;
 		let hasSpreadElement = !isStatic && callArguments.some(function(node){ return node.type === "SpreadElement" });
 
@@ -125,7 +147,7 @@ const classesTranspiler = {
 			changesEnd = calleeNode.range[1];
 		}
 
-		// text change 'super(<some>)' => '_super(<some>)' (if <some> contains SpreadElement) or '_super.call(this, <some>)'
+		// text change 'super(<some>)' => 'super$0(<some>)' (if <some> contains SpreadElement) or 'super$0.call(this, <some>)'
 		this.alter.replace(calleeNode.range[0], changesEnd, changeStr);
 	}
 	
@@ -169,7 +191,7 @@ const classesTranspiler = {
 			if( calleeNode && calleeNode.type === "MemberExpression" ) {
 				let objectNode = calleeNode.object;
 				if( objectNode && objectNode.type === "Identifier" && objectNode.name === "super" ) {
-					// text change 'super.method(<some>)' => '_super(<some>)' (if <some> contains SpreadElement) or '_super.call(this, <some>)'
+					// text change 'super.method(<some>)' => 'super$0(<some>)' (if <some> contains SpreadElement) or 'super$0.call(this, <some>)'
 					this.unwrapSuperCall(node, objectNode, this.__currentClassMethodsStatic, calleeNode.property);
 				}
 			}

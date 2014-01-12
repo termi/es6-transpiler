@@ -220,12 +220,27 @@ let core = module.exports = {
 				parent: null
 			});
 
-			/* Due classBodyReplace is separate process, we do not really need this check
-			 } else if (node.type === "ClassDeclaration") {
-			 assert(node.id.type === "Identifier");
+		} if (node.type === "ClassDeclaration") {// class declaration
+			node.$scope = new Scope({
+				kind: "hoist",
+				node: node,
+				parent: node.$parent.$scope
+			});
 
-			 node.$parent.$scope.add(node.id.name, "fun", node.id);
-			 */
+			addVariableToScope(node.id, "let", node.id, node.$parent.$scope);
+
+			if( node.superClass ) {
+				node.$scope.add("super", "var");
+			}
+
+			node.body.body.forEach(function(method) {
+				assert(method.type === "MethodDefinition");//TODO:: static properties
+
+				//TODO:: class A { m(){} static m(){} m2{ m(); //where m referred? } }
+
+				node.$scope.add(method.key.name, "fun", method.value);
+			});
+
 		} else if (isFunction(node)) {
 			// Function is a scope, with params in it
 			// There's no block-scope under it
@@ -656,6 +671,9 @@ let core = module.exports = {
 		if( node.type === "Program" ) {
 			begin = 0;
 		}
+		else if( node.type === "ClassDeclaration" ) {
+			begin = hoistScopeNodeBody.range[0] + 1;
+		}
 		else if( isFunction(node) ) {
 			const isNakedFunction = node.expression === true;
 
@@ -678,17 +696,21 @@ let core = module.exports = {
 		return begin;
 	}
 
-	, getScopeTempVar: function(startsFrom, scope, hoistScope) {
+	, getScopeTempVar: function(startsFrom, scope, hoistScope, prefix) {
 		assert(scope instanceof Scope, scope + " is not instance of Scope");
 
 		if( !hoistScope ) {
 			hoistScope = scope.closestHoistScope();
 		}
 
+		if( !prefix ) {
+			prefix = "$D";
+		}
+
 		var freeVar = hoistScope.popFree(startsFrom);
 
 		if( !freeVar ) {
-			freeVar = core.unique("$D", true);
+			freeVar = core.unique(prefix, true);
 			hoistScope.add(freeVar, "var", {
 				//TODO:
 			});
