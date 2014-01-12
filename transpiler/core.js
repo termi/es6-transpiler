@@ -735,7 +735,7 @@ let core = module.exports = {
 
 		assert(scopesLength);
 
-		if( scopesLength.length === 1 ) {
+		if( scopesLength === 1 ) {
 			return scopes[0].closestHoistScope();
 		}
 
@@ -748,9 +748,15 @@ let core = module.exports = {
 			}
 		}
 
+		if( scopesLength === 2 ) {
+			if( scopes[0] === scopes[1] ) {
+				return scopes[0];
+			}
+		}
+
 		let uniquePathId = UUID_PREFIX + UUID++;
 
-		while( !parentScope && scopesLength && ++maxCounter < 1000 ) {
+		while( !parentScope && scopesLength && ++maxCounter < 100 ) {
 			for( let i = 0 ; i < scopesLength ; ++i ) {
 				let scope = scopes[i];
 
@@ -777,9 +783,9 @@ let core = module.exports = {
 			}
 		}
 
-		assert(!!parentScope);
-
-		return parentScope;
+		return parentScope
+			|| scopes[0] // could not find a parent for two or more scope's -> using first scope as a default value
+		;
 	}
 
 	, bubbledVariableDeclaration: function(scope, variableName, variableInitValue, isFunction) {
