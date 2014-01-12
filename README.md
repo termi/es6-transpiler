@@ -24,7 +24,7 @@ Static scope analysis and transpilation of ES6 block scoped `const` and `let` va
 
 ```javascript
 var obj = {a: 1, b: 2, c: 3};
-obj.iterator = function() {
+obj["@@iterator"] = function() {
 	var iterableObject = this;
 	var keys = ["a", "b", "c"];
 

@@ -18,7 +18,11 @@ const callIteratorBody =
 	"(v,f){" +
 		"if(v){" +
 			"if(Array.isArray(v))return f?v.slice():v;" +
-			"if(typeof v==='object'&&typeof v['iterator']==='function')return Array['from'](v);" +
+			"var i,r;"+
+			"if(typeof v==='object'&&typeof v['@@iterator']==='function'){" +
+				"i=v['@@iterator'](),r=[];while((f=i['next']()),f['done']!==true)r.push(f['value']);" +
+				"return r;" +
+			"}" +
 		"}" +
 		"throw new Error(v+' is not iterable')"+
 	"};"

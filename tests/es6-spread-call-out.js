@@ -1,4 +1,4 @@
-function test() {function ITER$0(v,f){if(v){if(Array.isArray(v))return f?v.slice():v;if(typeof v==='object'&&typeof v['iterator']==='function')return Array['from'](v);}throw new Error(v+' is not iterable')};var $D$0;
+function test() {function ITER$0(v,f){if(v){if(Array.isArray(v))return f?v.slice():v;var i,r;if(typeof v==='object'&&typeof v['@@iterator']==='function'){i=v['@@iterator'](),r=[];while((f=i['next']()),f['done']!==true)r.push(f['value']);return r;}}throw new Error(v+' is not iterable')};var $D$0;
 
 
 	function test() {var a = arguments[0];if(a === void 0)a = 0;var b = arguments[1];if(b === void 0)b = 0;var c = arguments[2];if(c === void 0)c = 0;var d = arguments[3];if(d === void 0)d = "";
