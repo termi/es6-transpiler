@@ -22,6 +22,8 @@ Static scope analysis and transpilation of ES6 block scoped `const` and `let` va
 
 ## Supported iterator protocol
 
+Important note: This based on the current [FireFox 27 implementation](https://developer.mozilla.org/en-US/Firefox/Releases/27/Site_Compatibility#sect9). In future it has to be [updated to Symbol.iterator](https://bugzilla.mozilla.org/show_bug.cgi?id=907077#c14)
+
 ```javascript
 var obj = {a: 1, b: 2, c: 3};
 obj["@@iterator"] = function() {
