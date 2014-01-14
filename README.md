@@ -53,20 +53,9 @@ Or just using [Grunt task](https://github.com/termi/grunt-es6-transpiler) (see b
 
 ## Usage
 
-### Important note: temporary limitation
-
-For the output code works you need an implementations of Object.assign and Object.create in the target browser.
-You can get it here: [es5-shim](https://github.com/kriskowal/es5-shim/) and [es6-shim](https://github.com/paulmillr/es6-shim/), or copy and past this code:
+For the output code works you need an implementation of Object.create in the target browser.
+You can get it here: [es5-shim](https://github.com/kriskowal/es5-shim/) or copy and past this code:
 ```
-if(!Object.assign)Object.assign = function(target, source) {
-	for (var prop in source) {
-		if (source.hasOwnProperty(prop)) {
-			target[prop] = source[prop];
-		}
-	}
-	return target;
-};
-
 if(!Object.create)Object.create = function(_prototype) {//[Warning!!!]This is PURE and UNSAFE implementation of Object.create
 	var Type = function () {};
 	Type.prototype = _prototype;
@@ -76,7 +65,6 @@ if(!Object.create)Object.create = function(_prototype) {//[Warning!!!]This is PU
 	return _object;
 };
 ```
-I will provide a polyfill's in the future.
 
 ### Grunt task
 
