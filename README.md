@@ -99,6 +99,25 @@ grunt.initConfig({
 })
 ```
 
+### Gulp task
+
+[Gulp](http://gulpjs.com/) task can be fount here: https://github.com/sindresorhus/gulp-es6-transpiler
+
+Install:
+`npm install --save-dev gulp-es6-transpiler`
+
+Usage:
+```javascript
+var gulp = require('gulp');
+var es6transpiler = require('gulp-es6-transpiler');
+
+gulp.task('default', function () {
+    gulp.src('src/app.js')
+        .pipe(es6transpiler())
+        .pipe(gulp.dest('dist'));
+});
+```
+
 ### In console
 
 Run it as `es6toes5 <input file>`. Or `node --harmony es6toes5 <input file>`. Also you can run a compiled es5 version `node build/es5/es6toes5 <input file>`.
