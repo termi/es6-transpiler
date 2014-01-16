@@ -49,18 +49,14 @@ var plugin = module.exports = {
 	, replaceForOf: function(node) {
 		const hasBlock = (node.body.type === "BlockStatement");
 
-		const nodeStartsFrom = node.body.range[0]
-			, nodeEndsFrom = node.body.range[1]
-		;
+		const nodeStartsFrom = node.body.range[0];
 
 		const insertHeadPosition = (hasBlock
 			? nodeStartsFrom + 1// just after body {
 			: nodeStartsFrom)	// just before existing expression
 		;
 
-
-		const replacementObj = this.createForOfReplacement(node, nodeStartsFrom, nodeEndsFrom, true);
-
+		const replacementObj = this.createForOfReplacement(node, node.body, true);
 
 		this.alter.insert(//before for of
 			node.range[0]
@@ -92,7 +88,7 @@ var plugin = module.exports = {
 		this.alter.restoreState();
 	}
 
-	, createForOfReplacement: function(node, nodeStartsFrom, nodeEndsFrom, needTemporaryVariableCleaning) {
+	, createForOfReplacement: function(node, bodyNode, needTemporaryVariableCleaning) {
 		const getIteratorFunctionName = core.bubbledVariableDeclaration(node.$scope, "GET_ITER", getIteratorBody, true);
 
 		const variableBlock = node.left;
@@ -112,9 +108,9 @@ var plugin = module.exports = {
 			, variableInitIsIdentifier = variableInit.type === "Identifier"
 
 			, tempVars = [
-				core.getScopeTempVar(nodeStartsFrom, node.$scope)	// index or iterator
-				, core.getScopeTempVar(nodeStartsFrom, node.$scope)	// isArray
-				, core.getScopeTempVar(nodeStartsFrom, node.$scope)	// length or current value
+				core.getScopeTempVar(bodyNode, node.$scope)	// index or iterator
+				, core.getScopeTempVar(bodyNode, node.$scope)	// isArray
+				, core.getScopeTempVar(bodyNode, node.$scope)	// length or current value
 			]
 		;
 
@@ -126,7 +122,7 @@ var plugin = module.exports = {
 
 		if( !variableInitIsIdentifier ) {
 			tempVars.push(
-				core.getScopeTempVar(nodeStartsFrom, node.$scope)// empty string or variable name
+				core.getScopeTempVar(bodyNode, node.$scope)// empty string or variable name
 			);
 		}
 
@@ -178,7 +174,7 @@ var plugin = module.exports = {
 		}
 
 		while(tempVars.length) {
-			core.setScopeTempVar(tempVars.shift(), nodeEndsFrom, node.$scope)
+			core.setScopeTempVar(tempVars.shift(), bodyNode, node.$scope);
 		}
 
 		return {

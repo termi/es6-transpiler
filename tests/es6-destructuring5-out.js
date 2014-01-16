@@ -57,5 +57,5 @@ var SLICE$0 = Array.prototype.slice;var $D$0;
 	{
 		test72 = SLICE$0.call(($D$0 = [test71.reverse()])[0], 0), $D$0;
 		console.log(test72.join("|") === "3|2|1");
-	}
+	;$D$0 = void 0}
 }

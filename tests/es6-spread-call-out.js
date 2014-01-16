@@ -43,7 +43,7 @@ function test() {function ITER$0(v,f){if(v){if(Array.isArray(v))return f?v.slice
 		var T$3 = ($D$0 = obj$0.obj).test.apply($D$0, [27].concat(ITER$0(arr)));
 		console.log( T$3 === "THIS|27|6|3" )
 		console.log( ($D$0 = obj$0.obj).test.apply($D$0, [28].concat(ITER$0(arr))) === "THIS|28|6|3" )
-	}
+	;$D$0 = void 0}
 
 	{
 		var T$4 = test.apply(null, ITER$0([].concat(ITER$0((function(){ var a = 0; {var b = 1; a+=b;} {var b$0 = 2; a+=b$0;} return [a] })(), true), ITER$0(arr))));

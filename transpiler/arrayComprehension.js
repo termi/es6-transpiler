@@ -61,7 +61,7 @@ var plugin = module.exports = {
 			}
 
 			if( block["of"] === true ) {
-				const replacementObj = forOf.createForOfReplacement(block, node.range[0], node.range[1]);
+				const replacementObj = forOf.createForOfReplacement(block, node);
 
 				beforeBodyString += (
 					replacementObj.before

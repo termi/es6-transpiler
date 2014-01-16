@@ -168,14 +168,23 @@ var plugin = module.exports = {
 				for(let i = 0 ; i < paramsCount ; i++) {
 					const param = params[i];
 					const prevParam = params[i - 1];
+					const doesArgumentsInsideFunction = node.$scope.doesArgumentsUsing();
+					const _isObjectPattern = isObjectPattern(param);
 
-					if( isObjectPattern(param) || isArrayPattern(param) ) {
-						let newParamName = core.unique("$D", true);
+					if( _isObjectPattern || isArrayPattern(param) ) {
+
+						let elements;
+						let functionParamReplacer =
+							doesArgumentsInsideFunction
+								? {type: "Identifier", name: core.unique("$D", true)}
+								: (elements = (_isObjectPattern ? param.properties : param.elements))[elements.length - 1]
+							;
+
 						let paramStr =
 							destructuring.unwrapDestructuring(
 								"var"
 								, param
-								, {type: "Identifier", name: newParamName}
+								, functionParamReplacer
 							) + ";"
 						;
 
@@ -188,7 +197,11 @@ var plugin = module.exports = {
 						this.alter.replace(
 							(prevParam ? prevParam.range[1] + 1 : param.range[0]) - (prevParam ? 1 : 0)
 							, param.range[1]
-							, (i === 0 ? "" : ", ") + newParamName
+							, (i === 0 ? "" : ", ")
+								+ (isObjectPattern(param) && !doesArgumentsInsideFunction
+									? functionParamReplacer.key.name
+									: functionParamReplacer.name
+								)
 						);
 					}
 				}

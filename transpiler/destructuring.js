@@ -203,7 +203,7 @@ var plugin = module.exports = {
 					hoistScope = definitionNode.$scope.closestHoistScope();
 				}
 
-				valueIdentifierName = core.getScopeTempVar(definitionNode.range[0], hoistScope);
+				valueIdentifierName = core.getScopeTempVar(definitionNode, hoistScope);
 			}
 			else {
 				isLocalFreeVariable = true;
@@ -298,7 +298,7 @@ var plugin = module.exports = {
 		assert(!isTemporaryValueAssignment);
 
 		if( !isLocalFreeVariable && isTemporaryVariable && temporaryVariableIndexOrName != void 0 ) {
-			core.setScopeTempVar(temporaryVariableIndexOrName, valueNode.range[1], hoistScope)
+			core.setScopeTempVar(temporaryVariableIndexOrName, valueNode, hoistScope, true);
 		}
 	}
 

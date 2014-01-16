@@ -35,7 +35,7 @@ test2();
 	console.log(a === void 0, b === void 0, c === void 0, test === 22);
 
 	var obj = {};
-	obj.test = (({b, test:{test, a:[, , [a], , c = 5]}}) = {test: {test:b, a: [1, 2, [99], 4]}, b: test}, test);
+	obj["test"] = (({b, test:{test, a:[, , [a], , c = 5]}}) = {test: {test:b, a: [1, 2, [99], 4]}, b: test}, test);
 
-	console.log(a === 99, test === void 0, b === 22);
+	console.log(a === 99, test === void 0, b === 22, obj["test"] === test);
 })()

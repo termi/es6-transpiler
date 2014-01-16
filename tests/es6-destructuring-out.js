@@ -7,7 +7,7 @@ function test0() {var y = arguments[0];if(y === void 0)y = 1;var x = (z = (argum
 }
 test0();
 
-function test1($D$0) {var opt1 = $D$0.opt1, opt2 = $D$0.opt2;
+function test1(opt2) {var opt1 = (opt2 = opt2).opt1, opt2 = opt2.opt2;
 	{
 		var opt1$0 = (opt2$0 = {a: 9, b: 8}).a, opt2$0 = opt2$0.b;
 		console.log(opt1$0 === 9, opt2$0 === 8);
@@ -26,13 +26,13 @@ function test2(obj) {
 }
 test2({a: 1, b: 2});
 
-function test3(array) {var $D$3;
+function test3(array) {var $D$0;
 	var a = 1, b = 2, b$0;
 	{
 		var a$0 = array[0], b$1 = array[2], c = array[3];
-		console.log(a$0 === 9, b$1 === 7, c === 6, (a$0 = ($D$3 = (array.unshift(777), array))[0], b$1 = $D$3[2], c = $D$3[3], $D$3)[3] === 7);
+		console.log(a$0 === 9, b$1 === 7, c === 6, (a$0 = ($D$0 = (array.unshift(777), array))[0], b$1 = $D$0[2], c = $D$0[3], $D$0)[3] === 7);
 		console.log(a$0 === 777, b$1 === 9, c === 7);
-	}
+	;$D$0 = void 0}
 	console.log(a === 1, b === 2, b$0 === void 0);
 }
 test3([9,null,7,6]);
@@ -51,7 +51,7 @@ function test5() {
 }
 test5();
 
-function test6($D$1, $D$2) {var a = $D$1.a, b = $D$1.b;var c = $D$2.c;
+function test6(b, c) {var a = (b = b).a, b = b.b;var c = (c).c;
 	console.log(a === 1, b === 2, c === 3)
 }
 test6({a: 1, b: 2}, {c: 3});

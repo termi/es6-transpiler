@@ -22,19 +22,19 @@ function test22()
 	{return (1, "2")}
 console.log(test22() === "2")
 
-function test31($D$0){var a = $D$0.a;var rest = SLICE$0.call(arguments, 1);return [a, rest[0]]}
+function test31(a){var a = (a).a;var rest = SLICE$0.call(arguments, 1);return [a, rest[0]]}
 console.log(test31({a: 1}, 2, 3, 4).join("|") === [1, 2].join("|"))
 
-function test32($D$1)
-	{var a = $D$1.a;var rest = SLICE$0.call(arguments, 1);return [a, rest[0]]}
+function test32(a)
+	{var a = (a).a;var rest = SLICE$0.call(arguments, 1);return [a, rest[0]]}
 console.log(test32({a: 1}, 2, 3, 4).join("|") === [1, 2].join("|"))
 
-function test33($D$2)//some comments
-	{var a = $D$2.a;var rest = SLICE$0.call(arguments, 1);return [a, rest[0]]}
+function test33(a)//some comments
+	{var a = (a).a;var rest = SLICE$0.call(arguments, 1);return [a, rest[0]]}
 
 console.log(test33({a: 1}, 2, 3, 4).join("|") === [1, 2].join("|"))
 
-function test34($D$3){var a = $D$3.a;var rest = SLICE$0.call(arguments, 1);return [
+function test34(a){var a = (a).a;var rest = SLICE$0.call(arguments, 1);return [
 	a, rest[0]
 ]}
 console.log(test34({a: 1}, 2, 3, 4).join("|") === [1, 2].join("|"))

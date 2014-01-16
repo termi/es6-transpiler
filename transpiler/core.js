@@ -354,6 +354,13 @@ let core = module.exports = {
 					);
 			}
 		}
+		else if ( node.type === "Identifier" && node.name === "arguments" ) {
+			let thisFunctionScope = node.$scope.closestHoistScope()
+				, functionNode = thisFunctionScope.node
+			;
+
+			thisFunctionScope.markArgumentsUsing();
+		}
 		else if ( node.type === "ComprehensionExpression" ) {
 			// TODO:: when I write this, I not looking to spec
 			// TODO:: check the logic below
@@ -696,7 +703,7 @@ let core = module.exports = {
 		return begin;
 	}
 
-	, getScopeTempVar: function(startsFrom, scope, hoistScope, prefix) {
+	, getScopeTempVar: function(usingNode, scope, hoistScope, prefix) {
 		assert(scope instanceof Scope, scope + " is not instance of Scope");
 
 		if( !hoistScope ) {
@@ -707,7 +714,9 @@ let core = module.exports = {
 			prefix = "$D";
 		}
 
-		var freeVar = hoistScope.popFree(startsFrom);
+		let startsFrom = usingNode.range[0];
+
+		let freeVar = hoistScope.popFree(startsFrom);
 
 		if( !freeVar ) {
 			freeVar = core.unique(prefix, true);
@@ -737,15 +746,61 @@ let core = module.exports = {
 		return freeVar;
 	}
 
-	, setScopeTempVar: function(freeVar, endsFrom, scope, hoistScope) {
-		assert(scope instanceof Scope, scope + " is not instance of Scope");
+	, setScopeTempVar: function(freeVar, usingNode, hoistScope, cleanup) {
+		assert(hoistScope instanceof Scope, hoistScope + " is not instance of Scope");
 		assert(typeof freeVar === "string");
 
-		if( !hoistScope ) {
-			hoistScope = scope.closestHoistScope();
-		}
+		hoistScope = hoistScope.closestHoistScope();
+
+		let endsFrom = usingNode.range[1];
 
 		hoistScope.pushFree(freeVar, endsFrom);
+
+		if( !cleanup ) {
+			return;
+		}
+
+		// TODO:: maybe cleanup only if variable can be captured by function-closure?
+
+		// go up the tree and trying to find a BlockStatement or Program block
+		let blockStatement, maxParentCount = 20, ii = 0;
+		while ( usingNode ) {
+
+			if( usingNode.type === 'ReturnStatement' ) {
+				usingNode = null;
+			}
+			else if( usingNode.type === 'BlockStatement' || usingNode.type === 'Program' ) {
+				blockStatement = usingNode;
+				break;
+			}
+			else {
+				usingNode = usingNode.$parent;
+			}
+
+			if( ++ii > maxParentCount ) {
+				// paranoiac mode on
+				break;
+			}
+		}
+
+		if( blockStatement ) {
+			// trying to clean up temporary variable
+			let previousCleanupOptions = hoistScope.$cleanups && hoistScope.$cleanups[freeVar];
+			if( !previousCleanupOptions ) {
+				if( !hoistScope.$cleanups ) {
+					hoistScope.$cleanups = {};
+				}
+			}
+			else {
+				previousCleanupOptions.inactive = true;// turn-off previous cleanup
+			}
+
+			let cleanupOptions = {};
+
+			this.alter.insertBefore(blockStatement.range[1] - 1, ";" + freeVar + " = void 0", cleanupOptions);
+
+			hoistScope.$cleanups[freeVar] = cleanupOptions;
+		}
 	}
 
 	, findParentForScopes: function() {

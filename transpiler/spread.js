@@ -84,11 +84,9 @@ var plugin = module.exports = {
 				;
 			}
 			else {
-				let startsFrom = node.callee.object.range[0]
-					, endsFrom = node.range[1]
-				;
+				let startsFrom = node.callee.object.range[0];
 
-				tempVar = core.getScopeTempVar(startsFrom, node.$scope);
+				tempVar = core.getScopeTempVar(node.callee.object, node.$scope);
 
 				expressionString =
 					"(" + tempVar + " = "
@@ -99,7 +97,7 @@ var plugin = module.exports = {
 						+ ", "
 				;
 
-				core.setScopeTempVar(tempVar, endsFrom, node.$scope);
+				core.setScopeTempVar(tempVar, node, node.$scope, true);
 			}
 		}
 		else {

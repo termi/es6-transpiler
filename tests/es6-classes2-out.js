@@ -14,7 +14,7 @@ var class2 = (function(super$1){ASSIGN$0(class2, super$1);
 
 	//static A = 123;
 
-	function class2($D$0) {var message = $D$0.message;
+	function class2(message) {var message = (message).message;
 		super$0 = "test_super";//super variable test
 		super$1.call(this, message);
 		this.property2 = message;

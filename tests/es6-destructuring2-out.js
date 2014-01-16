@@ -27,4 +27,4 @@ console.log(a === 1, b === 2, c.join("|") === "3|4|5|6")
 	var a$4, b$4, c$4, rest$0;
 	a$4 = ($D$0 = [1, 2, 3, 4, 5])[0], b$4 = $D$0[1], c$4 = $D$0[2], rest$0 = SLICE$0.call($D$0, 3), $D$0;
 	console.log(a$4 === 1, c$4 === 3, rest$0.join("|") === "4|5");
-}
+;$D$0 = void 0}

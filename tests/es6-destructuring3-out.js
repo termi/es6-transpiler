@@ -25,7 +25,7 @@ var $D$0;var test1, test2;
 	test2 = function() {
 		console.log(this.test2 === void 0, this.test1 === void 0, this.test3 === 7, a$0 === 9, b$0 === 8, c$0 === 7, test1$0 === 777)
 	}.bind(obj$0);
-}
+;$D$0 = void 0}
 
 test1();
 test2();
@@ -35,7 +35,7 @@ test2();
 	console.log(a === void 0, b === void 0, c === void 0, test === 22);
 
 	var obj = {};
-	obj.test = (b = ($D$1 = {test: {test:b, a: [1, 2, [99], 4]}, b: test}).b, test = (c = $D$1.test).test, a = (c = c.a)[2][0], c = ((c = c[4]) === void 0 ? 5 : c), $D$1, test);
+	obj["test"] = (b = ($D$1 = {test: {test:b, a: [1, 2, [99], 4]}, b: test}).b, test = (c = $D$1.test).test, a = (c = c.a)[2][0], c = ((c = c[4]) === void 0 ? 5 : c), $D$1, test);
 
-	console.log(a === 99, test === void 0, b === 22);
-})()
+	console.log(a === 99, test === void 0, b === 22, obj["test"] === test);
+;$D$1 = void 0})()
