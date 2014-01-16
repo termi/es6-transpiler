@@ -18,21 +18,22 @@ let a = 1;
 		console.log(test.test({a: 1}, 2, 999) === 3)
 	}
 
-	(function() {
-
-		let test = {
-			test: ()=>1+this.test
-		}
-		console.log(test.test() === 101)
-
-		{
-			let test = {
-				test: ({a}, ...rest)=>a+rest[0]+this.test
-			}
-			console.log(test.test({a: 1}, 2, 999) === 103)
-		}
-
-	}).call({test: 100})
+// TODO::
+//	(function() {
+//
+//		let test = {
+//			test: ()=>1+this.test
+//		}
+//		console.log(test.test() === 101)
+//
+//		{
+//			let test = {
+//				test: ({a}, ...rest)=>a+rest[0]+this.test
+//			}
+//			console.log(test.test({a: 1}, 2, 999) === 103)
+//		}
+//
+//	}).call({test: 100})
 }
 
 {
