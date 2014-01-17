@@ -173,36 +173,48 @@ var plugin = module.exports = {
 
 					if( _isObjectPattern || isArrayPattern(param) ) {
 
-						let elements;
+						let elements = (_isObjectPattern ? param.properties : param.elements)
+							, elementsLength = elements.length
+						;
 						let functionParamReplacer =
 							doesArgumentsInsideFunction
 								? {type: "Identifier", name: core.unique("$D", true)}
-								: (elements = (_isObjectPattern ? param.properties : param.elements))[elements.length - 1]
+								: elements[elementsLength - 1]
 							;
 
-						let paramStr =
-							destructuring.unwrapDestructuring(
-								"var"
-								, param
-								, functionParamReplacer
-							) + ";"
-						;
+						if( elementsLength === 0 ) {//empty destructuring
+							// cleanup
+							this.alter.replace(
+								(prevParam ? prevParam.range[1] + 1 : param.range[0]) - (prevParam ? 1 : 0)
+								, param.range[1]
+								, ""
+							);
+						}
+						else {
+							let paramStr =
+								destructuring.unwrapDestructuring(
+									"var"
+									, param
+									, functionParamReplacer
+								) + ";"
+							;
 
-						param.$replaced = true;
+							param.$replaced = true;
 
-						// add
-						insertIntoBodyBegin += paramStr;
+							// add
+							insertIntoBodyBegin += paramStr;
 
-						// cleanup
-						this.alter.replace(
-							(prevParam ? prevParam.range[1] + 1 : param.range[0]) - (prevParam ? 1 : 0)
-							, param.range[1]
-							, (i === 0 ? "" : ", ")
-								+ (isObjectPattern(param) && !doesArgumentsInsideFunction
-									? functionParamReplacer.key.name
-									: functionParamReplacer.name
-								)
-						);
+							// cleanup
+							this.alter.replace(
+								(prevParam ? prevParam.range[1] + 1 : param.range[0]) - (prevParam ? 1 : 0)
+								, param.range[1]
+								, (i === 0 ? "" : ", ")
+									+ (isObjectPattern(param) && !doesArgumentsInsideFunction
+										? functionParamReplacer.key.name
+										: functionParamReplacer.name
+									)
+							);
+						}
 					}
 				}
 			}

@@ -76,7 +76,7 @@ var plugin = module.exports = {
 		this.alter.replace(
 			declarator.range[0]
 			, declarator.range[1]
-			, (isFirstVar ? declarationString.substr(4) : declarationString)//remove first "var " if need
+			, (isFirstVar ? declarationString.substr(4) : declarationString)//remove first "var " if needed
 		);
 	}
 
@@ -94,9 +94,18 @@ var plugin = module.exports = {
 	}
 
 	, unwrapDestructuring: function unwrapDestructuring(kind, definitionNode, valueNode, newVariables, newDefinitions) {
-		assert(isObjectPattern(definitionNode) || isArrayPattern(definitionNode));
+		let _isObjectPattern = isObjectPattern(definitionNode);
+
+		assert(_isObjectPattern || isArrayPattern(definitionNode));
 		if( !newVariables )newVariables = [];
 		assert(Array.isArray(newVariables));
+
+		if( (_isObjectPattern ? definitionNode.properties : definitionNode.elements).length === 0 ) {
+			// an empty destructuring
+			var temporaryVarName = core.getScopeTempVar(definitionNode, definitionNode.$scope.closestHoistScope());
+			core.setScopeTempVar(temporaryVarName, definitionNode, definitionNode.$scope.closestHoistScope());
+			return temporaryVarName;
+		}
 
 		newDefinitions = newDefinitions || [];
 

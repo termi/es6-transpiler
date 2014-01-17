@@ -763,14 +763,40 @@ let core = module.exports = {
 		// TODO:: maybe cleanup only if variable can be captured by function-closure?
 
 		// go up the tree and trying to find a BlockStatement or Program block
-		let blockStatement, maxParentCount = 20, ii = 0;
+		let blockStatement
+			, commaNeeded = false
+			, maxParentCount = 20, ii = 0
+		;
 		while ( usingNode ) {
 
 			if( usingNode.type === 'ReturnStatement' ) {
 				usingNode = null;
 			}
-			else if( usingNode.type === 'BlockStatement' || usingNode.type === 'Program' ) {
+			else if( usingNode.type === 'BlockStatement' ) {
 				blockStatement = usingNode;
+				break;
+			}
+			else if( usingNode.type === 'VariableDeclaration' ) {
+				let $parent = usingNode.$parent;
+
+				if( $parent && $parent.type === 'BlockStatement' ) {
+					if( ($parent = $parent.$parent) && isFunction($parent) ) {
+						blockStatement = usingNode;
+						commaNeeded = true;
+						break;
+					}
+				}
+
+				usingNode = usingNode.$parent;
+			}
+			else if( usingNode.type === 'Program' ) {
+				blockStatement = usingNode;
+				commaNeeded = true;
+				break;
+			}
+			else if( usingNode.type === 'FunctionDeclaration' ) {
+				blockStatement = usingNode.body;
+				commaNeeded = true;
 				break;
 			}
 			else {
@@ -796,8 +822,13 @@ let core = module.exports = {
 			}
 
 			let cleanupOptions = {};
+			let isProgramNode = usingNode.type === 'Program';
 
-			this.alter.insertBefore(blockStatement.range[1] - 1, ";" + freeVar + " = void 0", cleanupOptions);
+			this.alter.insertBefore(
+				blockStatement.range[1] - ( isProgramNode ? 0 : 1 )
+				, ";" + freeVar + " = void 0" + (commaNeeded ? ";" : "")
+				, cleanupOptions
+			);
 
 			hoistScope.$cleanups[freeVar] = cleanupOptions;
 		}
