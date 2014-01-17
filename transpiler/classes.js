@@ -96,15 +96,8 @@ const classesTranspiler = {
 				core.traverse(classConstructor, {pre: this.replaceClassConstructorSuper});
 			}
 			else {
-				let from = node.body.range[0] + 1;
-				let to = (classBodyNodesCount ? node.body.body[0].range[0] : node.body.range[1]) - 1;
-				if( to < from ) {
-					to = from;
-				}
-
-				this.alter.replace(
-					from
-					, to
+				this.alter.insert(
+					node.body.range[0] + 1
 					, "function " + currentClassName + "() {"
 						+ (superClass ? SUPER_NAME + ".apply(this, arguments)" : "")
 						+ "}" + (insertAfterBodyBegin_string || "") + (extendedClassConstructorPostfix || "")
