@@ -36,35 +36,39 @@ const classesTranspiler = {
 				this.__currentSuperRefName = core.unique("super", true);
 			}
 
-			let nodeId = node.id
-				, superClass = node.superClass
-				, classStr
-				, insertAfterBodyBegin_string
+			const nodeId = node.id
 				, classBodyNodes = node.body.body
-				, classConstructor
+				, currentClassName = nodeId.name
+				, SUPER_NAME = this.__currentSuperRefName
+			;
+
+			let classStr
+				, superClass = node.superClass
 				, classBodyNodesCount = classBodyNodes.length
+				, insertAfterBodyBegin_string
+				, classConstructor
 				, extendedClassConstructorPostfix
 				, objectAssignFunctionName
-				, superRefName = this.__currentSuperRefName
 			;
 
 			assert(nodeId && nodeId.type === "Identifier");
 
-			this.__currentClassName = nodeId.name;
-			classStr = "var " + this.__currentClassName + " = (function(";
+			this.__currentClassName = currentClassName;
+
+			classStr = "var " + currentClassName + " = (function(";
 
 			if( superClass ) {
 				objectAssignFunctionName = core.bubbledVariableDeclaration(node.$scope, "ASSIGN", objectAssign);
 
-				classStr += superRefName;
+				classStr += SUPER_NAME;
 				superClass = superClass.name;
 
-				insertAfterBodyBegin_string = objectAssignFunctionName + "(" + this.__currentClassName + ", " + superRefName + ");";
+				insertAfterBodyBegin_string = objectAssignFunctionName + "(" + currentClassName + ", " + SUPER_NAME + ");";
 
 				extendedClassConstructorPostfix =
-					this.__currentClassName
-						+ ".prototype = Object.create(" + superRefName + ".prototype"
-							+ ", {\"constructor\": {\"value\": " + this.__currentClassName + ", \"configurable\": true, \"writable\": true, \"enumerable\": false} }"
+					currentClassName
+						+ ".prototype = Object.create(" + SUPER_NAME + ".prototype"
+							+ ", {\"constructor\": {\"value\": " + currentClassName + ", \"configurable\": true, \"writable\": true, \"enumerable\": false} }"
 						+ ");"
 				;
 			}
@@ -84,7 +88,7 @@ const classesTranspiler = {
 			if( classConstructor ) {
 				classBodyNodesCount--;
 
-				this.alter.replace(classConstructor.key.range[0], classConstructor.key.range[1], "function " + this.__currentClassName);
+				this.alter.replace(classConstructor.key.range[0], classConstructor.key.range[1], "function " + currentClassName);
 				if( extendedClassConstructorPostfix ) {
 					this.alter.insert(classConstructor.range[1], extendedClassConstructorPostfix);
 				}
@@ -92,11 +96,21 @@ const classesTranspiler = {
 				core.traverse(classConstructor, {pre: this.replaceClassConstructorSuper});
 			}
 			else {
+				let from = node.body.range[0] + 1;
+				let to = (classBodyNodesCount ? node.body.body[0].range[0] : node.body.range[1]) - 1;
+				if( to < from ) {
+					to = from;
+				}
+
 				this.alter.replace(
-					node.body.range[0] + 1
-					, (classBodyNodesCount ? node.body.body[0].range[0] : node.body.range[1]) - 1
-					, "function " + this.__currentClassName + "() {" + (superClass ? superRefName + ".apply(this, arguments)" : "") + "}" + (extendedClassConstructorPostfix || "") + "\n"
+					from
+					, to
+					, "function " + currentClassName + "() {"
+						+ (superClass ? SUPER_NAME + ".apply(this, arguments)" : "")
+						+ "}" + (insertAfterBodyBegin_string || "") + (extendedClassConstructorPostfix || "")
+					, {before: true}
 				);
+				insertAfterBodyBegin_string = null;
 			}
 
 
@@ -112,7 +126,7 @@ const classesTranspiler = {
 			// text change 'class A[ extends B]' => 'var A = (function([0$0])'
 			this.alter.replace(node.range[0], node.body.range[0], classStr);
 
-			this.alter.insert(node.range[1] - 1, ";return " + this.__currentClassName + ";");
+			this.alter.insert(node.range[1] - 1, ";return " + currentClassName + ";");
 
 			this.alter.insert(node.range[1], ")(" + (superClass || "") + ");");
 
