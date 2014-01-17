@@ -226,25 +226,18 @@ let plugin = module.exports = {
 
 		node.$refToScope = move.scope;
 
-		if( node.name !== move.name
-			&& (//not a destructuring
-				node.$parentType !== "ObjectPattern"
-				&& node.$parentType !== "ArrayPattern"
-			)
-		) {
-			const parent = node.$parent;
-
-			node.originalName = node.name;
+		if( node.name !== move.name ) {
+			node.$originalName = node.name;
 			node.name = move.name;
-
-			if( parent.type === "Property" && parent.shorthand === true ) {
-				return;//this is work for objectLiteral transpiler
-			}
+			var options = node.$renamingOptions = {
+				inactive: false// other transpilers can set it to true
+			};
 
 			this.alter.replace(
 				node.range[0]
 				, node.range[1]
 				, move.name
+				, options
 			);
 		}
 	}

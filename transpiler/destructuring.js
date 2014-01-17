@@ -240,6 +240,11 @@ var plugin = module.exports = {
 					);
 				}
 				else {
+					let renamingOptions = elementId.$renamingOptions;
+					if( renamingOptions ) {// turn off changes were made by 'letConst' transpiler
+						renamingOptions.inactive = true;
+					}
+
 					let newDefinition = {
 						"type": "VariableDeclarator",
 						"id": elementId,

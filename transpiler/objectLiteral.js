@@ -57,6 +57,11 @@ var plugin = module.exports = {
 		const propertyKey = node.key;
 		const propertyValue = node.value;
 
+		let renamingOptions = propertyValue.$renamingOptions;
+		if( renamingOptions ) {// turn off changes were made by 'letConst' transpiler
+			renamingOptions.inactive = true;
+		}
+
 		this.alter.insert(propertyKey.range[1], ": " + propertyValue.name);
 	}
 };
