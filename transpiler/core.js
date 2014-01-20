@@ -870,6 +870,12 @@ let core = module.exports = {
 
 				let hoistScope = scope.closestHoistScope();
 
+				if( hoistScope.node.type === 'Program') {
+					//top scope reached
+					parentScope = hoistScope;
+					break;
+				}
+
 				if( hoistScope === scope ) {
 					scope = scope.parent;
 				}
@@ -879,15 +885,8 @@ let core = module.exports = {
 					break;
 				}
 
-				if( scope ) {
-					hoistScope.$__path = uniquePathId;
-					scopes[i] = scope;
-				}
-				else {
-					scopesLength--;
-					i--;
-					scopes.splice(i, 1);
-				}
+				hoistScope.$__path = uniquePathId;
+				scopes[i] = scope;
 			}
 		}
 
