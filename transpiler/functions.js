@@ -25,7 +25,7 @@ function isArrayPattern(node) {
 
 var plugin = module.exports = {
 	reset: function() {
-
+		this._thisUniqueName = null;
 	}
 
 	, setup: function(alter, ast, options) {
@@ -65,8 +65,6 @@ var plugin = module.exports = {
 
 			let insertIntoBodyBegin = "", insertIntoBodyEnd = "";
 
-			let doesThisInsideArrowFunction;
-
 			paramsCount -= defaultsCount;
 
 			if( isNakedFunction || isArrowFunction ) {
@@ -95,12 +93,14 @@ var plugin = module.exports = {
 					let str = this.alter.get(left, fnBodyStart);
 
 					if( isArrowFunction ) {
-						doesThisInsideArrowFunction = node.$scope.doesThisUsing();
+						if( node.$scope.doesThisUsing() ) {
+							this.replaceThisInArrowFunction(node);
+						}
 
 						// add "function" word before arrow function params list
 						this.alter.insert(
 							node.range[0]
-							, (doesThisInsideArrowFunction ? "(" : "") + "function"
+							, "function"
 						);
 					}
 
@@ -280,7 +280,6 @@ var plugin = module.exports = {
 					"return "
 					+ (fnBodyIsSequenceExpression ? "(" : "")
 				);
-				insertIntoBodyEnd += (doesThisInsideArrowFunction ? ").bind(this)" : "");
 
 				node.body = {
 					"type": "BlockStatement",
@@ -294,11 +293,6 @@ var plugin = module.exports = {
 					"loc": functionBody.loc//WARNING!!! loc is not accurate
 				}
 			}
-			else {
-				if( doesThisInsideArrowFunction ) {
-					insertIntoBodyEnd += ").bind(this)";
-				}
-			}
 
 			if( insertIntoBodyBegin ) {
 				this.alter.insert(fnBodyStart, insertIntoBodyBegin, {__newTransitionalSubLogic: true});
@@ -308,6 +302,45 @@ var plugin = module.exports = {
 				this.alter.insert(fnBodyEnd, insertIntoBodyEnd);
 			}
 		}
+	}
+
+	, replaceThisInArrowFunction: function(node) {
+		assert(node.type === "ArrowFunctionExpression");
+
+		let self = this;
+		let thisUniqueName = self._thisUniqueName;
+
+		if( !thisUniqueName ) {
+			// We need only one unique 'this' name for the entire file
+			thisUniqueName = this._thisUniqueName = core.unique('this', true);
+		}
+
+		let hoistScope = node.$scope.closestHoistScope();
+
+		while( hoistScope.node.type === "ArrowFunctionExpression" ) {
+			hoistScope = hoistScope.parent.closestHoistScope();//TODO: caching closestArrowThisScope ?
+		}
+
+		if( !hoistScope.hasOwn(thisUniqueName) ) {
+			hoistScope.add(thisUniqueName, "var");
+
+			self.alter.insert(core.__getNodeBegin(hoistScope.node), "var " + thisUniqueName + " = this;");
+		}
+
+		core.traverse(node, {
+			pre: function(childNode) {
+				if( isFunction(childNode) && childNode !== node ) {
+					return false;
+				}
+
+				if( childNode.type === 'ThisExpression' ) {
+					childNode.$originalName = childNode.name;
+					childNode.name = thisUniqueName;
+
+					self.alter.replace(childNode.range[0], childNode.range[1], childNode.name);
+				}
+			}
+		})
 	}
 };
 
