@@ -44,7 +44,7 @@
 			}
 			return obj.res()
 		}
-		)(a)) for({a, b} of arr) if((function(b)b !== 999)(b)) ];
+		)(a)) for({a, b} of arr) if(((b)=>b !== 999)(b)) ];
 	console.log(result.join("|") === ["_1", "_2", "_3", "_4", "_5"].join("|"));
 }
 

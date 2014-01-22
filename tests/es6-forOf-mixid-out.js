@@ -3,9 +3,9 @@ function ITER$0(v,f){if(v){if(Array.isArray(v))return f?v.slice():v;var i,r;if(t
 	var test;
 }
 
-{// destructuring & function expression
+{// destructuring & arrow function
 	var output = [];
-	var test$0;$D$3 = (( function(x) {return [{test: x + 1}, {test: x + 2}, {test: x + 3}]})(2));$D$0 = GET_ITER$0($D$3);$D$1 = $D$0 === 0;$D$2 = ($D$1 ? $D$3.length : void 0);for( ; $D$1 ? ($D$0 < $D$2) : !($D$2 = $D$0["next"]())["done"]; ){;test$0 = ($D$1 ? $D$3[$D$0++] : $D$2["value"]).test;
+	var test$0;$D$3 = ((   function(x)     {return [{test: x + 1}, {test: x + 2}, {test: x + 3}]})(2));$D$0 = GET_ITER$0($D$3);$D$1 = $D$0 === 0;$D$2 = ($D$1 ? $D$3.length : void 0);for( ; $D$1 ? ($D$0 < $D$2) : !($D$2 = $D$0["next"]())["done"]; ){;test$0 = ($D$1 ? $D$3[$D$0++] : $D$2["value"]).test;
 		output.push(test$0)
 	};$D$0 = $D$1 = $D$2 = $D$3 = void 0;
 	console.log(output.join("|") === [3, 4, 5].join("|"))
@@ -15,8 +15,8 @@ function ITER$0(v,f){if(v){if(Array.isArray(v))return f?v.slice():v;var i,r;if(t
 	var a, b, c;
 }
 
-{// function expression & shorthand property & destructuring & spread
-	function retArr(a, b, c){return [
+{// arrow function & shorthand property & destructuring & spread
+	var retArr = function(a, b, c){return [
 		{test: a + 1, a: a}    //{test: 3, a: 2}
 		, {test: b + 2, b: b}    //{test: 3, b: 1}
 		, {test: c + 3, c: c}    //{test: 3, c: 0}
@@ -31,7 +31,7 @@ function ITER$0(v,f){if(v){if(Array.isArray(v))return f?v.slice():v;var i,r;if(t
 	{
 		var output$1 = [];
 		var arr$0 = [].concat([2], [1, 0]);
-		var test$2, a$1, b$1, c$1;$D$3 = ((function(a, b, c) {return [
+		var test$2, a$1, b$1, c$1;$D$3 = ((  function(a, b, c)   {return [
 			{test: a + 1, a: a}    //{test: 3, a: 2}
 			, {test: b + 2, b: b}    //{test: 3, b: 1}
 			, {test: c + 3, c: c}    //{test: 3, c: 0}

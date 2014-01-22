@@ -92,6 +92,13 @@ var plugin = module.exports = {
 
 					let str = this.alter.get(left, fnBodyStart);
 
+					const arrowFunctionParamsHasNoBrackets =// let arrow = a=>a
+						isArrowFunction
+						&& !fnHasNoParams
+						&& !rest
+						&& (node.range[0] === params[0].range[0])
+					;
+
 					if( isArrowFunction ) {
 						if( node.$scope.doesThisUsing() ) {
 							this.replaceThisInArrowFunction(node);
@@ -100,7 +107,7 @@ var plugin = module.exports = {
 						// add "function" word before arrow function params list
 						this.alter.insert(
 							node.range[0]
-							, "function"
+							, "function" + (arrowFunctionParamsHasNoBrackets ? "(" : "")
 						);
 					}
 
@@ -113,7 +120,7 @@ var plugin = module.exports = {
 							transformUniq: 1
 							, transform: function(str) {
 								if( isArrowFunction ) {
-									str = str.replace(/=>/gi, "");
+									str = str.replace(/=>/gi, (arrowFunctionParamsHasNoBrackets ? ")" : ""));
 								}
 
 								if( fnBodyIsSequenceExpression || fnBodyHasHiddenBrackets ) {

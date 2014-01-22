@@ -68,66 +68,78 @@ var plugin = module.exports = {
 		const isMemberExpression = node.callee.type === "MemberExpression";
 		const isSimpleMemberExpression = isMemberExpression && node.callee.object.type === "Identifier";
 //		const functionNameNode = isMemberExpression ? node.callee.property : node.callee;
-		let expressionString;
-		let tempVar;
-		const valueNode = node["arguments"];
+		const args = node["arguments"];
+		const argsLength = args.length;
 
-		let expressionBody = this.alter.get(node.callee.range[0], node.callee.range[1]);
+		assert(argsLength);
+
+		let expressionBefore = ""
+			, expressionAfter = ""
+			, expressionParams = ""
+		;
 
 		if( isMemberExpression ) {
 			if( isSimpleMemberExpression ) {
-				expressionString =
-					expressionBody
-					+ ".apply("
+				expressionAfter =
+					".apply("
 					+ this.alter.get(node.callee.object.range[0], node.callee.object.range[1])
 					+ ", "
 				;
 			}
 			else {
-				let startsFrom = node.callee.object.range[0];
+				let tempVar = core.getScopeTempVar(node.callee.object, node.$scope);
 
-				tempVar = core.getScopeTempVar(node.callee.object, node.$scope);
+				this.alter.wrap(
+					node.callee.object.range[0]
+					, node.callee.object.range[1]
+					, "(" + tempVar + " = "
+					, ")"
+				);
 
-				expressionString =
-					"(" + tempVar + " = "
-						+ this.alter.get(startsFrom, node.callee.object.range[1])
-						+ ")"
-						+ core.PropertyToString(node.callee.property)
-						+ ".apply(" + tempVar
-						+ ", "
+				expressionAfter =
+					".apply(" + tempVar
+					+ ", "
 				;
 
 				core.setScopeTempVar(tempVar, node, node.$scope, true);
 			}
 		}
 		else {
-			if( node.callee.type === "FunctionExpression" ) {
-				expressionBody = "(" + expressionBody + ")";
-			}
-			expressionString =
-				expressionBody
-				+ ".apply(null, "
+			expressionAfter =
+				".apply(null, "
 			;
+
+			if( node.callee.type === "FunctionExpression" ) {
+				expressionBefore = "(";
+				expressionAfter = ")" + expressionAfter;
+			}
 		}
 
-		if( valueNode.length === 1 ) {
-			const isSequenceExpression = valueNode[0].type === "SequenceExpression";
+		if( argsLength === 1 ) {
+			const isSequenceExpression = args[0].type === "SequenceExpression";
 			const callIteratorFunctionName = core.bubbledVariableDeclaration(node.$scope, "ITER", callIteratorBody, true);
-			expressionString += (
+
+			expressionParams = (
 				callIteratorFunctionName
 				+ "(" + (isSequenceExpression ? "(" : "")
-				+ this.alter.get(valueNode[0].range[0] + 3, valueNode[0].range[1])
+				+ this.alter.get(args[0].range[0] + 3, args[0].range[1])
 				+ ")" + (isSequenceExpression ? ")" : "")
 			);
 		}
 		else {
-			expressionString += this.__unwrapSpread(node, valueNode);
+			expressionParams += this.__unwrapSpread(node, args);
 		}
 
+		this.alter.insertBefore(
+			node.callee.range[0]
+			, expressionBefore
+		);
+
+
 		this.alter.replace(
-			node.range[0]
-			, node.range[1]
-			, expressionString + ")"
+			args.range[0]
+			, args[argsLength - 1].range[1]
+			, expressionAfter + expressionParams
 		);
 	}
 

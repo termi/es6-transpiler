@@ -1,4 +1,4 @@
-const {b} = (function(...args)({b: args[1]}))(...[,1]);//destructuring / rest / spread
+const {b} = (  (...args)  =>  ({b: args[1]}))(...[,1]);//destructuring / rest / spread
 
 console.log(b === 1);
 

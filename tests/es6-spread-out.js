@@ -32,7 +32,7 @@ test.apply(null, [1].concat([].concat([2], [[3]])))
 {
 	var a$2 = [].concat([5, 6], 7);
 
-	var b$1 = (function(a, b, c){return [
+	var b$1 = (  function(a, b, c)    {return [
 		a, b, c
 	]}).apply(null, ITER$0(a$2))
 
@@ -42,7 +42,7 @@ test.apply(null, [1].concat([].concat([2], [[3]])))
 {
 	var a$3 = [].concat([9, void 0], [void 0, 6, 5, 4]);
 
-	var b$2 = (function(){var SLICE$0 = Array.prototype.slice;var a = arguments[0];if(a === void 0)a = 9;var b = arguments[1];if(b === void 0)b = 8;var c = arguments[2];if(c === void 0)c = 7;var rest = SLICE$0.call(arguments, 3);return [a, b, c].concat(ITER$0(rest))
+	var b$2 = (  function()    {var SLICE$0 = Array.prototype.slice;var a = arguments[0];if(a === void 0)a = 9;var b = arguments[1];if(b === void 0)b = 8;var c = arguments[2];if(c === void 0)c = 7;var rest = SLICE$0.call(arguments, 3);return [a, b, c].concat(ITER$0(rest))
 
 }).apply(null, ITER$0(a$3))
 

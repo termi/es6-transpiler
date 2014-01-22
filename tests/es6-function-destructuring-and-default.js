@@ -27,7 +27,7 @@ function test4(a = 1, b = {c: 333}, {c: d} = b, ...rest) {
 }
 test4(void 0, void 0, void 0, 9, 8, 7, 6, 5, 4);
 
-function test5(a = 1, b = {c: 333}, {test} = (function({A})( A = [...A, ...A] , {test: A} ))({A: [1, 2, 3]})) {
+function test5(a = 1, b = {c: 333}, {test} = (  ({A})  =>  ( A = [...A, ...A] , {test: A} ))({A: [1, 2, 3]})) {
 	console.log(a === 1, typeof b === "object" && b.c === 333, test.join("|") === [1,2,3,1,2,3].join("|"));
 }
 test5(void 0, void 0, void 0, 9, 8, 7, 6, 5, 4);

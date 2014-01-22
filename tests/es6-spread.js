@@ -32,7 +32,7 @@ test(1, ...[...[2], [3]])
 {
 	let a = [...[5, 6], 7];
 
-	let b = (function(a, b, c)[
+	let b = (  (a, b, c)  =>  [
 		a, b, c
 	])(...a)
 
@@ -42,7 +42,7 @@ test(1, ...[...[2], [3]])
 {
 	let a = [...[9, void 0], void 0, 6, 5, 4];
 
-	let b = (function(a = 9, b = 8, c = 7, ...rest)[
+	let b = (  (a = 9, b = 8, c = 7, ...rest)  =>  [
 		a, b, c, ...rest
 	])(...a)
 

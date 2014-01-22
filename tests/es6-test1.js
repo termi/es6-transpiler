@@ -27,3 +27,14 @@ function test() {
 	return test4(1) + test + obj.arrowTest(1);
 }
 console.log(test() === "1false1");
+
+var y1 = (a = 1) => (  a + 1  , a  )
+var y2 = ({a}) => (a)
+var y3 = ({a}) => [a]
+var y31 = ({a} = {}) => [a]
+var y4 = ([a]) => a
+var y5 = ([a]) => {a}
+var y6 = ([a]) => (a)
+var y61 = ([a] = []) => (a)
+var y7 = ([a = 1]) => (a)
+var y8 = ({a = 1}) => [a]
