@@ -25,7 +25,7 @@ var class2 = (function(super$1){ASSIGN$0(class2, super$1);
     }
 ;return class2;})(class1);
 
-var class3 = (function(super$1){function class3() {super$1.apply(this, arguments)}ASSIGN$0(class3, super$1);class3.prototype = Object.create(super$1.prototype, {"constructor": {"value": class3, "configurable": true, "writable": true, "enumerable": false} });      class3.prototype.say = function(){return "class3"}
+var class3 = (function(super$1){function class3() {return super$1.apply(this, arguments)}ASSIGN$0(class3, super$1);class3.prototype = Object.create(super$1.prototype, {"constructor": {"value": class3, "configurable": true, "writable": true, "enumerable": false} });      class3.prototype.say = function(){return "class3"}
 ;return class3;})(class1);
 
 //console.log(class2.A === 123);
