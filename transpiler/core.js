@@ -103,6 +103,8 @@ let core = module.exports = {
 		this.alter = alter;
 		this.src = src;
 		this.options = options;
+
+		Scope.setOptions(options);
 	}
 
 	, pre: function(ast) {
@@ -562,7 +564,7 @@ let core = module.exports = {
 	 * @param {string} donor
 	 * @param {number} fromIndex
 	 */
-	unwrapSpreadDeclaration: function(node, donor, fromIndex) {
+	unwrapRestDeclaration: function(node, donor, fromIndex) {
 		assert(node.type === "Identifier");
 
 		const sliceFunctionName = this.bubbledVariableDeclaration(node.$scope, "SLICE", "Array.prototype.slice");

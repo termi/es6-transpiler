@@ -16,13 +16,13 @@ function f() {
 }
 
 {
-	function test1()1
+	function test1(){return 1}
 
 	let test1;
 }
 
 {
-	function test2()1
+	function test2(){return 1}
 
 	for( let {test2} of [] ) {
 

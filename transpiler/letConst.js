@@ -46,14 +46,16 @@ let plugin = module.exports = {
 		}});
 	}
 
-	, pre: function(ast) {
+	, pre: function(node) {
 		// change constlet declarations to var, renamed if needed
 		// varify modifies the scopes and AST accordingly and
 		// returns a list of change fragments (to use with alter)
-		core.traverse(ast, {pre: this.renameDeclarations});
-		core.traverse(ast, {pre: this.renameReferences});
-
-		return false;
+		if( node.type === "VariableDeclaration" && isConstLet(node.kind) ) {
+			this.renameDeclarations(node);
+		}
+		else if( node.$refToScope ) {
+			this.renameReferences(node);
+		}
 	}
 
 	, after: function(ast) {
@@ -63,140 +65,148 @@ let plugin = module.exports = {
 	}
 
 	, renameDeclarations: function renameDeclarations(node) {
-		if( node.type === "VariableDeclaration" && isConstLet(node.kind) ) {
-			const hoistScope = node.$scope.closestHoistScope();
-			const origScope = node.$scope;
-			const stats = this.options.stats;
+		const hoistScope = node.$scope.closestHoistScope();
+		const origScope = node.$scope;
+		const stats = this.options.stats;
+		const originalKind = node.kind;
 
-			// text change const|let => var
-			this.alter.replace(
-				node.range[0]
-				, node.range[0] + node.kind.length
-				, "var"
+		// text change const|let => var
+		this.alter.replace(
+			node.range[0]
+			, node.range[0] + node.kind.length
+			, "var"
+		);
+
+		let declarations = node.declarations;
+		let hasLoopScopeBetween;
+
+		declarations.forEach(function renameDeclaration(declarator) {
+			var declaratorId = isObjectPattern(declarator) || isArrayPattern(declarator)
+					? declarator
+					: declarator.type === "Property"
+						? declarator.value
+						: declarator.id
+			;
+
+			assert(
+				declarator.type === "VariableDeclarator" || declarator.$type === "VariableDeclarator"
 			);
 
-			let declarations = node.declarations;
-			let hasLoopScopeBetween;
-
-			declarations.forEach(function renameDeclaration(declarator) {
-				var declaratorId = isObjectPattern(declarator) || isArrayPattern(declarator)
-						? declarator
-						: declarator.type === "Property"
-							? declarator.value
-							: declarator.id
-				;
-
-				assert(
-					declarator.type === "VariableDeclarator" || declarator.$type === "VariableDeclarator"
-				);
-
-				if( isObjectPattern(declaratorId) ) {
-					for (let properties = declaratorId.properties, k = 0, l = properties.length ; k < l ; k++) {
-						const property = properties[k];
-						if (property) {
-							property.$type = "VariableDeclarator";
-							property.$parentType = "ObjectPattern";
-							renameDeclaration(property);
-						}
+			if( isObjectPattern(declaratorId) ) {
+				for (let properties = declaratorId.properties, k = 0, l = properties.length ; k < l ; k++) {
+					const property = properties[k];
+					if (property) {
+						property.$type = "VariableDeclarator";
+						property.$parentType = "ObjectPattern";
+						renameDeclaration(property);
 					}
-					return;
 				}
-				else if (isArrayPattern(declaratorId)) {
-					for (let elements = declaratorId.elements, k = 0, l = elements.length ; k < l ; k++) {
-						const element = elements[k];
-						if (element) {
-							element.$type = "VariableDeclarator";
-							element.$parentType = "ArrayPattern";
-							renameDeclaration(element);
-						}
+				return;
+			}
+			else if (isArrayPattern(declaratorId)) {
+				for (let elements = declaratorId.elements, k = 0, l = elements.length ; k < l ; k++) {
+					const element = elements[k];
+					if (element) {
+						element.$type = "VariableDeclarator";
+						element.$parentType = "ArrayPattern";
+						renameDeclaration(element);
 					}
-					return;
 				}
+				return;
+			}
 
-				let name, prefix = "", needSrcChanges = true;
+			let name, prefix = "", needSrcChanges = true;
 
-				if (declarator.$parentType === "ObjectPattern") {
-					declaratorId = declarator;
-					name = declarator.value.name;
-					prefix = declarator.key.name + " :";
+			if (declarator.$parentType === "ObjectPattern") {
+				declaratorId = declarator;
+				name = declarator.value.name;
+				prefix = declarator.key.name + " :";
 
-					needSrcChanges = false;//src text-replace in replaceDestructuringVariableDeclaration function
-				}
-				else if (declarator.$parentType === "ArrayPattern") {
-					declaratorId = declarator;
+				needSrcChanges = false;//src text-replace in replaceDestructuringVariableDeclaration function
+			}
+			else if (declarator.$parentType === "ArrayPattern") {
+				declaratorId = declarator;
 
-					if (declarator.type === "SpreadElement" ) {
-						name = declarator.argument.name;
-					}
-					else {
-						name = declarator.name;
-					}
-
-					needSrcChanges = false;//src text-replace in replaceDestructuringVariableDeclaration function
+				if (declarator.type === "SpreadElement" ) {
+					name = declarator.argument.name;
 				}
 				else {
-					declaratorId = declarator.id;
-					name = declaratorId.name;
+					name = declarator.name;
 				}
 
-				stats.declarator(node.kind);//FIXME:: comment
+				needSrcChanges = false;//src text-replace in replaceDestructuringVariableDeclaration function
+			}
+			else {
+				declaratorId = declarator.id;
+				name = declaratorId.name;
+			}
 
-				// rename if
-				// 1) name already exists in hoistScope, or
-				// 2) name is already propagated (passed) through hoistScope or manually tainted
-				const rename = (origScope !== hoistScope &&
-					(hoistScope.hasOwn(name) || hoistScope.doesPropagate(name)));
+			stats.declarator(node.kind);//FIXME:: comment
 
-				const newName = (rename ? core.unique(name) : name);
+			// rename if
+			// 1) name already exists in hoistScope, or
+			// 2) name is already propagated (passed) through hoistScope or manually tainted
+			const rename = (origScope !== hoistScope &&
+				(hoistScope.hasOwn(name) || hoistScope.doesPropagate(name)));
 
-				origScope.remove(name);
-				hoistScope.add(newName, "var", declaratorId, declarator.range[1]);
+			const newName = (rename ? core.unique(name) : name);
 
-				origScope.moves = origScope.moves || stringmap();
-				origScope.moves.set(name, {
-					name: newName,
-					scope: hoistScope
-				});
+			origScope.remove(name);
+			hoistScope.add(newName, "var", declaratorId, declarator.range[1]);
 
-				core.allIdentifiers.add(newName);
+			declaratorId.$originalKind = originalKind;
 
-				if (newName !== name) {
-					stats.rename(name, newName, getline(declarator));
+			origScope.moves = origScope.moves || stringmap();
+			origScope.moves.set(name, {
+				name: newName,
+				scope: hoistScope,
+				originalKind: originalKind
+			});
 
-					declaratorId.originalName = name;//TODO:: in other parts of this file replace it to ObjectPattern/ArrayPattern check
+			core.allIdentifiers.add(newName);
 
-					if (declarator.$parentType === "ObjectPattern") {
-						declarator.value.name = newName;
-						declarator.value.originalName = name;
-					}
-					else if (declarator.$parentType === "ArrayPattern") {
-						declarator.name = newName;
-						declarator.originalName = name;
-					}
-					else {
-						declaratorId.name = newName;
-					}
+			if (newName !== name) {
+				stats.rename(name, newName, getline(declarator));
 
-					if( needSrcChanges ) {
-						// textchange var x => var x$1
-						this.alter.replace(
-							declaratorId.range[0]
-							, declaratorId.range[1]
-							, prefix + newName
-						);
-					}
+				declaratorId.originalName = name;//TODO:: in other parts of this file replace it to ObjectPattern/ArrayPattern check
+
+				if (declarator.$parentType === "ObjectPattern") {
+					declarator.value.name = newName;
+					declarator.value.originalName = name;
+				}
+				else if (declarator.$parentType === "ArrayPattern") {
+					declarator.name = newName;
+					declarator.originalName = name;
+				}
+				else {
+					declaratorId.name = newName;
 				}
 
 				if( needSrcChanges ) {
-					if( declarator.init == null ) {
-						if( hasLoopScopeBetween === void 0 ) {
-							hasLoopScopeBetween = origScope.hasLoopScopeBetween(hoistScope, true);
-						}
-						if( hasLoopScopeBetween ) {
-							this.alter.insert(
-								declaratorId.range[1]
-								, " = void 0"
-							);
+					// textchange var x => var x$1
+					this.alter.replace(
+						declaratorId.range[0]
+						, declaratorId.range[1]
+						, prefix + newName
+					);
+				}
+			}
+
+			if( needSrcChanges ) {
+				if( declarator.init == null ) {
+					if( hasLoopScopeBetween === void 0 ) {
+						hasLoopScopeBetween = origScope.hasLoopScopeBetween(hoistScope, true);
+					}
+					if( hasLoopScopeBetween ) {
+						/*
+						ES6:      for( var i = 0 ; i < 3 ; i++ ) { let x; if( x === void 0 ) x = Math.random(); console.log(x); }
+						ES5 BAD:  for( var i = 0 ; i < 3 ; i++ ) { var x; if( x === void 0 ) x = Math.random(); console.log(x); }
+						ES5 GOOD: for( var i = 0 ; i < 3 ; i++ ) { var x = void 0; if( x === void 0 ) x = Math.random(); console.log(x); }
+						*/
+						this.alter.insert(
+							declaratorId.range[1]
+							, " = void 0"
+						);
 //							declarator.init = {
 //								"type": "UnaryExpression",
 //								"operator": "void",
@@ -206,19 +216,15 @@ let plugin = module.exports = {
 //									"raw": "0"
 //								}
 //							}
-						}
 					}
 				}
+			}
 
-				//node.kind = "var";
-			}, this);
-		}
+			//node.kind = "var";
+		}, this);
 	}
 
 	, renameReferences: function renameReferences(node) {
-		if( !node.$refToScope ) {
-			return;
-		}
 		const move = node.$refToScope.moves && node.$refToScope.moves.get(node.name);
 		if( !move ) {
 			return;

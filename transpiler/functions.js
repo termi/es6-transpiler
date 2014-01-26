@@ -270,7 +270,7 @@ var plugin = module.exports = {
 
 			if( rest ) {
 				// add rest
-				insertIntoBodyBegin += ("var " + core.unwrapSpreadDeclaration(rest, "arguments", initialParamsCount) + ";");
+				insertIntoBodyBegin += ("var " + core.unwrapRestDeclaration(rest, "arguments", initialParamsCount) + ";");
 
 				// cleanup rest definition
 				this.alter.remove(

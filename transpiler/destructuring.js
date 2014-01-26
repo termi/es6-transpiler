@@ -281,7 +281,7 @@ var plugin = module.exports = {
 //					}
 
 					if( element.type === "SpreadElement" ) {
-						newDefinition["$raw"] = core.unwrapSpreadDeclaration(element.argument, valueIdentifierName, k);
+						newDefinition["$raw"] = core.unwrapRestDeclaration(element.argument, valueIdentifierName, k);
 					}
 					else {
 //						if( type === 1 ) {//VariableDeclarator
