@@ -1,11 +1,14 @@
 "use strict";
 
+require("es5-shim");
+
 const fs = require("fs");
 const traverse = require("./lib/traverse");
 const error = require("./lib/error");
 const defaultOptions = require("./options");
 const core = require("./transpiler/core");
 const StringAlter = require("./lib/StringAlter-es5");
+const is = require("simple-is");
 
 let plugins = [
 	core
@@ -19,6 +22,7 @@ let plugins = [
 	, require("./transpiler/quasiLiterals")
 	, require("./transpiler/arrayComprehension")
 	, require("./transpiler/forOf")
+	, require("./transpiler/optimiser")
 
 	, {
 		setup: function(config) {
@@ -53,7 +57,9 @@ module.exports = {
 			if( typeof plugin.setup === "function" ) {
 				for(let i in config)if(config.hasOwnProperty(i))options[i] = config[i];
 
-				plugin.setup(this.alter, this.ast, options, this.src);
+				if( plugin.setup(this.alter, this.ast, options, this.src) === false ) {
+					options.passIt = true;
+				}
 			}
 		}, this);
 	}
@@ -105,6 +111,13 @@ module.exports = {
 			, "node"
 		];
 
+		if( config.resetUnCapturedVariables === true ) {
+			config.resetUnCapturedVariables = ['let', 'const', 'fun', 'var'];
+		}
+		else if( !Array.isArray(config.resetUnCapturedVariables) ) {
+			config.resetUnCapturedVariables = [];
+		}
+
 		//esprima
 		let esprima;
 		if( config.fullES6 === true ) {
@@ -149,6 +162,10 @@ module.exports = {
 
 		plugins.forEach(function(plugin, index) {
 			var options = this.optionsList[index];
+
+			if( options.passIt === true ) {
+				return;
+			}
 
 			if( typeof plugin.before === "function" ) {
 				if( plugin.before(this.ast) === false ) {

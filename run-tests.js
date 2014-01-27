@@ -3,7 +3,30 @@
 const fs = require("fs");
 const path = require("path");
 const ansidiff = require("ansidiff");
-const defsMain = require("./es6-transpiler");
+const es6transpiler = require("./es6-transpiler");
+
+const assign = function(target, source) {
+	return Object.keys(source).reduce(function(target, key) {
+		target[key] = source[key];
+		return target;
+	}, target);
+};
+
+if( !String.prototype.startsWith ) {
+	String.prototype.startsWith = function(searchStr) {
+		if (this == null) {
+			throw new TypeError('Cannot call method on ' + this);
+		}
+
+		var thisStr = String(this);
+		//if (Object.prototype.toString.call(searchStr) === '[object RegExp]') throw new TypeError('Cannot call method "startsWith" with a regex');
+		searchStr = String(searchStr);
+		var startArg = arguments.length > 1 ? arguments[1] : void 0;
+		var start = Math.max(+startArg, 0);
+		return thisStr.slice(start, start + searchStr.length) === searchStr;
+	}
+}
+
 
 const commandVariables = {};
 process.argv.forEach(function(arg, index, array) {
@@ -122,15 +145,34 @@ function fail(file, type, diff1, diff2) {
 function test(file) {
 	let result;
 	let errors;
+	let options = {
+		fullES6: true
+	};
+
 	try {
-		result = defsMain.run({filename: path.join(pathToTests, file), fullES6: true});
+		let fileSource = fs.readFileSync(path.join(pathToTests, file));
+
+		// options reading from something like this '/* <[tests es6-transpiler options: {"resetNotCapturedVariables":true} ]> */'
+		let fileOptions = (fileSource + "").match(/^\/\*\s+<\[tests es6-transpiler options:\s*(.*?)\s*\]>\s+\*\//);
+		if( fileOptions ) {
+			try {
+				fileOptions = JSON.parse(fileOptions[1]);
+				assign(options, fileOptions);
+			}
+			catch(e){}
+		}
+
+		options.src = fileSource;
+
+		result = es6transpiler.run(options);
 		errors = result.errors.join("\n");
 	}
 	catch(e) {
 		result = {
 			src: ""
 		};
-		errors = [e.message];
+
+		errors = [e.message || e.name];
 	}
 	let srcOut = result.src;
 

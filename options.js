@@ -3,5 +3,6 @@
 module.exports = {
     disallowVars: false,
     disallowDuplicated: true,
-    disallowUnknownReferences: true
+    disallowUnknownReferences: true,
+	resetUnCapturedVariables: false//true, false, ['fun', 'let', 'const', 'var']
 };

@@ -21,8 +21,9 @@ function isVarConstLet(kind) {
 }
 
 function isFunction(node) {
-	const type = node.type;
-	return type === "FunctionDeclaration" || type === "FunctionExpression" || type === "ArrowFunctionExpression";
+	let type;
+	return node && (type = node.type)
+		&& type === "FunctionDeclaration" || type === "FunctionExpression" || type === "ArrowFunctionExpression";
 }
 
 function isNonFunctionBlock(node) {
@@ -450,9 +451,15 @@ let core = module.exports = {
 				}
 			}
 
+			if( !scope ) {
+				// 'reference to unknown global variable' case
+				return;
+			}
+
+			let decl = scope.get(node.name);
+
 			// check const and let for referenced-before-declaration
-			let kind;
-			if (scope && ((kind = scope.getKind(node.name)) === "const" || kind === "let")) {
+			if ( isConstLet(decl.kind) ) {
 				const allowedFromPos = scope.getFromPos(node.name);
 				const referencedAtPos = node.range[0];
 
@@ -464,7 +471,19 @@ let core = module.exports = {
 					}
 				}
 			}
+
 			node.$refToScope = scope;
+
+			let declNode = decl.node;
+			if( declNode ) {
+				node.$captured = declNode.$captured =
+					declNode.$captured || scope != node.$scope.closestHoistScope()
+				;
+			}
+			else {
+				// Special case. For example, 'super' or 'this' doesn't has any declaration node
+				node.$captured = true;
+			}
 		}
 	}
 
@@ -969,6 +988,32 @@ let core = module.exports = {
 		latestChangesOptions.inactive = true;//deactivate this changes
 
 		return this.__createBubbledVariableDeclaration(scope, void 0, void 0, void 0, bubbledVariable);
+	}
+
+	, getVariableDeclarationNodes: function(variableDeclaration) {
+		if( variableDeclaration.type === 'FunctionDeclaration' ) {
+			return [variableDeclaration.id];
+		}
+
+		let result = [];
+		let declarations = variableDeclaration.declarations;
+
+		assert(!!declarations, "Wrong type of declaration");
+
+		declarations.forEach(function(variableDeclarator) {
+			let variableDeclaratorId = variableDeclarator.id;
+
+			if( isArrayPattern(variableDeclaratorId) || isObjectPattern(variableDeclaratorId) ) {
+				this.traverseDestructuringVariables(variableDeclaratorId, function(Identifier) {
+					result.push(Identifier);
+				})
+			}
+			else {
+				result.push(variableDeclaratorId);
+			}
+		}, this);
+
+		return result;
 	}
 
 	, traverseDestructuringVariables: function(definitionNode, traverse) {

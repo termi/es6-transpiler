@@ -13,8 +13,10 @@ function getline(node) {
 
 function isFunction(node) {
 	let type;
-	return node && ((type = node.type) === "FunctionDeclaration" || type === "FunctionExpression" || type === "ArrowFunctionExpression");
+	return node && (type = node.type)
+		&& type === "FunctionDeclaration" || type === "FunctionExpression" || type === "ArrowFunctionExpression";
 }
+
 function isObjectPattern(node) {
 	return node && node.type == 'ObjectPattern';
 }
