@@ -32,3 +32,18 @@ var a = 1, b = 2, c = 3;
     }).call(this);}
     console.log(e.map( function(x) {return x()} ).join("|") === "303|202|101")
 }
+
+{
+    var someArray = [{b:0}, {b:1}, {b:2}];
+    var str1 = "";
+    $D$0 = GET_ITER$0(someArray);$D$1 = $D$0 === 0;$D$2 = ($D$1 ? someArray.length : void 0);for( var a$2 ; $D$1 ? ($D$0 < $D$2) : !($D$2 = $D$0["next"]())["done"]; ){a$2 = ($D$1 ? someArray[$D$0++] : $D$2["value"]);(function(){
+        var b = a$2.b, c = a$2.c;
+
+        function test2() {
+            str1 += b;// variable 'b' has been captured
+        }
+
+        test2();
+    }).call(this);};$D$0 = $D$1 = $D$2 = void 0;
+    console.log(str1 === "012");
+}

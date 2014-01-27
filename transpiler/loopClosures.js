@@ -5,7 +5,6 @@ const error = require("./../lib/error");
 const traverse = require("./../lib/traverse");
 const core = require("./core");
 const Scope = require("./../lib/scope");
-const destructuring = require("./destructuring");
 
 
 
@@ -19,7 +18,8 @@ function isConstLet(kind) {
 
 function isFunction(node) {
 	let type;
-	return node && ((type = node.type) === "FunctionDeclaration" || type === "FunctionExpression" || type === "ArrowFunctionExpression");
+	return node && (type = node.type)
+		&& type === "FunctionDeclaration" || type === "FunctionExpression" || type === "ArrowFunctionExpression";
 }
 
 function isForInOfWithConstLet(node) {
@@ -57,6 +57,7 @@ let transformLoop_fragmentOption_functionHeadAndTail = {
 	, extend: true
 
 	, onbefore: function() {
+
 		let fragmentOption = this.options;
 		let forVariableNode = fragmentOption.variableDeclarationNode;
 		let forVariableNode_newName = fragmentOption.newName || ""
@@ -66,14 +67,15 @@ let transformLoop_fragmentOption_functionHeadAndTail = {
 		let isHead = this.data === "--head--";
 
 		if( forVariableNode && !fragmentOption.secondTime ) {
-			let destructuringVariableDeclarationNode = destructuring.detectDestructuringParent(forVariableNode);
+			let destructuringVariableDeclarationNode = core.detectDestructuringParent(forVariableNode);
 
 			if ( destructuringVariableDeclarationNode ) {
-				forVariableNode_newName = destructuring.getDestructuringVariablesName(destructuringVariableDeclarationNode).join(", ");
+				forVariableNode_newName = core.getDestructuringVariablesName(destructuringVariableDeclarationNode).join(", ");
 				let names = [];
-				destructuring.traverseDestructuringVariables(destructuringVariableDeclarationNode, function(element) {
+				core.traverseDestructuringVariables(destructuringVariableDeclarationNode, function(element) {
 					names.push(element.originalName || element.name);
 				});
+
 				forVariableNode_oldName = names.join(", ");
 			}
 			else if( forVariableNode.type === "Identifier" ) {
@@ -230,16 +232,23 @@ var plugin = module.exports = {
 			: loopNode.body.range[1])	// just after existing expression
 		;
 
+		let variableDeclarator = core.getVariableDeclaratorForIdentifier(variableDeclarationNode);
+
 		let fragmentOption = Object.create(transformLoop_fragmentOption_functionHeadAndTail);
-		fragmentOption.variableDeclarationNode = isForInOfWithConstLet(loopNode) && variableNode && variableDeclarationNode;
+		fragmentOption.variableDeclarationNode =
+			isForInOfWithConstLet(loopNode)
+			&& variableNode
+			&& core.declarationContainsDeclarator(loopNode.left, variableDeclarator)
+			&& variableDeclarationNode
+		;
 
 		this.alter.insert(insertHeadPosition, "--head--", fragmentOption);
 		this.alter.insert(insertTailPosition, "--tail--", fragmentOption);
 
-		this.transformLoopScope(loopNode, variableDeclarationNode, hasBlock);
+		this.transformLoopScope(loopNode, variableDeclarationNode, variableDeclarator, hasBlock);
 	}
 
-	, transformLoopScope: function(loopNode, variableDeclarationNode, hasBlock) {
+	, transformLoopScope: function(loopNode, variableDeclarationNode, variableDeclarator, hasBlock) {
 		if( hasBlock === void 0 ) {
 			hasBlock = (loopNode.body.type === "BlockStatement")
 		}
@@ -252,6 +261,7 @@ var plugin = module.exports = {
 			newScope = loopNode.body.$scope;
 		}
 		else {
+
 			let chs = loopNode.body.$scope.children;
 			newScope = new Scope({
 				kind: "hoist",
@@ -273,10 +283,14 @@ var plugin = module.exports = {
 			}
 		}
 
-		let destructuringVariableDeclarationNode = destructuring.detectDestructuringParent(variableDeclarationNode);
+		let destructuringVariableDeclarationNode =
+			isForInOfWithConstLet(loopNode)
+			&& core.declarationContainsDeclarator(loopNode.left, variableDeclarator)
+			&& core.detectDestructuringParent(variableDeclarationNode)
+		;
 
 		if( destructuringVariableDeclarationNode ) {
-			destructuring.traverseDestructuringVariables(destructuringVariableDeclarationNode, setNewRefToScope);
+			core.traverseDestructuringVariables(destructuringVariableDeclarationNode, setNewRefToScope);
 		}
 		else if( variableDeclarationNode.type === "Identifier" ) {
 			setNewRefToScope(variableDeclarationNode);

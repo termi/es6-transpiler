@@ -970,6 +970,119 @@ let core = module.exports = {
 
 		return this.__createBubbledVariableDeclaration(scope, void 0, void 0, void 0, bubbledVariable);
 	}
+
+	, traverseDestructuringVariables: function(definitionNode, traverse) {
+		assert(isObjectPattern(definitionNode) || isArrayPattern(definitionNode));
+
+		let _isObjectPattern = isObjectPattern(definitionNode)
+			, elementsList = _isObjectPattern ? definitionNode.properties : definitionNode.elements
+		;
+
+		for( let k = 0, len = elementsList.length ; k < len ; k++ ) {
+			let element = elementsList[k], elementId = _isObjectPattern ? element.value : element;
+			if (element) {
+				if( isObjectPattern(elementId) || isArrayPattern(elementId) ) {
+					this.traverseDestructuringVariables(
+						_isObjectPattern ? element.value : element
+						, traverse
+					);
+				}
+				else {
+					element = _isObjectPattern ? element.value : element;
+
+					const isSpreadElement = element.type === "SpreadElement";
+
+					if( isSpreadElement ) {
+						element = element.argument;
+					}
+
+					assert(element.type === "Identifier", 'error in "traverseDestructuringVariables". Element is "' + element.type + '"');
+
+					if( traverse(element, isSpreadElement) === false ) {
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	, getDestructuringVariablesName: function(definitionNode) {
+		let names = [];
+		this.traverseDestructuringVariables(definitionNode, function(element) {
+			names.push(element.name);
+		});
+		return names;
+	}
+
+	, detectDestructuringParent: function(node) {
+		let parent = node.$parent;
+
+		if( parent ) {
+			if( parent.type === 'Property' ) {
+				parent = parent.$parent;
+				if( isObjectPattern(parent) ) {
+					return parent;
+				}
+			}
+			else if( isArrayPattern(parent) ) {
+				return parent;
+			}
+		}
+
+		return null;
+	}
+
+	, declarationContainsDeclarator: function(declarationNode, declaratorNode) {
+		assert(declarationNode.type === 'VariableDeclaration', 'first parameter must be a "VariableDeclaration" node not a "' + declarationNode.type + '"');
+		assert(declaratorNode.type === 'VariableDeclarator', 'second parameter must be a "VariableDeclarator" node not a "' + declaratorNode.type + '"');
+
+		let declarations = declarationNode.declarations;
+		let declaration;
+
+		for( let k = 0, len = declarations.length ; k < len ; k++ ) {
+			declaration = declarations[k];
+
+			if( isObjectPattern(declaration) || isArrayPattern(declaration) ) {
+				let result;
+				this.traverseDestructuringVariables(declaration, function(declaration) {
+					if( declaration === declaratorNode ) {
+						result = true;
+						return false;
+					}
+				});
+				if( result === true ) {
+					return true;
+				}
+			}
+			else if( declaration === declaratorNode ) {
+				return true;
+			}
+		}
+	}
+
+	, getVariableDeclaratorForIdentifier: function(node) {
+		assert(node.type === 'Identifier', 'node must be a "Identifier" node not a "' + node.type + '"');
+
+		let parent = node;
+
+		while( true ) {
+			parent = parent.$parent;
+
+			if( parent.type === 'VariableDeclarator' ) {
+				return parent;
+			}
+
+			if( parent.type === 'Property' ) {
+
+			}
+			else if( isArrayPattern(parent) || isObjectPattern(parent) ) {
+
+			}
+			else {
+				assert(false, 'Wrong type of node "' + parent.type + '"');
+			}
+		}
+	}
 };
 
 for(let i in core) if( core.hasOwnProperty(i) && typeof core[i] === "function" ) {

@@ -32,3 +32,18 @@ let a = 1, b = 2, c = 3;
 	}
 	console.log(e.map( function(x) {return x()} ).join("|") === "303|202|101")
 }
+
+{
+	let someArray = [{b:0}, {b:1}, {b:2}];
+	let str1 = "";
+	for( let a of someArray ) {
+		let { b, c } = a;
+
+		function test2() {
+			str1 += b;// variable 'b' has been captured
+		}
+
+		test2();
+	}
+	console.log(str1 === "012");
+}
