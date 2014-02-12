@@ -5,24 +5,36 @@ es6 -> es5
 
 Beta
 
+## Goal
+
+ * different output than [traceur-compiler](https://github.com/google/traceur-compiler):
+     1. no runtime library
+     1. no try/catch for block binding
+     1. no `.bind` using for arrow functions
+     1. `.concat` for spread emulation
+     1. and others
+ * output should support [Closure Compiler](https://code.google.com/p/closure-compiler/)
+ * line-to-line input/output mapping
+
 ## Supported
 
  * classes
  * destructuring
- * blockBinding (let / const)
- * defaultParameters
- * arrowFunctions
+ * block binding (let / const)
+ * default parameters
+ * arrow functions
  * spread (with iterator protocol)
  * for-of (with iterator protocol)
  * array comprehensions (with iterator protocol)
- * templateLiterals
- * objectLiteral
+ * string templates
+ * object literals
 
-Static scope analysis and transpilation of ES6 block scoped `const` and `let` variables to ES3 (based on https://github.com/olov/defs).
+Static scope analysis and transpilation of ES6 block scoped `const` and `let` variables to ES3 based on [olov/defs](https://github.com/olov/defs).
 
 ## Supported iterator protocol
 
-Important note: This based on the current [FireFox 27 implementation](https://developer.mozilla.org/en-US/Firefox/Releases/27/Site_Compatibility#sect9). In future it has to be [updated to Symbol.iterator](https://bugzilla.mozilla.org/show_bug.cgi?id=907077#c14)
+Important note: This based on the current [FireFox 27 implementation](https://developer.mozilla.org/en-US/Firefox/Releases/27/Site_Compatibility#sect9).
+In future it has to be [updated to Symbol.iterator](https://bugzilla.mozilla.org/show_bug.cgi?id=907077#c14)
 
 ```javascript
 var obj = {a: 1, b: 2, c: 3};
@@ -111,7 +123,7 @@ gulp.task('default', function () {
 Run it as `es6toes5 <input file>`. Or `node --harmony es6toes5 <input file>`. Also you can run a compiled es5 version `node build/es5/es6toes5 <input file>`.
 The errors (if any) will go to stderr, the transpiled source to `stdout`, so redirect it like `es6toes5 file.js > output.js`.
 
-### Node.js
+### Node.js / Using as a library
 
 require("es6-transpiler").run(\<Options\>)
 
@@ -244,3 +256,8 @@ of *time*, which is impossible to catch reliably with statical analysis.
 happily transpile this example (`let` => `var` and that's it), and the transpiled code
 will print `undefined` on the first call to `printx`. This difference should be a very
 minor problem in practice.
+
+## TODO
+ 1. Generators support
+ 1. Modules support
+ 1. 'pre-es6-node10', 'pre-es6-chrome20' and 'pre-es6-ff24' output modes
