@@ -129,11 +129,14 @@ module.exports = {
 		this.esprima = esprima;
 
 		// input
+		let isSourceInput = false;
 		if( typeof config.filename === "string" ) {
 			this.src = String(fs.readFileSync(config.filename));
+			isSourceInput = true;
 		}
 		else if( typeof config.src === "string" || typeof config.src === "object" ) {
 			this.src = String(config.src);
+			isSourceInput = true;
 		}
 		else if( typeof config.ast === "object" ) {
 			throw new Error("Currently unsupported");
@@ -143,7 +146,7 @@ module.exports = {
 			*/
 		}
 
-		if( !this.ast && this.src ) {
+		if( !this.ast && isSourceInput ) {
 			this.ast = esprima.parse(this.src, {
 				loc: true,
 				range: true
