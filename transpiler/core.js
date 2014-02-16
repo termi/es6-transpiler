@@ -1084,11 +1084,11 @@ let core = module.exports = {
 		let declarations = declarationNode.declarations;
 		let declaration;
 
-		for( let k = 0, len = declarations.length ; k < len ; k++ ) {
+		let k = 0, len = declarations.length, result;
+		for(  ; k < len ; k++ ) {
 			declaration = declarations[k];
 
 			if( isObjectPattern(declaration) || isArrayPattern(declaration) ) {
-				let result;
 				this.traverseDestructuringVariables(declaration, function(declaration) {
 					if( declaration === declaratorNode ) {
 						result = true;
