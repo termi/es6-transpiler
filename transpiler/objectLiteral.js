@@ -36,11 +36,7 @@ var plugin = module.exports = {
 			}
 			else if( node.shorthand === true) {
 				var parent = node.$parent;
-				if( !isArrayPattern(parent)
-					&& !isObjectPattern(parent)
-//					&& !isArrayPattern(parent.$parent)
-//					&& !isObjectPattern(parent.$parent)
-				) {//filter destructuring
+				if( !isArrayPattern(parent) && !isObjectPattern(parent) ) {//filter destructuring
 					this.replaceShorthand(node);
 				}
 			}

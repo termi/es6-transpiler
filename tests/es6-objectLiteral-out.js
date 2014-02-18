@@ -25,12 +25,24 @@
 {// property + method (function) in default value
 	var A$1 = 11, B$1 = 22, C$1 = 33;
 
-	function test() {var value = arguments[0];if(value === void 0)value = {A: function(){ return A$1 }, B: B$1, C: C$1};
+    function test3() {var value = arguments[0];if(value === void 0)value = {A: function(){ return A$1 }, B: B$1, C: C$1};
 		return value
 	}
 
-	var a$3 = test();
+    var a$3 = test3();
 	console.log(Object.keys(a$3).join("|") === "A|B|C", a$3.A() === A$1, a$3.B === B$1, a$3.C === C$1)
+}
+
+{// property in default value of function parameter
+    var A$2 = 111;
+    function test4(){var a = arguments[0];if(a === void 0)a = {A: A$2}; return A$2 }
+    console.log(test4() === 111);
+}
+
+{// property in default value of destructuring in function parameter
+    var A$3 = 222;
+    function test5(){var a = ((a = (arguments[0] !== void 0 ? arguments[0] : {}).a) === void 0 ? {A: A$3} : a); return A$3 }
+    console.log(test5() === 222);
 }
 
 // TODO:: more

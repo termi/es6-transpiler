@@ -25,12 +25,24 @@
 {// property + method (function) in default value
 	let A = 11, B = 22, C = 33;
 
-	function test(value = {A(){ return A }, B: B, C}) {
+	function test3(value = {A(){ return A }, B: B, C}) {
 		return value
 	}
 
-	let a = test();
+	let a = test3();
 	console.log(Object.keys(a).join("|") === "A|B|C", a.A() === A, a.B === B, a.C === C)
+}
+
+{// property in default value of function parameter
+	let A = 111;
+	function test4(a = {A}){ return A }
+	console.log(test4() === 111);
+}
+
+{// property in default value of destructuring in function parameter
+	let A = 222;
+	function test5({a = {A}} = {}){ return A }
+	console.log(test5() === 222);
 }
 
 // TODO:: more
