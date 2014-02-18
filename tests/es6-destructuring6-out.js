@@ -1,5 +1,4 @@
-
-function test1_1(a) {var a = ((a = (a).a) === void 0 ? 1 : a);
+function test1_1(a) {var a = ((a = a.a) === void 0 ? 1 : a);
 	{
 		var a$0 = 2;
 	}
@@ -7,7 +6,7 @@ function test1_1(a) {var a = ((a = (a).a) === void 0 ? 1 : a);
 }
 console.log(test1_1({}))
 
-function test1_2(b) {var a = ((a = (b = b).a) === void 0 ? 2 : a), b = ((b = b.b) === void 0 ? a + 1 : b);
+function test1_2(b) {var a = ((a = b.a) === void 0 ? 2 : a), b = ((b = b.b) === void 0 ? a + 1 : b);
 	{
 		var a$1 = 3, b$0 = 99;
 	}
@@ -15,7 +14,7 @@ function test1_2(b) {var a = ((a = (b = b).a) === void 0 ? 2 : a), b = ((b = b.b
 }
 console.log(test1_2({}))
 
-function test1_3(c) {var a = ((a = (c = c).a) === void 0 ? 3 : a), b = ((b = c.b) === void 0 ? a + 1 : b), c = ((c = c.c) === void 0 ? b + a + 1 : c);
+function test1_3(c) {var a = ((a = c.a) === void 0 ? 3 : a), b = ((b = c.b) === void 0 ? a + 1 : b), c = ((c = c.c) === void 0 ? b + a + 1 : c);
 	{
 		var a$2 = 4, b$1 = 99, c$0 = 999;
 	}

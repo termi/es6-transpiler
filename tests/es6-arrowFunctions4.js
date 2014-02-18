@@ -1,5 +1,23 @@
 
 {
+	{
+		let arr = [ {a: 4}, {a: 0}, {a: 1}, {a: 3}, {a: 2} ];
+		arr = arr
+			.sort( ({a}, {a: b}) => (a - b) )
+			.map(({a})=>a);
+		console.log(arr.join("|") === [0, 1, 2, 3, 4].join("|"));
+	}
+
+	{
+		let arr = [ {a: 4}, {a: 0}, {a: 1}, {a: 3}, {a: 2} ];
+		arr = arr
+			.sort( ({a} = {}, {a: b} = {}) => (a - b) )
+			.map(({a} = {})=>a)
+		console.log(arr.join("|") === [0, 1, 2, 3, 4].join("|"));
+	}
+}
+
+{
 	let test1 = ({a}) => ([a])
 	console.log(test1({a: 1}).join("|") === [1].join("|"))
 

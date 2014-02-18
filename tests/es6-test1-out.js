@@ -29,12 +29,12 @@ function test() {
 console.log(test() === "1false1");
 
 var y1 = function()    {var a = arguments[0];if(a === void 0)a = 1;return (a + 1  , a  )}
-var y2 = function(a)  {var a = (a).a;return a}
-var y3 = function(a)  {var a = (a).a;return [a]}
+var y2 = function(a)  {var a = a.a;return a}
+var y3 = function(a)  {var a = a.a;return [a]}
 var y31 = function()  {var a = (arguments[0] !== void 0 ? arguments[0] : {}).a;return [a]}
 var y4 = function(a)  {var a = a[0];return a}
 var y5 = function(a)  {var a = a[0];a}
 var y6 = function(a)  {var a = a[0];return a}
 var y61 = function()  {var a = (arguments[0] !== void 0 ? arguments[0] : [])[0];return a}
 var y7 = function(a)  {var a = ((a = a[0]) === void 0 ? 1 : a);return a}
-var y8 = function(a)  {var a = ((a = (a).a) === void 0 ? 1 : a);return [a]}
+var y8 = function(a)  {var a = ((a = a.a) === void 0 ? 1 : a);return [a]}

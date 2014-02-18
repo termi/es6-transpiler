@@ -11,7 +11,7 @@ function test1(obj) {
 test1({b: "bValue"});
 test1({someValue: 999, b: "bValue"});
 
-(function(b) {var a = ((a = (b = b)["a"]) === void 0 ? 123 : a), b = ((b = b.b) === void 0 ? 321 : b);
+(function(b) {var a = ((a = b["a"]) === void 0 ? 123 : a), b = ((b = b.b) === void 0 ? 321 : b);
 	console.log(a === 123, b === 321);
 })({});
 

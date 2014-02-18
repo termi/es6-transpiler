@@ -184,7 +184,13 @@ var plugin = module.exports = {
 
 		const argsLength = elements.length;
 		let spreadIndex = 0;
-		const callIteratorFunctionName = core.bubbledVariableDeclaration(node.$scope, "ITER", callIteratorBody, true);
+		let callIteratorFunctionName;
+		function getCallIteratorFunctionName() {
+			if( !callIteratorFunctionName ) {
+				callIteratorFunctionName = core.bubbledVariableDeclaration(node.$scope, "ITER", callIteratorBody, true);
+			}
+			return callIteratorFunctionName;
+		}
 
 		elements.some(function(arg, index) {
 			if( isSpreadElement(arg) ) {
@@ -301,7 +307,7 @@ var plugin = module.exports = {
 
 				expressionString += (
 					(currentIndex !== spreadIndex ? ", " : "")
-					+ (spreadTypeIsArrayExpression ? "" : callIteratorFunctionName + "(")
+					+ (spreadTypeIsArrayExpression ? "" : getCallIteratorFunctionName() + "(")
 						+ (isSequenceExpression ? "(" : "")
 					+ this.alter.get(arg.argument.range[0], arg.argument.range[1])
 						+ (isSequenceExpression ? ")" : "")

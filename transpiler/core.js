@@ -885,28 +885,24 @@ let core = module.exports = {
 
 		let uniquePathId = UUID_PREFIX + UUID++;
 
-		while( !parentScope && scopesLength && ++maxCounter < 100 ) {
+		while( !parentScope && ++maxCounter < 100 ) {
 			for( let i = 0 ; i < scopesLength ; ++i ) {
 				let scope = scopes[i];
 
-				let hoistScope = scope.closestHoistScope();
-
-				if( hoistScope.node.type === 'Program') {
+				if( scope.node.type === 'Program') {
 					//top scope reached
-					parentScope = hoistScope;
+					parentScope = scope;
 					break;
 				}
 
-				if( hoistScope === scope ) {
-					scope = scope.parent;
-				}
+				scope = scope.parent.closestHoistScope();
 
-				if( hoistScope.$__path === uniquePathId ) {
-					parentScope = hoistScope;
+				if( scope.$__path === uniquePathId ) {
+					parentScope = scope;
 					break;
 				}
 
-				hoistScope.$__path = uniquePathId;
+				scope.$__path = uniquePathId;
 				scopes[i] = scope;
 			}
 		}
@@ -1089,6 +1085,7 @@ let core = module.exports = {
 			declaration = declarations[k];
 
 			if( isObjectPattern(declaration) || isArrayPattern(declaration) ) {
+				//let result; // TODO:: es6-traspiler error: line 1091: can't transform loop-closure due to use of return at line 1100. result is defined outside closure, inside loop
 				this.traverseDestructuringVariables(declaration, function(declaration) {
 					if( declaration === declaratorNode ) {
 						result = true;

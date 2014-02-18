@@ -14,6 +14,20 @@ console.log(a === 1, b === 2, c.join("|") === "3|4|5|6")
 }
 
 {
+	let {a, b = "B"} = {a: "A", b: void 0}, c = 22;
+	let obj = {a: b, B: a};
+	obj = (({B: b, a}) = obj);
+	console.log(a === "B", b === "A", c === 22, obj.a === "B", obj.B === "A");
+}
+
+{
+	let {a, b = "B"} = {a: "A", b: void 0}, c = 22;
+	let obj = { inner: {a: b, B: a} };
+	let inner = (( {B: b, a} ) = obj.inner);
+	console.log(a === "B", b === "A", c === 22, inner.a === "B", inner.B === "A", inner === obj.inner);
+}
+
+{
 	let [a, b, ...c] = [1, 2, 3, 4, 5]
 	console.log(a === 1, b === 2, c.join("|") === "3|4|5");
 }
@@ -26,5 +40,5 @@ console.log(a === 1, b === 2, c.join("|") === "3|4|5|6")
 {
 	let a, b, c, rest;
 	[a, b, c, ...rest] = [1, 2, 3, 4, 5];
-	console.log(a === 1, c === 3, rest.join("|") === "4|5");
+	console.log(a === 1, b === 2, c === 3, rest.join("|") === "4|5");
 }

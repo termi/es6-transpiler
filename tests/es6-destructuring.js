@@ -31,7 +31,7 @@ function test3(array) {
 	{
 		let [a, , b, c] = array;
 		console.log(a === 9, b === 7, c === 6, ([a, , b, c] = (array.unshift(777), array))[3] === 7);
-		console.log(a === 777, b === 9, c === 7);
+		console.log(a === 777, b === null, c === 7);
 	}
 	console.log(a === 1, b === 2, b$0 === void 0);
 }

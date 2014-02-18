@@ -184,11 +184,14 @@ var plugin = module.exports = {
 
 						let elements = (_isObjectPattern ? param.properties : param.elements)
 							, elementsLength = elements.length
+							, element = elements[elementsLength - 1]
 						;
 						let functionParamReplacer =
 							doesArgumentsInsideFunction
 								? {type: "Identifier", name: core.unique("$D", true)}
-								: elements[elementsLength - 1]
+								: element
+									? (_isObjectPattern ? element.value : element)
+									: {$raw: '', name: ''}// empty destructuring
 							;
 
 						if( elementsLength === 0 ) {//empty destructuring
@@ -207,6 +210,9 @@ var plugin = module.exports = {
 									, functionParamReplacer
 								) + ";"
 							;
+							if( paramStr === "var ;" ) {// empty destructuring
+								paramStr = "";
+							}
 
 							param.$replaced = true;
 
@@ -218,10 +224,7 @@ var plugin = module.exports = {
 								(prevParam ? prevParam.range[1] + 1 : param.range[0]) - (prevParam ? 1 : 0)
 								, param.range[1]
 								, (i === 0 ? "" : ", ")
-									+ (isObjectPattern(param) && !doesArgumentsInsideFunction
-										? functionParamReplacer.key.name
-										: functionParamReplacer.name
-									)
+									+ functionParamReplacer.name
 							);
 						}
 					}
@@ -263,10 +266,12 @@ var plugin = module.exports = {
 
 					// cleanup default definition
 					// text change 'param = value' into ''
+//					this.alter.setState('default_remove');
 					this.alter.remove(
 						((prevDflt || prevParam) ? ((prevDflt || prevParam).range[1] + 1) : param.range[0]) - (prevParam ? 1 : 0)
 						, dflt.range[1]
 					);
+//					this.alter.restoreState();
 				}
 			}
 
@@ -275,10 +280,12 @@ var plugin = module.exports = {
 				insertIntoBodyBegin += ("var " + core.unwrapRestDeclaration(rest, "arguments", initialParamsCount) + ";");
 
 				// cleanup rest definition
+//				this.alter.setState('default_remove');
 				this.alter.remove(
 					((lastDflt || lastParam) ? ((lastDflt || lastParam).range[1] + 1) : rest.range[0]) - (lastParam ? 1 : 3)
 					, rest.range[1]
 				);
+//				this.alter.restoreState();
 			}
 
 			if( isNakedFunction ) {
