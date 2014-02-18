@@ -35,7 +35,12 @@ var plugin = module.exports = {
 			, expression
 			, expressionType
 			, resultString = "("
+			, theOnlyOne = quasisLength === 2
 		;
+
+		if( theOnlyOne ) {
+			quasisLength--;//remove tail
+		}
 
 		for( let index = 0 ; index < quasisLength ; index++ ) {
 			quasi = quasis[index];
@@ -43,6 +48,7 @@ var plugin = module.exports = {
 			quasiString = quasi.value.raw
 				.replace(/((?:\r\n)|\n)/g, "\\\n\\n")
 				.replace(/([^\\]|^)"/g, "$1\\\"")
+				.replace(/([^\\]|^)"/g, "$1\\\"")//need it twice for `""`
 			;
 
 			expression = index < expressionsLength// or checking quasi.tail === true
@@ -61,10 +67,14 @@ var plugin = module.exports = {
 
 			resultString += (
 				(index ? " + " : "")
-				+ (expression ? "(" : "")
+				+ (expression && !theOnlyOne ? "(" : "")
 				+ "\""
 				+ quasiString
-				+ (expression ? ("\" + " + (expressionType === 2 ? "(" : "") + this.alter.get(expression.range[0], expression.range[1])) + (expressionType === 2 ? ")" : "") + ")" : "\"")
+				+ (expression
+					? ("\" + " + (expressionType === 2 ? "(" : "") + this.alter.get(expression.range[0], expression.range[1]))
+						+ (expressionType === 2 ? ")" : "")
+						+ (theOnlyOne ? "" : ")")
+					: "\"")
 			);
 		}
 
