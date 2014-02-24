@@ -13,10 +13,18 @@ console.log(a === 1, b === 2, c.join("|") === "3|4|5|6")
 	console.log(a === "B", b === "A", c === 22);
 }
 
-{
+{// return value of destructuring assignment 1
+	{ let obj = 1;}
 	let {a, b = "B"} = {a: "A", b: void 0}, c = 22;
 	let obj = {a: b, B: a};
 	obj = (({B: b, a}) = obj);
+	console.log(a === "B", b === "A", c === 22, obj.a === "B", obj.B === "A");
+}
+
+{// return value of destructuring assignment 2
+	let {a, b = "B"} = {a: "A", b: void 0}, c = 22;
+	let obj = {a: b, B: a};
+	obj = ({B: b, a}) = obj;
 	console.log(a === "B", b === "A", c === 22, obj.a === "B", obj.B === "A");
 }
 

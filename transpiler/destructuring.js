@@ -137,6 +137,18 @@ var plugin = module.exports = {
 			assert( typeof definition["$raw"] === "string" );//"$raw" defined in this.__unwrapDestructuring
 
 			destructurisationString += ( delimiter + definition["$raw"] );
+
+			if( definition["$assignmentExpressionResult"] === true ) {
+				let $parent = valueNode.$parent;
+				if( $parent && ($parent = $parent.$parent) && ($parent = $parent.$parent) && $parent.type === "ExpressionStatement" ) {
+					let isExpressionStatementWithoutBrackets = this.alter.getRange(valueNode.range[1], valueNode.$parent.$parent.range[1]) !== ')';
+
+					if( isExpressionStatementWithoutBrackets ) {
+						destructurisationString = '(' + destructurisationString + ')';
+					}
+				}
+			}
+
 			needsFirstComma = true;
 		}
 
@@ -148,12 +160,14 @@ var plugin = module.exports = {
 		let isTemporaryValueAssignment = false;
 
 		let _isObjectPattern = isObjectPattern(definitionNode)
+			, valueNode_isArrayPattern = isArrayPattern(valueNode)
+			, valueNode_isObjectPattern = isObjectPattern(valueNode)
 			, elementsList = _isObjectPattern ? definitionNode.properties : definitionNode.elements
 			, localFreeVariables
 			, isLocalFreeVariable = type === 1
 		;
 
-		if( isLocalFreeVariable ) {
+		if( isLocalFreeVariable || valueNode_isArrayPattern || valueNode_isObjectPattern ) {
 			//TODO:: tests
 			//TODO:: get only last variable name
 			localFreeVariables = core.getNodeVariableNames(definitionNode);
@@ -177,8 +191,15 @@ var plugin = module.exports = {
 		}
 		else {
 			isTemporaryVariable = true;
-			let isSequenceExpression = valueNode.type === "SequenceExpression";
-			valueIdentifierDefinition = (isSequenceExpression ? "(" : "") + this.alter.get(valueNode.range[0], valueNode.range[1]) + (isSequenceExpression ? ")" : "");
+
+			if( valueNode_isArrayPattern || valueNode_isObjectPattern ) {
+				valueIdentifierDefinition = localFreeVariables.pop();
+			}
+			else {
+				let isSequenceExpression = valueNode.type === "SequenceExpression";
+				valueIdentifierDefinition = (isSequenceExpression ? "(" : "") + this.alter.get(valueNode.range[0], valueNode.range[1]) + (isSequenceExpression ? ")" : "");
+			}
+
 		}
 
 		if( isTemporaryVariable ) {
@@ -306,6 +327,7 @@ var plugin = module.exports = {
 			newDefinitions.push({
 				"type": "VariableDeclarator"
 				, "$raw": temporaryVariableIndexOrName || valueIdentifierName
+				, "$assignmentExpressionResult": true
 			});
 		}
 

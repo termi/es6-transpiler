@@ -179,8 +179,9 @@ var plugin = module.exports = {
 					const prevParam = params[i - 1];
 					const doesArgumentsInsideFunction = node.$scope.doesArgumentsUsing();
 					const _isObjectPattern = isObjectPattern(param);
+					const _isArrayPattern = isArrayPattern(param);
 
-					if( _isObjectPattern || isArrayPattern(param) ) {
+					if( _isObjectPattern || _isArrayPattern ) {
 
 						let elements = (_isObjectPattern ? param.properties : param.elements)
 							, elementsLength = elements.length
@@ -203,11 +204,14 @@ var plugin = module.exports = {
 							);
 						}
 						else {
+							let newDeclarations = [];
 							let paramStr =
 								destructuring.unwrapDestructuring(
 									"var"
 									, param
 									, functionParamReplacer
+									, []
+									, newDeclarations
 								) + ";"
 							;
 							if( paramStr === "var ;" ) {// empty destructuring
@@ -219,12 +223,17 @@ var plugin = module.exports = {
 							// add
 							insertIntoBodyBegin += paramStr;
 
+							let paramReplacerName = (_isObjectPattern || _isArrayPattern) && !doesArgumentsInsideFunction
+								//assuming that in this case the last destructuring parameter would be the new parameter name
+								? newDeclarations[newDeclarations.length - 1].id.name
+								: functionParamReplacer.name
+							;
+
 							// cleanup
 							this.alter.replace(
 								(prevParam ? prevParam.range[1] + 1 : param.range[0]) - (prevParam ? 1 : 0)
 								, param.range[1]
-								, (i === 0 ? "" : ", ")
-									+ functionParamReplacer.name
+								, (i === 0 ? "" : ", ") + paramReplacerName
 							);
 						}
 					}

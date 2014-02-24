@@ -39,3 +39,26 @@ test2();
 
 	console.log(a === 99, test === void 0, b === 22, obj["test"] === test);
 })()
+
+
+{// object literals in destructuring pattern
+	function test3({test: {a, b}}) {
+		return a + "|" + b;
+	}
+	console.log(test3({test:{a: 12, b: 21}}) === "12|21");
+
+	function test4({test: {a:{a:{a, b}, b1}, b2}}) {
+		return a + "|" + b;
+	}
+	console.log(test4({test:{a:{a:{a:1,b:2}, b1:{}}, b2:{}}}) == "1|2");
+
+	function test5([{a, b}, {c, d}]) {
+		return a + "|" + b + "|" + c + "|" + d;
+	}
+	console.log(test5([{a: 1, b: 2}, {c: 3, d: 4}]) == "1|2|3|4");
+
+	function test6({test: [{a, b}]}) {
+		return a + "|" + b;
+	}
+	console.log(test6({test: [{a: 1, b: 2}]}) == "1|2");
+}
