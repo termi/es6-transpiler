@@ -912,7 +912,7 @@ let core = module.exports = {
 		;
 	}
 
-	, bubbledVariableDeclaration: function(scope, variableName, variableInitValue, isFunction) {
+	, bubbledVariableDeclaration: function(scope, variableName, variableInitValue, isFunction, variableNamePlaceholder) {
 		scope = scope.closestHoistScope();
 
 		let bubbledVariable = this.__isBubbledVariableDeclaration(variableName, variableInitValue);
@@ -926,7 +926,7 @@ let core = module.exports = {
 			return this.__rebaseBubbledVariableDeclaration(scope, variableName);
 		}
 		else {
-			return this.__createBubbledVariableDeclaration(scope, variableName, variableInitValue, isFunction);
+			return this.__createBubbledVariableDeclaration(scope, variableName, variableInitValue, isFunction, void 0, variableNamePlaceholder);
 		}
 	}
 
@@ -939,7 +939,7 @@ let core = module.exports = {
 		return false;
 	}
 
-	, __createBubbledVariableDeclaration: function(scope, variableName, variableInitValue, isFunction, bubbledVariable) {
+	, __createBubbledVariableDeclaration: function(scope, variableName, variableInitValue, isFunction, bubbledVariable, variableNamePlaceholder) {
 		if( bubbledVariable ) {
 			isFunction = bubbledVariable.isFunction;
 			variableName = bubbledVariable.name;
@@ -949,8 +949,14 @@ let core = module.exports = {
 			bubbledVariable.changesOptions = {};//create new options for new changes
 		}
 		else {
+			let name = core.unique(variableName, true);
+
+			if( variableNamePlaceholder ) {
+				variableInitValue = variableInitValue.replace(new RegExp(variableNamePlaceholder, "g"), name);
+			}
+
 			bubbledVariable = {
-				name: core.unique(variableName, true)
+				name: name
 				, value: variableInitValue
 				, isFunction: isFunction
 				, scope: scope
@@ -1124,6 +1130,28 @@ let core = module.exports = {
 				assert(false, 'Wrong type of node "' + parent.type + '"');
 			}
 		}
+	}
+
+	, getNearestIIFENode: function(node) {
+		let closestHoistScope = node.$scope.closestHoistScope();
+		let scopeNode = closestHoistScope.node;
+
+		while( scopeNode ) {
+			let parent = scopeNode.$parent;
+
+			if( !parent )break;
+
+			if( scopeNode.type === "FunctionExpression" ) {
+
+				if( parent && parent.type === "CallExpression" && parent.callee === scopeNode ) {
+					return scopeNode;
+				}
+			}
+
+			scopeNode = parent.$scope.closestHoistScope().node;
+		}
+
+		return null;
 	}
 };
 
