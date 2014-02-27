@@ -17,4 +17,4 @@ test.js
 testout.js
 
 transpiler/module
-transpiler/typeofNull.js
+transpiler/typeof.js
