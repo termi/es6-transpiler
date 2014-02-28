@@ -33,9 +33,15 @@ var plugin = module.exports = {
 		}
 	}
 
+	, escapeQuoters: function(templateString) {
+		return templateString
+			.replace(/([^\\]|^)"/g, "$1\\\"").replace(/([^\\]|^)"/g, "$1\\\"")
+		;
+	}
+
 	, cleanupTemplateString: function(templateString) {
 		return templateString
-			.replace(/([^\\]|^)"/g, "$1\\\"").replace(/([^\\]|^)"/g, "$1\\\"")//need it twice for `""`
+//			.replace(/([^\\]|^)"/g, "$1\\\"").replace(/([^\\]|^)"/g, "$1\\\"")//need it twice for `""`
 			.replace(/([^\\]|^)\\`/g, "$1`").replace(/([^\\]|^)\\`/g, "$1`")//need it twice for `\`\``
 			.replace(/([^\\]|^)\\\$/g, "$1$").replace(/([^\\]|^)\\\$/g, "$1$")//need it twice for `\$\$`
 			.replace(/([^\\]|^)\\{/g, "$1{").replace(/([^\\]|^)\\{/g, "$1{")//need it twice for `\{\{`
@@ -43,50 +49,57 @@ var plugin = module.exports = {
 	}
 
 	, __replaceTaggedTemplateExpression: function(expressionContainer, quasiContainer) {
+
 		let quasis = quasiContainer.quasis;
 
 		let quasiRawString = quasis.map(function(quasi) {
-			return "\"" + this.cleanupTemplateString(quasi.value.raw)
-				.replace(/\\n/g, "\\\\n")
-				.replace(/\\t/g, "\\\\t")
-				.replace(/\\r/g, "\\\\r")
-			+ "\"";
+			return "\"" + this.cleanupTemplateString(quasi.value.raw).replace(/\\/g, "\\\\").replace(/"/g, "\\\"") + "\"";
 		}, this).join(", ");
 
 		let quasiCookedString = quasis.map(function(quasi) {
-			return "\"" + this.cleanupTemplateString(quasi.value.cooked)
-				.replace(/\n/g, "\\n")
-				.replace(/\r/g, "\\r")
-				.replace(/\t/g, "\\t")
-			+ "\"";
+			return "\"" + this.escapeQuoters(this.cleanupTemplateString(quasi.value.raw)) + "\"";
 		}, this).join(", ");
 
-		let quasiString, variableNamePlaceholder;
+		let quasisesTmpKey;
 
 		if( quasiRawString.length === quasiCookedString.length && quasiRawString === quasiCookedString ) {
-			variableNamePlaceholder = "%" + (Math.random() * 1e9 | 0) + "name" + (Math.random() * 1e9 | 0) + "%";
-			quasiString = "[" + quasiCookedString + "];" + variableNamePlaceholder + " = Object.freeze(Object.defineProperties(" + variableNamePlaceholder + ", {\"raw\": {\"value\": " + variableNamePlaceholder + "}}))";
+			quasiRawString = null;
+			quasisesTmpKey = quasiCookedString;
 		}
 		else {
-			quasiString = "Object.freeze(Object.defineProperties([" + quasiCookedString + "], {\"raw\": {\"value\": Object.freeze([" + quasiRawString + "])}}))";
+			quasisesTmpKey = quasiCookedString + "|" + quasiRawString;
 		}
 
-		let temporaryVarName = this.quasisesTmp[quasiString];
+		let temporaryVarName = this.quasisesTmp[quasisesTmpKey];
 		if( !temporaryVarName ) {
 			let nearestIIFENode = core.getNearestIIFENode(expressionContainer);
 			if( !nearestIIFENode ) {
 				nearestIIFENode = this.ast;
 				assert(nearestIIFENode.type === "Program");
 			}
-			temporaryVarName = this.quasisesTmp[quasiString] = core.bubbledVariableDeclaration(nearestIIFENode.$scope, "$TS", quasiString, false, variableNamePlaceholder);
+
+			const _Object_freeze = core.bubbledVariableDeclaration(nearestIIFENode.$scope, "$freeze", "Object.freeze", false);
+			const _Object_defineProperties = core.bubbledVariableDeclaration(nearestIIFENode.$scope, "$defProps", "Object.defineProperties", false);
+
+			let quasiString, variableNamePlaceholder;
+			if( !quasiRawString ) {
+				variableNamePlaceholder = "%" + (Math.random() * 1e9 | 0) + "name" + (Math.random() * 1e9 | 0) + "%";
+				quasiString = "[" + quasiCookedString + "];" + variableNamePlaceholder + " = " + _Object_freeze + "(" + _Object_defineProperties + "(" + variableNamePlaceholder + ", {\"raw\": {\"value\": " + variableNamePlaceholder + "}}))";
+			}
+			else {
+				quasiString = _Object_freeze + "(" + _Object_defineProperties + "([" + quasiCookedString + "], {\"raw\": {\"value\": " + _Object_freeze + "([" + quasiRawString + "])}}))";
+			}
+
+			temporaryVarName = this.quasisesTmp[quasisesTmpKey] = core.bubbledVariableDeclaration(nearestIIFENode.$scope, "$TS", quasiString, false, variableNamePlaceholder);
 		}
 
+		let expressionsString = quasiContainer.expressions.map(function(expression) {
+			return this.alter.get(expression.range[0], expression.range[1])
+		}, this).join(", ");
 		let resultString =
 			"("
 				+ temporaryVarName
-				+ ", " + quasiContainer.expressions.map(function(expression) {
-					return this.alter.get(expression.range[0], expression.range[1])
-				}, this).join(", ")
+				+ (expressionsString ? ", " + expressionsString : "")
 				+ ")"
 		;
 
@@ -118,8 +131,8 @@ var plugin = module.exports = {
 		for( let index = 0 ; index < quasisLength ; index++ ) {
 			quasi = quasis[index];
 
-			quasiString = this.cleanupTemplateString(quasi.value.raw)
-				.replace(/((?:\r\n)|\n)/g, "\\\n\\n")
+			quasiString = this.escapeQuoters(this.cleanupTemplateString(quasi.value.raw)
+				.replace(/((?:\r\n)|\n)/g, "\\\n\\n"))
 			;
 
 			expression = index < expressionsLength// or checking quasi.tail === true

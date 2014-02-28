@@ -2,28 +2,40 @@ var assert = function(a, m){ if(!a)throw new Error(m||"") }
 
 let filter = void 0;
 function test(quasis, ...expressionValues){
-	var {raw} = quasis;
+	const {raw} = quasis;
 
-	assert(quasis.length);
-	assert(raw.length);
-	assert(quasis.length === raw.length);
-	assert(expressionValues.length);
+	const rawLen = raw.length;
+	const quasisLen = quasis.length;
 
-	if(quasis.length === 0)return '';
+	assert(quasisLen);
+	assert(rawLen);
+	assert(quasisLen === rawLen);
+	assert(quasisLen === 1 || expressionValues.length);
+
+	try {raw.length = 0;}catch(e){}
+	assert(raw.length === rawLen, 'raw array should be sealed');
+
+	try {quasis.length = 0;}catch(e){}
+	assert(quasis.length === quasisLen, 'quasis array should be sealed');
 
 	expressionValues = expressionValues.map( filter || ((x) => `(${x})`) )
 
-	var s = '', i = 0, len = raw.length;
+	let s = '', i = 0;
 	while (true) {
 		s += raw[i];
-		if (i + 1 === len) {
+		if (i + 1 === rawLen) {
 			return s;
 		}
 		s += expressionValues[i++];
 	}
 }
 
-let name = `name`;
+const name = `name`;
+
+{
+	let one = test`one`;
+	console.log(one === 'one');
+}
 
 {// simple
 	let a = test`\n<${ 40 + 2 }>\t - \n<${ name }>\t`;
@@ -42,6 +54,19 @@ let name = `name`;
 		let a2 = test`\n<{${ 3 }}>\t - \n<{${ 4 }}>\t`;
 		console.log(a2 === '\\n<{(3)}>\\t - \\n<{(4)}>\\t');
 	})();
+}
+
+{// raw special symbols
+	let z0 = test`\0`, b = test`\b`, f = test`\f`, n = test`\n`, r = test`\r`, t = test`\t`, v = test`\v`, bs = test`\\`, q1 = test`"`, q2 = test`'`, q1q1 = test`""`, q2q2 = test`''`, q1_q1q1 = test`"\""`, q2_q2q2 = test`'\''`;
+	let string = `${z0}|${b}|${f}|${n}|${r}|${t}|${v}|${bs}|${q1}|${q2}|${q1q1}|${q2q2}|${q1_q1q1}|${q2_q2q2}`;
+	console.log(string === "\\0|\\b|\\f|\\n|\\r|\\t|\\v|\\\\|\"|'|\"\"|''|\"\\\"\"|'\\''");
+}
+
+{// raw unicode, hex
+	let hex = test`\x22\x21\x224`;
+	console.log(hex === "\\x22\\x21\\x224");
+	let unicode = test`\u2222\u2221\u22449`;
+	console.log(unicode === "\\u2222\\u2221\\u22449");
 }
 
 {// nested

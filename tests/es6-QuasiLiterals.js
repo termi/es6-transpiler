@@ -48,9 +48,16 @@ let a = "a", b = "b", a$1, b$1;
 }
 
 {// special symbols
-	let n = `\n`, t = `\t`, r = `\r`, bs = `\\`, q1 = `"`, q2 = `'`, q1q1 = `""`, q2q2 = `''`, q1_q1q1 = `"\""`, q2_q2q2 = `'\''`;
-	let string = `${n}|${t}|${r}|${bs}|${q1}|${q2}|${q1q1}|${q2q2}|${q1_q1q1}|${q2_q2q2}`;
-	console.log(string === "\n|\t|\r|\\|\"|'|\"\"|''|\"\"\"|'''");
+	let z0 = `\0`, b = `\b`, f = `\f`, n = `\n`, r = `\r`, t = `\t`, v = `\v`, bs = `\\`, q1 = `"`, q2 = `'`, q1q1 = `""`, q2q2 = `''`, q1_q1q1 = `"\""`, q2_q2q2 = `'\''`;
+	let string = `${z0}|${b}|${f}|${n}|${r}|${t}|${v}|${bs}|${q1}|${q2}|${q1q1}|${q2q2}|${q1_q1q1}|${q2_q2q2}`;
+	console.log(string === "\0|\b|\f|\n|\r|\t|\v|\\|\"|'|\"\"|''|\"\"\"|'''");
+}
+
+{// unicode, hex
+	let hex = `\x22\x21\x224`;
+	console.log(hex === "\x22\x21\x224");
+	let unicode = `\u2222\u2221\u22449`;
+	console.log(unicode === "\u2222\u2221\u22449");
 }
 
 {// just toString
