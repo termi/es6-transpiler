@@ -18,6 +18,7 @@ const classesTranspiler = {
 		this.__currentClassMethodsStatic = null;
 		this.__currentClassName = null;
 		this.__currentSuperRefName = null;
+		this.__currentAccessors = null;
 	}
 
 	, setup: function(alter, ast, options) {
@@ -27,6 +28,35 @@ const classesTranspiler = {
 		}
 
 		this.alter = alter;
+	}
+
+	, createPrototypeString: function(className, superName, accessors) {
+		let accessorsKeys = Object.keys(accessors);
+
+		let accessorsString = accessorsKeys.map(function(key) {
+			let accessor = accessors[key];
+			let raw = accessor.raw, getter = accessor.get, setter = accessor.set;
+			return (raw || key) + ": {" + (getter ? "\"get\": " + getter + ", " : "") + (setter ? "\"set\": " + setter : "") + ", \"configurable\": true, \"enumerable\": true}"
+		} ).join(", ");
+
+		if ( superName ) {
+			return className
+				+ ".prototype = Object.create(" + superName + ".prototype"
+				+ ", {"
+				+ "\"constructor\": {\"value\": " + className + ", \"configurable\": true, \"writable\": true}"
+				+ (accessorsString ? ", " + accessorsString : "")
+				+ " }"
+				+ ");"
+			;
+		}
+		else if ( accessorsString ) {
+			return "Object.defineProperties("
+				+ className	+ ".prototype, {" + accessorsString + "});"
+			;
+		}
+		else {
+			return "";
+		}
 	}
 
 	, pre: function replaceClassBody(node) {
@@ -64,13 +94,6 @@ const classesTranspiler = {
 				superClass = superClass.name;
 
 				insertAfterBodyBegin_string = objectAssignFunctionName + "(" + currentClassName + ", " + SUPER_NAME + ");";
-
-				extendedClassConstructorPostfix =
-					currentClassName
-						+ ".prototype = Object.create(" + SUPER_NAME + ".prototype"
-							+ ", {\"constructor\": {\"value\": " + currentClassName + ", \"configurable\": true, \"writable\": true, \"enumerable\": false} }"
-						+ ");"
-				;
 			}
 
 			classStr += ")";
@@ -85,9 +108,16 @@ const classesTranspiler = {
 				}
 			}
 
-			if( classConstructor ) {
-				classBodyNodesCount--;
+			this.__currentAccessors = {};
+			if( classBodyNodesCount ) {
+				for ( let i = 0 ; i < classBodyNodesCount ; i++ ) {
+					this.replaceClassMethods(classBodyNodes[i]);
+				}
+			}
 
+			extendedClassConstructorPostfix = this.createPrototypeString(currentClassName, superClass && SUPER_NAME, this.__currentAccessors);
+
+			if( classConstructor ) {
 				this.alter.replace(classConstructor.key.range[0], classConstructor.key.range[1], "function " + currentClassName);
 				if( extendedClassConstructorPostfix ) {
 					this.alter.insert(classConstructor.range[1], extendedClassConstructorPostfix);
@@ -104,11 +134,6 @@ const classesTranspiler = {
 					, {before: true}
 				);
 				insertAfterBodyBegin_string = null;
-			}
-
-
-			if( classBodyNodesCount ) {
-				core.traverse(node.body, {pre: this.replaceClassMethods})
 			}
 
 			if( insertAfterBodyBegin_string ) {
@@ -166,25 +191,53 @@ const classesTranspiler = {
 				this.unwrapSuperCall(node, calleeNode, true, null, true);
 			}
 		}
+		else if( node.type === "ClassDeclaration" ) {
+			return false;
+		}
 	}
 	
 	, replaceClassMethods: function replaceClassMethods(node) {
 		if( node.type === "MethodDefinition" && node.key.name !== "constructor" ) {
 			this.__currentClassMethodsStatic = node.static;
 
-			if( this.__currentClassMethodsStatic === true ) {
-				// text change 'method(<something>)' => 'ClassName.method(<something>)'
-				this.alter.replace(node.range[0], node.key.range[0], this.__currentClassName + ".");
+			let nodeKey = node.key;
+
+			if( node.kind === "set" || node.kind === "get" ) {
+				let isLiteral = nodeKey.type == 'Literal';
+				assert(nodeKey.type == 'Identifier' || isLiteral);
+
+				let name;
+				if ( isLiteral ) {
+					name = nodeKey.value;
+				}
+				else {
+					name = nodeKey.name;
+				}
+
+				let accessor = this.__currentAccessors[name] || (this.__currentAccessors[name] = {});
+				let replacement = accessor[node.kind] = core.unique(name + "$" + node.kind, true);
+
+				if ( isLiteral ) {
+					accessor.raw = nodeKey.raw;
+				}
+
+				this.alter.replace(node.range[0], nodeKey.range[1], "function " + replacement);
 			}
 			else {
-				// text change 'method(<something>)' => 'ClassName.prototype.method(<something>)'
-				this.alter.replace(node.range[0], node.key.range[0], this.__currentClassName + ".prototype.");
+				if( this.__currentClassMethodsStatic === true ) {
+					// text change 'method(<something>)' => 'ClassName.method(<something>)'
+					this.alter.replace(node.range[0], nodeKey.range[0], this.__currentClassName + ".");
+				}
+				else {
+					// text change 'method(<something>)' => 'ClassName.prototype.method(<something>)'
+					this.alter.replace(node.range[0], nodeKey.range[0], this.__currentClassName + ".prototype.");
+				}
+
+				// text change 'method(<something>)' => 'method = function(<something>)'
+				this.alter.insert(nodeKey.range[1], " = function");
 			}
 
-			// text change 'method(<something>)' => 'method = function(<something>)'
-			this.alter.insert(node.key.range[1], " = function");
-
-			core.traverse(node.value, {pre: this.replaceClassMethodSuper})
+			core.traverse(node.value, {pre: this.replaceClassMethodSuper});
 		}
 		this.__currentClassMethodsStatic = null;
 	}
@@ -202,6 +255,9 @@ const classesTranspiler = {
 					this.unwrapSuperCall(node, objectNode, this.__currentClassMethodsStatic, calleeNode.property);
 				}
 			}
+		}
+		else if( node.type === "ClassDeclaration" ) {
+			return false;
 		}
 	}
 };

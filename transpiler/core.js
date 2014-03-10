@@ -241,8 +241,9 @@ let core = module.exports = {
 
 				//TODO:: class A { m(){} static m(){} m2{ m(); //where m referred? } }
 
-				node.$scope.add(method.key.name, "fun", method.value);
-			});
+				// method.kind ca be 'get', 'set', ''
+				node.$scope.add(this.getKeyName(method.key), method.kind || "fun", method.value);
+			}, this);
 
 		} else if (isFunction(node)) {
 			// Function is a scope, with params in it
@@ -1152,6 +1153,13 @@ let core = module.exports = {
 		}
 
 		return null;
+	}
+
+	, getKeyName: function(keyNode) {
+		let isLiteral = keyNode.type == 'Literal';
+		assert(keyNode.type == 'Identifier' || isLiteral);
+
+		return isLiteral ? keyNode.value : keyNode.name;
 	}
 };
 
