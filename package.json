@@ -10,11 +10,13 @@
   },
   "dependencies": {
     "es5-shim": "2.3.0",
+    "es6-shim": "latest",
     "simple-fmt": "~0.1.0",
     "simple-is": "~0.2.0",
     "stringmap": "~0.2.0",
     "stringset": "~0.2.0",
-	"ansidiff": "~1.0.0"
+	"ansidiff": "~1.0.0",
+	"astquery": "latest"
   },
   "keywords": [
     "es6-transpiler",

@@ -28,6 +28,7 @@ Beta
  * array comprehensions (with iterator protocol)
  * string templates
  * object literals
+ * unicode code point escapes
 
 Static scope analysis and transpilation of ES6 block scoped `const` and `let` variables to ES3 based on [olov/defs](https://github.com/olov/defs).
 

@@ -1,6 +1,7 @@
 "use strict";
 
 require("es5-shim");
+require("es6-shim");
 
 const fs = require("fs");
 const traverse = require("./lib/traverse");
@@ -9,6 +10,7 @@ const defaultOptions = require("./options");
 const core = require("./transpiler/core");
 const StringAlter = require("./lib/StringAlter-es5");
 const is = require("simple-is");
+const ASTQuery = require("astquery");
 
 let plugins = [
 	core
@@ -23,6 +25,7 @@ let plugins = [
 	, require("./transpiler/arrayComprehension")
 	, require("./transpiler/forOf")
 	, require("./transpiler/optimiser")
+	, require("./transpiler/unicode")
 
 	, {
 		setup: function(config) {
@@ -52,14 +55,35 @@ module.exports = {
 		config.esprima = this.esprima;
 
 		plugins.forEach(function(plugin, index) {
-			var options = optionsList[index] = {};
+			var options = optionsList[index] = {}, passIt = false;
 
 			if( typeof plugin.setup === "function" ) {
 				for(let i in config)if(config.hasOwnProperty(i))options[i] = config[i];
 
 				if( plugin.setup(this.alter, this.ast, options, this.src) === false ) {
-					options.passIt = true;
+					passIt = options.passIt = true;
 				}
+			}
+
+			if ( passIt === false ) {
+				let pluginsAstQuerySteps = Object.keys(plugin)
+					.filter(function(prop){ return prop.substr(0, 2) == "::" } )
+					.map(function(prop){ return prop.substr(2) })
+				;
+
+				pluginsAstQuerySteps.forEach(function(astQueryStep) {
+					let callback;
+					if ( !(callback = this._astQuerySteps[astQueryStep]) ) {
+						callback = this._astQuerySteps[astQueryStep] = function callback(node) {
+							let steps = callback["__steps"];
+							for ( let i = 0, length = steps.length ; i < length ; i++ ) {
+								steps[i](node);
+							}
+						};
+						callback["__steps"] = [];
+					}
+					callback["__steps"].push(plugin["::" + astQueryStep]/*.bind(plugin)*/);
+				}, this);
 			}
 		}, this);
 	}
@@ -93,7 +117,9 @@ module.exports = {
 			if( typeof plugin.reset === "function" ) {
 				plugin.reset();
 			}
-		})
+		});
+
+		this._astQuerySteps = {};
 	}
 
 	, run: function run(config) {
@@ -102,6 +128,7 @@ module.exports = {
 		if( this.runned === true ) {
 			this.reset();
 		}
+		this._astQuerySteps = {};
 		this.runned = true;
 
 		config.fullES6 = true;// by default for now
@@ -162,6 +189,9 @@ module.exports = {
 		const output = {errors: [], src: ""};
 
 		this.setupPlugins(config);
+
+		let astQuery = new ASTQuery(this.ast);
+		astQuery.on(this._astQuerySteps);
 
 		plugins.forEach(function(plugin, index) {
 			var options = this.optionsList[index];
