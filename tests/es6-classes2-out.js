@@ -18,14 +18,14 @@ var class2 = (function(super$1){ASSIGN$0(class2, super$1);
         super$0 = "test_super";//super variable test
         super$1.call(this, message);
         this.property2 = message;
-    }class2.prototype = Object.create(super$1.prototype, {"constructor": {"value": class2, "configurable": true, "writable": true, "enumerable": false} });
+    }class2.prototype = Object.create(super$1.prototype, {"constructor": {"value": class2, "configurable": true, "writable": true} });
 
     class2.prototype.say = function() {var a = arguments[0];if(a === void 0)a = 1;var b = (arguments[1] !== void 0 ? arguments[1] : [2])[0];
         return super$1.prototype.say.call(this) + "|class2" + ":" + this.property2 + "|" + a + "|" + b + ":" + class2.sayStatic();
     }
 ;return class2;})(class1);
 
-var class3 = (function(super$1){function class3() {return super$1.apply(this, arguments)}ASSIGN$0(class3, super$1);class3.prototype = Object.create(super$1.prototype, {"constructor": {"value": class3, "configurable": true, "writable": true, "enumerable": false} });
+var class3 = (function(super$1){function class3() {return super$1.apply(this, arguments)}ASSIGN$0(class3, super$1);class3.prototype = Object.create(super$1.prototype, {"constructor": {"value": class3, "configurable": true, "writable": true} });
 	class3.prototype.say = function(){return "class3"}
 ;return class3;})(class1);
 

@@ -16,7 +16,7 @@ var Greeter1 = (function(super$0){var ASSIGN$0 = Object['assign']||function(t,s)
 	function Greeter1(message) {
 		super$0.call(this, message);
 		this.greeting = message;
-	}Greeter1.prototype = Object.create(super$0.prototype, {"constructor": {"value": Greeter1, "configurable": true, "writable": true, "enumerable": false} });
+	}Greeter1.prototype = Object.create(super$0.prototype, {"constructor": {"value": Greeter1, "configurable": true, "writable": true} });
 	Greeter1.prototype.greet = function() {
 		return super$0.prototype.greet.call(this) + "Hello 2, " + this.greeting;
 	}
