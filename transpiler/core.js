@@ -108,10 +108,10 @@ let core = module.exports = {
 		Scope.setOptions(options);
 	}
 
-	, pre: function(ast) {
+	, '::Program': function(node) {
 		// setup scopes
-		traverse(ast, {pre: this.createScopes});
-		const topScope = this.createTopScope(ast.$scope, this.options.environments, this.options.globals);
+		traverse(node, {pre: this.createScopes});
+		const topScope = this.createTopScope(node.$scope, this.options.environments, this.options.globals);
 
 		// allIdentifiers contains all declared and referenced vars
 		// collect all declaration names (including those in topScope)
@@ -119,15 +119,13 @@ let core = module.exports = {
 		topScope.traverse({pre: function(scope) {
 			allIdentifiers.addMany(scope.decls.keys());
 		}});
+	}
 
+	, '::Identifier': function(node) {
 		// setup node.$refToScope, check for errors.
 		// also collects all referenced names to allIdentifiers
-		traverse(ast, {pre: this.setupReferences});
-
-		// static analysis passes
-		traverse(ast, {pre: this.detectConstAssignment});
-
-		return false;
+		this.setupReferences(node);
+		this.detectConstAssignment(node);// static analysis passes
 	}
 
 	, unique: function (name, newVariable, additionalFilter) {
