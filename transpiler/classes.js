@@ -99,7 +99,7 @@ const classesTranspiler = {
 				this.alter.insert(
 					node.body.range[0] + 1
 					, "function " + currentClassName + "() {return "
-						+ (superClass ? SUPER_NAME + ".apply(this, arguments)" : "")
+						+ (superClass ? SUPER_NAME + ".apply(this, arguments)" : "this")
 						+ "}" + (insertAfterBodyBegin_string || "") + (extendedClassConstructorPostfix || "")
 					, {before: true}
 				);
