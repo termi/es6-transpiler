@@ -3,6 +3,7 @@
 const assert = require("assert");
 const error = require("./../lib/error");
 const core = require("./core");
+const unicode = require("./unicode");
 
 var plugin = module.exports = {
 	reset: function() {
@@ -20,16 +21,14 @@ var plugin = module.exports = {
 		this.options = options;
 	}
 
-	, pre: function(node) {
-		if( node.type === "TemplateLiteral" ) {
-			let parent = node.$parent;
+	, '::TemplateLiteral': function(node) {
+		let parent = node.$parent;
 
-			if( parent.type === "TaggedTemplateExpression" ) {
-				this.__replaceTaggedTemplateExpression(parent, node);
-			}
-			else {
-				this.__replaceQuasiLiterals(node);
-			}
+		if( parent.type === "TaggedTemplateExpression" ) {
+			this.__replaceTaggedTemplateExpression(parent, node);
+		}
+		else {
+			this.__replaceQuasiLiterals(node);
 		}
 	}
 
@@ -49,15 +48,22 @@ var plugin = module.exports = {
 	}
 
 	, __replaceTaggedTemplateExpression: function(expressionContainer, quasiContainer) {
+		let quasis = quasiContainer.quasis.map(function(quasi) {
+			let valueNode = quasi.value, rawString = valueNode.raw;
+			let unicodeResult = unicode.convert(rawString);
+			if ( unicodeResult.changes ) {
+				unicode.markToSkip(valueNode);
+				rawString = unicodeResult.string;
+			}
+			return rawString;
+		});
 
-		let quasis = quasiContainer.quasis;
-
-		let quasiRawString = quasis.map(function(quasi) {
-			return "\"" + this.cleanupTemplateString(quasi.value.raw).replace(/\\/g, "\\\\").replace(/"/g, "\\\"") + "\"";
+		let quasiRawString = quasis.map(function(quasiString) {
+			return "\"" + this.cleanupTemplateString(quasiString).replace(/\\/g, "\\\\").replace(/"/g, "\\\"") + "\"";
 		}, this).join(", ");
 
-		let quasiCookedString = quasis.map(function(quasi) {
-			return "\"" + this.escapeQuoters(this.cleanupTemplateString(quasi.value.raw)) + "\"";
+		let quasiCookedString = quasis.map(function(quasiString) {
+			return "\"" + this.escapeQuoters(this.cleanupTemplateString(quasiString)) + "\"";
 		}, this).join(", ");
 
 		let quasisesTmpKey;
@@ -134,6 +140,12 @@ var plugin = module.exports = {
 			quasiString = this.escapeQuoters(this.cleanupTemplateString(quasi.value.raw)
 				.replace(/((?:\r\n)|\n)/g, "\\\n\\n"))
 			;
+
+			let unicodeResult = unicode.convert(quasiString);
+			if ( unicodeResult.changes ) {
+				unicode.markToSkip(quasi.value);
+				quasiString = unicodeResult.string;
+			}
 
 			expression = index < expressionsLength// or checking quasi.tail === true
 				? expressions[index]
