@@ -9,6 +9,17 @@ const assert = require("assert");
 const error = require("./../lib/error");
 const core = require("./core");
 
+function isStringLiteral(node) {
+	let raw;
+	return node
+		&& (raw = node.raw + "")
+		&& (
+			( raw[0] === "\"" && raw[raw.length - 1] === "\"" )
+			|| ( raw[0] === "\'" && raw[raw.length - 1] === "\'")
+		)
+	;
+}
+
 var plugin = module.exports = {
 	reset: function() {
 
@@ -26,7 +37,7 @@ var plugin = module.exports = {
 	}
 
 	, '::Literal': function(node) {
-		if ( node.$unicode === true ) {
+		if ( node.$unicode === true || !isStringLiteral(node) ) {
 			return;
 		}
 
@@ -45,7 +56,7 @@ var plugin = module.exports = {
 	, convert: function(rawString) {
 		let changes = 0, self = this;
 
-		rawString = rawString.replace(/\\u\{(\w{2,5})\}/g, function(str, found) {
+		rawString = rawString.replace(/\\u\{(\w{1,6})\}/g, function(str, found) {
 			changes++;
 			let codePointString = String.fromCodePoint(parseInt(found, 16));
 			let length = codePointString.length;
