@@ -29,36 +29,25 @@ var plugin = module.exports = {
 		this.options = options;
 	}
 
-	, pre: function(node) {
-		if( node.type === "Property" ) {
-			if( node.method === true) {
-				this.replaceMethod(node);
-			}
-			else if( node.shorthand === true) {
-				var parent = node.$parent;
-				if( !isArrayPattern(parent) && !isObjectPattern(parent) ) {//filter destructuring
-					this.replaceShorthand(node);
-				}
-			}
-		}
-	}
-
-	, replaceMethod: function(node) {
+	, '::Property[method=true]': function(node) {
 		const methodKey = node.key;
 
 		this.alter.insert(methodKey.range[1], ": function");
 	}
 
-	, replaceShorthand: function(node) {
-		const propertyKey = node.key;
-		const propertyValue = node.value;
+	, '::Property[shorthand=true]': function(node) {//':: :not(ObjectPattern,ArrayPattern) > Property[shorthand=true]'
+		var parent = node.$parent;
+		if( !isArrayPattern(parent) && !isObjectPattern(parent) ) {//filter destructuring
+			const propertyKey = node.key;
+			const propertyValue = node.value;
 
-		let renamingOptions = propertyValue.$renamingOptions;
-		if( renamingOptions ) {// turn off changes were made by 'letConst' transpiler
-			renamingOptions.inactive = true;
+			let renamingOptions = propertyValue.$renamingOptions;
+			if( renamingOptions ) {// turn off changes were made by 'letConst' transpiler
+				renamingOptions.inactive = true;
+			}
+
+			this.alter.insert(propertyKey.range[1], ": " + propertyValue.name);
 		}
-
-		this.alter.insert(propertyKey.range[1], ": " + propertyValue.name);
 	}
 };
 

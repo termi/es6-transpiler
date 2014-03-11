@@ -41,8 +41,8 @@
 
 {// property in default value of destructuring in function parameter
 	let A = 222;
-	function test5({a = {A}} = {}){ return A }
-	console.log(test5() === 222);
+	function test5({a = {A}} = {}){ return a.A + A }
+	console.log(test5() === A + 222);
 }
 
 // TODO:: more

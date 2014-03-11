@@ -29,13 +29,7 @@ var plugin = module.exports = {
 		this.options = options;
 	}
 
-	, pre: function(node) {
-		if( node.type === "ComprehensionExpression" ) {
-			this.replaceArrayComprehension(node);
-		}
-	}
-
-	, replaceArrayComprehension: function(node) {
+	, '::ComprehensionExpression': function(node) {
 		const blocks = node.blocks
 			, body = node.body
 			, filter = node.filter

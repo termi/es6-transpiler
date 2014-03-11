@@ -41,8 +41,8 @@
 
 {// property in default value of destructuring in function parameter
     var A$3 = 222;
-    function test5(){var a = ((a = (arguments[0] !== void 0 ? arguments[0] : {}).a) === void 0 ? {A: A$3} : a); return A$3 }
-    console.log(test5() === 222);
+    function test5(){var a = ((a = (arguments[0] !== void 0 ? arguments[0] : {}).a) === void 0 ? {A: A$3} : a); return a.A + A$3 }
+    console.log(test5() === A$3 + 222);
 }
 
 // TODO:: more
