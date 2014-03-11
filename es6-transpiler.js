@@ -46,6 +46,12 @@ let plugins = [
 	}
 ];
 
+// adding custom keys in ASTQuery.VISITOR_KEYS
+let IdentifierVK = ASTQuery.VISITOR_KEYS['Identifier'];
+if ( IdentifierVK.indexOf('default') === -1 ) {
+	IdentifierVK.push('default');
+}
+
 module.exports = {
 	runned: false
 
@@ -66,13 +72,17 @@ module.exports = {
 			}
 
 			if ( passIt === false ) {
-				let pluginsAstQuerySteps = Object.keys(plugin)
+				let pluginAstQuerySteps = Object.keys(plugin)
 					.filter(function(prop){ return prop.substr(0, 2) == "::" } )
-					.map(function(prop){ return prop.substr(2) })
 				;
 
-				pluginsAstQuerySteps.forEach(function(astQueryStep) {
-					let callback;
+				// algorithm: collect all matches nodes for each plugin in special property "__matchesRecords"
+				// each element in "__matchesRecords" contains 'callbackName' (which is a 'plugin' property key) and matched 'node'
+				// in 'runPlugin' method traverse over "__matchesRecords" and call 'plugin[callbackName]' with 'node' as first parameter
+				pluginAstQuerySteps.forEach(function(callbackName) {
+					let callback
+						, astQueryStep = callbackName.substr(2)
+					;
 					if ( !(callback = this._astQuerySteps[astQueryStep]) ) {
 						callback = this._astQuerySteps[astQueryStep] = function callback(node) {
 							let steps = callback["__steps"];
@@ -82,7 +92,15 @@ module.exports = {
 						};
 						callback["__steps"] = [];
 					}
-					callback["__steps"].push(plugin["::" + astQueryStep]/*.bind(plugin)*/);
+					callback["__steps"].push(function(node) {
+						plugin["__matchesRecords"].push({
+							callbackName: callbackName
+							, node: node
+						});
+					});
+					if ( !plugin["__matchesRecords"] ) {
+						plugin["__matchesRecords"] = [];
+					}
 				}, this);
 			}
 		}, this);
@@ -117,12 +135,14 @@ module.exports = {
 			if( typeof plugin.reset === "function" ) {
 				plugin.reset();
 			}
+			delete plugin["__matchesRecords"];
 		});
 
 		this._astQuerySteps = {};
 	}
 
 	, run: function run(config) {
+		this.config = config || (config = {});
 		for(let i in defaultOptions)if(defaultOptions.hasOwnProperty(i) && !config.hasOwnProperty(i))config[i] = defaultOptions[i];
 
 		if( this.runned === true ) {
@@ -186,40 +206,14 @@ module.exports = {
 		this.alter = new StringAlter(this.src);
 
 		// output
-		const output = {errors: [], src: ""};
+		const output = this.output = {errors: [], src: ""};
 
 		this.setupPlugins(config);
 
 		let astQuery = new ASTQuery(this.ast);
 		astQuery.on(this._astQuerySteps);
 
-		plugins.forEach(function(plugin, index) {
-			var options = this.optionsList[index];
-
-			if( options.passIt === true ) {
-				return;
-			}
-
-			if( typeof plugin.before === "function" ) {
-				if( plugin.before(this.ast) === false ) {
-					return;
-				}
-			}
-
-			if( typeof plugin.pre === "function" || typeof plugin.post === "function" ) {
-				traverse(this.ast, {pre: plugin.pre, post: plugin.post});
-			}
-
-			if( typeof plugin.after === "function" ) {
-				if( plugin.after(this.ast, output) === false ) {
-					return;
-				}
-			}
-
-			if( options.applyChangesAfter ) {
-				this.applyChanges(config);
-			}
-		}, this);
+		plugins.forEach(this.runPlugin, this);
 
 		// output
 		if( error.errors.length ) {
@@ -259,6 +253,41 @@ module.exports = {
 		return output;
 	}
 
+	, runPlugin: function(plugin, index) {
+		let options = this.optionsList[index];
+
+		if( options.passIt === true ) {
+			return;
+		}
+
+		let matchesRecords = plugin["__matchesRecords"];
+		if ( matchesRecords ) {
+			for ( let i = 0 , len = matchesRecords.length ; i < len ; i++ ) {
+				let matchesRec = matchesRecords[i];
+				plugin[matchesRec.callbackName](matchesRec.node);
+			}
+		}
+
+		if( typeof plugin.before === "function" ) {
+			if( plugin.before(this.ast, this.output) === false ) {
+				return;
+			}
+		}
+
+		if( typeof plugin.pre === "function" || typeof plugin.post === "function" ) {
+			traverse(this.ast, {pre: plugin.pre, post: plugin.post});
+		}
+
+		if( typeof plugin.after === "function" ) {
+			if( plugin.after(this.ast, this.output) === false ) {
+				return;
+			}
+		}
+
+		if( options.applyChangesAfter ) {
+			this.applyChanges(this.config);
+		}
+	}
 };
 
 function outputToConsole(output, config) {
