@@ -12,21 +12,8 @@ const assign = function(target, source) {
 	}, target);
 };
 
-if( !String.prototype.startsWith ) {
-	String.prototype.startsWith = function(searchStr) {
-		if (this == null) {
-			throw new TypeError('Cannot call method on ' + this);
-		}
-
-		var thisStr = String(this);
-		//if (Object.prototype.toString.call(searchStr) === '[object RegExp]') throw new TypeError('Cannot call method "startsWith" with a regex');
-		searchStr = String(searchStr);
-		var startArg = arguments.length > 1 ? arguments[1] : void 0;
-		var start = Math.max(+startArg, 0);
-		return thisStr.slice(start, start + searchStr.length) === searchStr;
-	}
-}
-
+const EOF_STRING = '/* <[tests es6-transpiler test file EOF ]> */';
+const SUSPENDED_STRING = '/* <[tests es6-transpiler SUSPENDED test file ]> */';
 
 const commandVariables = {};
 process.argv.forEach(function(arg, index, array) {
@@ -82,6 +69,17 @@ function stringCompare(str1, str2, compareType, removeLines) {
 		.replace(/\t/g, "    ")// IDE settings
 		.trim()
 	;
+
+	let eofKey;
+
+	eofKey = str1.indexOf(EOF_STRING);
+	if ( eofKey !== -1 ) {
+		str1 = str1.substring(0, eofKey);
+	}
+	eofKey = str2.indexOf(EOF_STRING);
+	if ( eofKey !== -1 ) {
+		str2 = str2.substring(0, eofKey);
+	}
 
 	// check ansidiff.words first due something wrong with ansidiff.lines method result
 	try {
@@ -150,10 +148,14 @@ function test(file) {
 	};
 
 	try {
-		let fileSource = fs.readFileSync(path.join(pathToTests, file));
+		let fileSource = String(fs.readFileSync(path.join(pathToTests, file)));
+
+		if ( fileSource.contains(SUSPENDED_STRING) ) {
+			return;
+		}
 
 		// options reading from something like this '/* <[tests es6-transpiler options: {"resetNotCapturedVariables":true} ]> */'
-		let fileOptions = (fileSource + "").match(/^\/\*\s+<\[tests es6-transpiler options:\s*(.*?)\s*\]>\s+\*\//);
+		let fileOptions = fileSource.match(/^\/\*\s+<\[tests es6-transpiler options:\s*(.*?)\s*\]>\s+\*\//);
 		if( fileOptions ) {
 			try {
 				fileOptions = JSON.parse(fileOptions[1]);
