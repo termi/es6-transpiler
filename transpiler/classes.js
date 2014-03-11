@@ -3,11 +3,11 @@
 const assert = require("assert");
 const core = require("./core");
 
-const objectAssign =
-		"Object['assign']||function(t,s){"
+const objectMixin =
+		"function(t,s){"
 			+ "for(var p in s){"
 				+ "if(s.hasOwnProperty(p)){"
-					+ "t[p]=s[p];"
+					+ "Object.defineProperty(t,p,Object.getOwnPropertyDescriptor(s,p));"
 				+ "}"
 			+ "}"
 		+ "return t}"
@@ -19,6 +19,9 @@ const classesTranspiler = {
 		this.__currentClassName = null;
 		this.__currentSuperRefName = null;
 		this.__currentAccessors = null;
+		this.__currentStaticAccessors = null;
+		this.__currentFirstStaticAccessor = null;
+		this.__objectMixinFunctionName = null;
 	}
 
 	, setup: function(alter, ast, options) {
@@ -30,13 +33,13 @@ const classesTranspiler = {
 		this.alter = alter;
 	}
 
-	, createPrototypeString: function(className, superName, accessors) {
+	, createPrototypeString: function(node, className, superName, accessors) {
 		let accessorsKeys = Object.keys(accessors);
 
 		let accessorsString = accessorsKeys.map(function(key) {
 			let accessor = accessors[key];
 			let raw = accessor.raw, getter = accessor.get, setter = accessor.set;
-			return (raw || key) + ": {" + (getter ? "\"get\": " + getter + ", " : "") + (setter ? "\"set\": " + setter : "") + ", \"configurable\": true, \"enumerable\": true}"
+			return (raw || key) + ": {" + (getter ? "\"get\": " + getter + ", " : "") + (setter ? "\"set\": " + setter + ", " : "") + "\"configurable\": true, \"enumerable\": true}"
 		} ).join(", ");
 
 		if ( superName ) {
@@ -59,6 +62,20 @@ const classesTranspiler = {
 		}
 	}
 
+	, createStaticAccessorsDefinitionString: function(node, recipientStr, accessors) {
+		let accessorsKeys = Object.keys(accessors);
+
+		if ( !accessorsKeys.length ) {
+			return "";
+		}
+
+		return ";Object.defineProperties(" + recipientStr + ", {" + accessorsKeys.map(function(key) {
+			let accessor = accessors[key];
+			let raw = accessor.raw, getter = accessor.get, setter = accessor.set;
+			return (raw || key) + ": {" + (getter ? "\"get\": " + getter + ", " : "") + (setter ? "\"set\": " + setter : "") + ", \"configurable\": true, \"enumerable\": true}"
+		} ).join(", ") + "});";
+	}
+
 	, pre: function replaceClassBody(node) {
 		if( node.type === "ClassDeclaration" ) {
 			if( !this.__currentSuperRefName ) {
@@ -78,7 +95,7 @@ const classesTranspiler = {
 				, insertAfterBodyBegin_string
 				, classConstructor
 				, extendedClassConstructorPostfix
-				, objectAssignFunctionName
+				, objectMixinFunctionName
 			;
 
 			assert(nodeId && nodeId.type === "Identifier");
@@ -88,12 +105,12 @@ const classesTranspiler = {
 			classStr = "var " + currentClassName + " = (function(";
 
 			if( superClass ) {
-				objectAssignFunctionName = core.bubbledVariableDeclaration(node.$scope, "ASSIGN", objectAssign);
+				objectMixinFunctionName = core.bubbledVariableDeclaration(node.$scope, "MIXIN", objectMixin);
 
 				classStr += SUPER_NAME;
 				superClass = superClass.name;
 
-				insertAfterBodyBegin_string = objectAssignFunctionName + "(" + currentClassName + ", " + SUPER_NAME + ");";
+				insertAfterBodyBegin_string = objectMixinFunctionName + "(" + currentClassName + ", " + SUPER_NAME + ");";
 			}
 
 			classStr += ")";
@@ -109,13 +126,15 @@ const classesTranspiler = {
 			}
 
 			this.__currentAccessors = {};
+			this.__currentStaticAccessors = {};
 			if( classBodyNodesCount ) {
 				for ( let i = 0 ; i < classBodyNodesCount ; i++ ) {
 					this.replaceClassMethods(classBodyNodes[i]);
 				}
 			}
 
-			extendedClassConstructorPostfix = this.createPrototypeString(currentClassName, superClass && SUPER_NAME, this.__currentAccessors);
+			extendedClassConstructorPostfix = this.createPrototypeString(node, currentClassName, superClass && SUPER_NAME, this.__currentAccessors);
+			let staticAccessorsDefinitionString = this.createStaticAccessorsDefinitionString(node, currentClassName, this.__currentStaticAccessors);
 
 			if( classConstructor ) {
 				this.alter.replace(classConstructor.key.range[0], classConstructor.key.range[1], "function " + currentClassName);
@@ -136,8 +155,12 @@ const classesTranspiler = {
 				insertAfterBodyBegin_string = null;
 			}
 
-			if( insertAfterBodyBegin_string ) {
+			if ( insertAfterBodyBegin_string ) {
 				this.alter.insert(node.body.range[0] + 1, insertAfterBodyBegin_string);
+			}
+
+			if ( staticAccessorsDefinitionString ) {
+				this.alter.insertAfter(this.__currentFirstStaticAccessor.range[1], staticAccessorsDefinitionString);
 			}
 
 			// replace class definition
@@ -198,11 +221,15 @@ const classesTranspiler = {
 	
 	, replaceClassMethods: function replaceClassMethods(node) {
 		if( node.type === "MethodDefinition" && node.key.name !== "constructor" ) {
-			this.__currentClassMethodsStatic = node.static;
+			let isStatic = this.__currentClassMethodsStatic = node.static;
 
 			let nodeKey = node.key;
 
 			if( node.kind === "set" || node.kind === "get" ) {
+				if ( isStatic && !this.__currentFirstStaticAccessor ) {
+					this.__currentFirstStaticAccessor = node;
+				}
+
 				let isLiteral = nodeKey.type == 'Literal';
 				assert(nodeKey.type == 'Identifier' || isLiteral);
 
@@ -214,8 +241,11 @@ const classesTranspiler = {
 					name = nodeKey.name;
 				}
 
-				let accessor = this.__currentAccessors[name] || (this.__currentAccessors[name] = {});
-				let replacement = accessor[node.kind] = core.unique(name + "$" + node.kind, true);
+				let accessor = isStatic === true
+					? this.__currentStaticAccessors[name] || (this.__currentStaticAccessors[name] = {})
+					: this.__currentAccessors[name] || (this.__currentAccessors[name] = {})
+				;
+				let replacement = accessor[node.kind] = core.unique((isStatic ? "static_" : "") + name + "$" + node.kind, true);
 
 				if ( isLiteral ) {
 					accessor.raw = nodeKey.raw;
@@ -224,7 +254,7 @@ const classesTranspiler = {
 				this.alter.replace(node.range[0], nodeKey.range[1], "function " + replacement);
 			}
 			else {
-				if( this.__currentClassMethodsStatic === true ) {
+				if( isStatic === true ) {
 					// text change 'method(<something>)' => 'ClassName.method(<something>)'
 					this.alter.replace(node.range[0], nodeKey.range[0], this.__currentClassName + ".");
 				}

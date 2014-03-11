@@ -12,7 +12,7 @@ var Greeter = (function(){
 	}
 ;return Greeter;})();
 
-var Greeter1 = (function(super$0){var ASSIGN$0 = Object['assign']||function(t,s){for(var p in s){if(s.hasOwnProperty(p)){t[p]=s[p];}}return t};ASSIGN$0(Greeter1, super$0);
+var Greeter1 = (function(super$0){var MIXIN$0 = function(t,s){for(var p in s){if(s.hasOwnProperty(p)){Object.defineProperty(t,p,Object.getOwnPropertyDescriptor(s,p));}}return t};MIXIN$0(Greeter1, super$0);
 	function Greeter1(message) {
 		super$0.call(this, message);
 		this.greeting = message;

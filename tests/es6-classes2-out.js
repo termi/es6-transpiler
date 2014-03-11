@@ -1,4 +1,4 @@
-var ASSIGN$0 = Object['assign']||function(t,s){for(var p in s){if(s.hasOwnProperty(p)){t[p]=s[p];}}return t};var class1 = (function(){
+var MIXIN$0 = function(t,s){for(var p in s){if(s.hasOwnProperty(p)){Object.defineProperty(t,p,Object.getOwnPropertyDescriptor(s,p));}}return t};var class1 = (function(){
     function class1(msg) {
         this.property1 = msg;
     }
@@ -9,7 +9,7 @@ var ASSIGN$0 = Object['assign']||function(t,s){for(var p in s){if(s.hasOwnProper
 
 var super$0;
 
-var class2 = (function(super$1){ASSIGN$0(class2, super$1);
+var class2 = (function(super$1){MIXIN$0(class2, super$1);
     class2.sayStatic = function(){ return super$1.sayStatic() + "[static:class2]" }
 
     //static A = 123;
@@ -25,7 +25,7 @@ var class2 = (function(super$1){ASSIGN$0(class2, super$1);
     }
 ;return class2;})(class1);
 
-var class3 = (function(super$1){function class3() {return super$1.apply(this, arguments)}ASSIGN$0(class3, super$1);class3.prototype = Object.create(super$1.prototype, {"constructor": {"value": class3, "configurable": true, "writable": true} });
+var class3 = (function(super$1){function class3() {return super$1.apply(this, arguments)}MIXIN$0(class3, super$1);class3.prototype = Object.create(super$1.prototype, {"constructor": {"value": class3, "configurable": true, "writable": true} });
 	class3.prototype.say = function(){return "class3"}
 ;return class3;})(class1);
 
