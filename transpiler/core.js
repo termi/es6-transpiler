@@ -126,6 +126,61 @@ let core = module.exports = {
 		// also collects all referenced names to allIdentifiers
 		this.setupReferences(node);
 		this.detectConstAssignment(node);// static analysis passes
+
+		let parentNode = node.$parent;
+
+		if ( parentNode.type === 'AssignmentExpression' ) {//TODO: '::AssignmentExpression[operator="="]': function(node) {}
+			let valueNode = parentNode.right
+				, assignmentType = this.detectType(valueNode, parentNode.left)
+				, declarationNode = node.$declaration
+			;
+
+
+			let types = declarationNode.$types;
+			if ( types.indexOf(assignmentType) === -1 ) {
+				types.push(assignmentType);
+			}
+		}
+	}
+
+	, detectType: function(valueNode, recipientNode) {
+		if ( !valueNode ) {
+			return "undefined";
+		}
+
+		let type = valueNode.type;
+
+		if ( type === 'Literal' ) {
+			let value = valueNode.value
+				, raw = valueNode.raw
+				, lastSlashIndex
+			;
+			return raw[0] == '/' && (lastSlashIndex = raw.lastIndexOf("/")) !== -1 && lastSlashIndex !== 0
+				? 'RegExp'
+				: typeof value
+			;
+		}
+		else if ( type === 'TemplateLiteral' ) {
+			return 'String';
+		}
+		else if ( type === 'ArrayExpression' ) {
+			return 'Array';
+		}
+		else if ( type === 'ObjectExpression' ) {
+			return 'Object';
+		}
+		else if ( type === 'ClassDeclaration' ) {
+			return 'Class';
+		}
+		else if ( type === 'CatchClause' ) {
+			return 'Error';
+		}
+		else if ( isFunction(valueNode) ) {
+			return 'Function';
+		}
+		else {
+			return 'Variant';
+		}
 	}
 
 	, unique: function (name, newVariable, additionalFilter) {
@@ -160,6 +215,8 @@ let core = module.exports = {
 		node.$parent = parent;
 		node.$scope = node.$parent ? node.$parent.$scope : null; // may be overridden
 
+		let self = this;
+
 		function addParamToScope(param) {
 			if( param === null ){
 				return;
@@ -176,12 +233,13 @@ let core = module.exports = {
 			}
 			else {
 				node.$scope.add(param.name, "param", param);
+				param.$types = [];
 			}
 
 			param.$paramDefinition = true;
 		}
 
-		function addVariableToScope(variable, kind, originalDeclarator, scope) {
+		function addVariableToScope(variable, kind, originalDeclarator, scope, initNode) {
 			if( isObjectPattern(variable) ) {
 				variable.properties.forEach(function(variable) {
 					addVariableToScope(variable, kind, originalDeclarator, scope);
@@ -207,6 +265,8 @@ let core = module.exports = {
 					referableFromPos = variable.range[1];
 				}
 				(scope || node.$scope).add(variable.name, kind, variable, referableFromPos, 0, originalDeclarator);
+
+				variable.$types = initNode ? [self.detectType(initNode, variable)] : [];
 			}
 
 			variable.$variableDeclaration = true;
@@ -228,7 +288,7 @@ let core = module.exports = {
 				parent: node.$parent.$scope
 			});
 
-			addVariableToScope(node.id, "let", node.id, node.$parent.$scope);
+			addVariableToScope(node.id, "let"/*TODO::"class"*/, node.id, node.$parent.$scope, node);
 
 			if( node.superClass ) {
 				node.$scope.add("super", "var");
@@ -259,10 +319,10 @@ let core = module.exports = {
 
 				if (node.type === "FunctionDeclaration") {
 					// Function name goes in parent scope for declared functions
-					addVariableToScope(node.id, "fun", node.id, node.$parent.$scope);
+					addVariableToScope(node.id, "fun", node.id, node.$parent.$scope, node);
 				} else if (node.type === "FunctionExpression") {
 					// Function name goes in function's scope for named function expressions
-					addVariableToScope(node.id, "fun", node.id);
+					addVariableToScope(node.id, "fun", node.id, void 0, node);
 				} else {
 					assert(false);
 				}
@@ -279,11 +339,7 @@ let core = module.exports = {
 			node.specifiers.forEach(function(declarator) {
 				assert(declarator.type === "ImportSpecifier");
 
-				addVariableToScope(
-					declarator.id
-					, "var"//, node.kind
-					, declarator
-				);
+				addVariableToScope(declarator.id, "var"/*, node.kind*/, declarator, void 0, declarator);
 			}, this);
 
 		} else if (node.type === "VariableDeclaration") {
@@ -296,7 +352,7 @@ let core = module.exports = {
 					error(getline(declarator), "var {0} is not allowed (use let or const)", declarator.id.name);
 				}
 
-				addVariableToScope(declarator.id, node.kind, declarator);
+				addVariableToScope(declarator.id, node.kind, declarator, void 0, declarator.init);
 			}, this);
 
 		} else if (isForWithConstLet(node) || isForInOfWithConstLet(node)) {
@@ -324,7 +380,7 @@ let core = module.exports = {
 				node: node,
 				parent: node.$parent.$scope
 			});
-			addVariableToScope(identifier, "caught", identifier);
+			addVariableToScope(identifier, "caught", identifier, void 0, node);
 
 			// All hoist-scope keeps track of which variables that are propagated through,
 			// i.e. an reference inside the scope points to a declaration outside the scope.
@@ -475,6 +531,7 @@ let core = module.exports = {
 
 			let declNode = decl.node;
 			if( declNode ) {
+				node.$declaration = declNode;
 				node.$captured = declNode.$captured =
 					declNode.$captured || scope != node.$scope.closestHoistScope()
 				;
