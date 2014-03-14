@@ -1,5 +1,14 @@
 
 let output;
+
+{
+	let a1 = [1], b2 = [];
+	for( let x of a1 ) {
+		b2.push(function(){ return x })
+	}
+	console.log(b2.map(function(a){ return a() }).join("|") === a1.join("|"))
+}
+
 {
 	output = [];
 	let arr = [1, 2, 3]

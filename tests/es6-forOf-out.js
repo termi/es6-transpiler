@@ -1,5 +1,14 @@
 function GET_ITER$0(v){if(v){if(Array.isArray(v))return 0;if(typeof v==='object'&&typeof v['@@iterator']==='function')return v['@@iterator']();}throw new Error(v+' is not iterable')};var $D$0;var $D$1;var $D$2;var $D$3;var $D$4;var $D$5;var $D$6;var $D$7;var $D$8;var $D$9;var $D$10;var $D$11;
 var output;
+
+{
+	var a1 = [1], b2 = [];
+	$D$0 = GET_ITER$0(a1);$D$1 = $D$0 === 0;$D$2 = ($D$1 ? a1.length : void 0);for( var x ; $D$1 ? ($D$0 < $D$2) : !($D$2 = $D$0["next"]())["done"]; ){x = ($D$1 ? a1[$D$0++] : $D$2["value"]);(function(x){
+		b2.push(function(){ return x })
+	})(x);};$D$0 = $D$1 = $D$2 = void 0;
+	console.log(b2.map(function(a){ return a() }).join("|") === a1.join("|"))
+}
+
 {
 	output = [];
 	var arr = [1, 2, 3]
@@ -28,7 +37,7 @@ console.log(output.join("|") === [1, 2, 3].join("|"))}
 		output$0.push(function() {
 			return f;
 		})
-	}).call(this, f$1);};$D$0 = $D$1 = $D$2 = $D$3 = void 0;;
+	})(f$1);};$D$0 = $D$1 = $D$2 = $D$3 = void 0;;
 	console.log(output$0.map(function(v){return v()}).join("|") === arr$0.join("|"))
 }
 
@@ -39,7 +48,7 @@ console.log(output.join("|") === [1, 2, 3].join("|"))}
 		output.push(function() {
 			return f;
 		})
-	}).call(this, f$2);};$D$0 = $D$1 = $D$2 = $D$3 = void 0;;
+	})(f$2);};$D$0 = $D$1 = $D$2 = $D$3 = void 0;;
 	console.log(output.map(function(v){return v()}).join("|") === arr$1.join("|"))
 }
 
@@ -54,4 +63,3 @@ console.log(output.join("|") === [1, 2, 3].join("|"))}
 	};$D$0 = $D$1 = $D$2 = $D$3 = void 0;;
 	console.log(output.join("|") === "a1-|a1=|a1/|a2-|a2=|a2/|a3-|a3=|a3/|b1-|b1=|b1/|b2-|b2=|b2/|b3-|b3=|b3/|c1-|c1=|c1/|c2-|c2=|c2/|c3-|c3=|c3/")
 }
-

@@ -21,6 +21,7 @@ Beta
  * classes
  * destructuring
  * block binding (let / const)
+   * loops: fresh lexical environment per iteration
  * default parameters
  * arrow functions
  * spread (with iterator protocol)
@@ -203,41 +204,6 @@ See tests
 possible, while being as maximally non-intrusive as possible. The only textual
 differences you'll find between your original and transpiled program is that the latter
 uses `var` and occasional variable renames.
-
-
-### Loop closures limitation
-`es6-transpiler.js` won't transpile a closure-that-captures-a-block-scoped-variable-inside-a-loop, such
-as the following example:
-
-```javascript
-for (let x = 0; x < 10; x++) {
-    let y = x;
-    arr.push(function() { return y; });
-}
-```
-
-With ES6 semantics `y` is bound fresh per loop iteration, so each closure captures a separate
-instance of `y`, unlike if `y` would have been a `var`. [Actually, even `x` is bound per
-iteration, but v8 (so node) has an
-[open bug](https://code.google.com/p/v8/issues/detail?id=2560) for that].
-
-To transpile this example, an IIFE or `try-catch` must be inserted, which isn't maximally
-non-intrusive. `es6-transpiler.js` will detect this case and spit out an error instead, like so:
-
-    line 3: can't transform closure. y is defined outside closure, inside loop
-
-You need to manually handle this the way we've always done pre-`ES6`,
-for instance like so:
-
-```javascript
-for (let x = 0; x < 10; x++) {
-    (function(y) {
-        arr.push(function() { return y; });
-    })(x);
-}
-```
-
-I'm interested in feedback on this based on real-world usage of `es6-transpiler.js`.
 
 
 ### Referenced (inside closure) before declaration

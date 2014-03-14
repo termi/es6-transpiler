@@ -1,8 +1,0 @@
-line 11: Not yet specced ES6 feature. x is declared in for-loop header and then captured in loop closure
-line 14: Not yet specced ES6 feature. x is declared in for-loop header and then captured in loop closure
-line 22: Not yet specced ES6 feature. x is declared in for-loop header and then captured in loop closure
-line 32: can't transform loop-closure due to use of return at line 31. y is defined outside closure, inside loop
-line 40: can't transform loop-closure due to use of break at line 39. y is defined outside closure, inside loop
-line 47: can't transform loop-closure due to use of continue at line 46. y is defined outside closure, inside loop
-line 55: can't transform loop-closure due to use of arguments at line 54. y is defined outside closure, inside loop
-line 62: can't transform loop-closure due to use of var at line 61. y is defined outside closure, inside loop

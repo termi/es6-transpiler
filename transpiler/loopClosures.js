@@ -12,6 +12,14 @@ function getline(node) {
 	return node.loc.start.line;
 }
 
+function isObjectPattern(node) {
+	return node && node.type === 'ObjectPattern';
+}
+
+function isArrayPattern(node) {
+	return node && node.type === 'ArrayPattern';
+}
+
 function isConstLet(kind) {
 	return kind === "const" || kind === "let";
 }
@@ -44,6 +52,7 @@ function isReference(node) {
 			&& !(parentType === "CatchClause" && parent.param === node) // catch($)
 			&& !(isFunction(parent) && parent.id === node) // function $(..
 			&& !(isFunction(parent) && parent.params.indexOf(node) !== -1) // function f($)..
+			&& node.$parentProp !== 'label'// for 'break label', 'continue label', etc cases
 			&& true
 	;
 }
@@ -62,6 +71,8 @@ let transformLoop_fragmentOption_functionHeadAndTail = {
 		let forVariableNode = fragmentOption.variableDeclarationNode;
 		let forVariableNode_newName = fragmentOption.newName || ""
 			, forVariableNode_oldName = fragmentOption.oldName || ""
+			, afterTail = fragmentOption.afterTail || ""
+			, beforeHead = fragmentOption.beforeHead || ""
 		;
 
 		let isHead = this.data === "--head--";
@@ -86,23 +97,22 @@ let transformLoop_fragmentOption_functionHeadAndTail = {
 				assert(false, forVariableNode);
 			}
 
-			fragmentOption.newName = forVariableNode_newName;
-			fragmentOption.oldName = forVariableNode_oldName;
+			fragmentOption.newName = forVariableNode_newName = forVariableNode_newName || forVariableNode_oldName;
+			fragmentOption.oldName = forVariableNode_oldName = forVariableNode_oldName || forVariableNode_newName;
 			fragmentOption.variableDeclarationNode = null;//cleanup
 			fragmentOption.secondTime = true;
 		}
 
-		this.data =
-			isHead
-				? "(function(" + (forVariableNode_oldName || "") + "){"
-				: "}).call(this" + (forVariableNode_newName ? ", " + forVariableNode_newName : "") + ");"
+		this.data = isHead
+			? beforeHead + "(function(" + (forVariableNode_oldName || "") + "){"
+			: "})(" + (forVariableNode_newName ? "" + forVariableNode_newName : "") + ");" + afterTail
 		;
 	}
 };
 
 var plugin = module.exports = {
 	reset: function() {
-
+		this.permamentNames = {};
 	}
 
 	, setup: function(alter, ast, options) {
@@ -171,24 +181,19 @@ var plugin = module.exports = {
 						return error(getline(variableDeclarationNode), "Not yet specced ES6 feature. {0} is declared in for-loop header and then captured in loop closure", variableDeclarationNode.name);
 					}
 
-					// speak now or forever hold your peace
-					let loopError = this.detectIifyBodyBlockers(loopNode.body, node);
-					if (loopError) {
-						error(getline(node), loopError);
-						return;
-					}
+					let special = this.detectIifyBodyBlockers(loopNode.body, node);
 
 					// mark loop for IIFE-insertion
 					loopNode.$iify = true;
-					this.transformLoop(loopNode, node, variableDeclarationNode);
+					this.transformLoop(loopNode, node, variableDeclarationNode, special);
 					break;
 				}
 			}
 		}
 	}
 
-	, detectIifyBodyBlockers: function detectIifyBodyBlockers(body, node) {
-		var result;
+	, detectIifyBodyBlockers: function detectIifyBodyBlockers(body) {
+		var result = [];
 
 		traverse(body, {pre: function(n) {
 			// if we hit an inner function of the loop body, don't traverse further
@@ -196,31 +201,25 @@ var plugin = module.exports = {
 				return false;
 			}
 
-			let err;
 			if (n.type === "BreakStatement") {
-				err = "can't transform loop-closure due to use of break at line " + getline(n) + ". " + node.name + " is defined outside closure, inside loop";
+				result.push(n);
 			} else if (n.type === "ContinueStatement") {
-				err = "can't transform loop-closure due to use of continue at line " + getline(n) + ". " + node.name + " is defined outside closure, inside loop";
+				result.push(n);
 			} else if (n.type === "ReturnStatement") {
-				err = "can't transform loop-closure due to use of return at line " + getline(n) + ". " + node.name + " is defined outside closure, inside loop";
+				result.push(n);
 			} else if (n.type === "Identifier" && n.name === "arguments") {
-				err = "can't transform loop-closure due to use of arguments at line " + getline(n) + ". " + node.name + " is defined outside closure, inside loop";
+				result.push(n);
 			} else if (n.type === "VariableDeclaration" && n.kind === "var") {
-				err = "can't transform loop-closure due to use of var at line " + getline(n) + ". " + node.name + " is defined outside closure, inside loop";
-			} else {
-				err = false;
-			}
-
-			if (err) {
-				result = err;
-				return false;
+				result.push(n);
+			} else if (n.type === "ThisExpression" ) {
+				result.push(n);
 			}
 		}});
 
 		return result;
 	}
 
-	, transformLoop: function transformLoop(loopNode, variableNode, variableDeclarationNode) {
+	, transformLoop: function transformLoop(loopNode, variableNode, variableDeclarationNode, special) {
 		const hasBlock = (loopNode.body.type === "BlockStatement");
 
 		const insertHeadPosition = (hasBlock
@@ -242,6 +241,145 @@ var plugin = module.exports = {
 			&& variableDeclarationNode
 		;
 
+		let afterTail = "";
+		let beforeHead = "";
+		let funcCallResult = "";
+
+		special.forEach(function(special) {
+			let type = special.type
+				, result
+				, replaceWith
+				, from = special.range[0]
+				, to = special.range[1]
+			;
+
+			if (type === "BreakStatement") {
+				let labelName = special.label && special.label.name || "";
+				let name = this.getPermamentName("break" + labelName);
+
+				if ( !loopNode["$__break" + labelName] ) {
+					loopNode["$__break" + labelName] = true;
+					result = "if(" + name + "===true){" + name + "=void 0;break " + labelName + "}";
+					beforeHead += ";var " + name + ";"
+				}
+
+				replaceWith = "{" + name + " = true;return}";
+			}
+			else if (type === "ContinueStatement") {
+				let labelName = special.label && special.label.name || "";
+				let name = this.getPermamentName("continue" + labelName);
+
+				if ( !loopNode["$__continue" + labelName] ) {
+					loopNode["$__continue" + labelName] = true;
+					if ( labelName ) {
+						result = "if(" + name + "===true){" + name + "=void 0;continue " + labelName + "}";
+						beforeHead += ";var " + name + ";"
+					}
+				}
+
+				if ( labelName ) {
+					replaceWith = "{" + name + " = true;return}";
+				}
+				else {
+					replaceWith = "return;"
+				}
+			}
+			else if (type === "ReturnStatement") {
+				let argument = special.argument
+					, argTypeIsPrimitive = argument && argument.type === 'Literal'
+				;
+
+				if ( argument ) {
+					let key = argTypeIsPrimitive ? "retPrim" : "retVal";
+					let name = this.getPermamentName(key);
+					let recipient = loopNode["$__return" + key];
+
+					replaceWith = "{" + name + " = true;return ";
+					this.alter.insertAfter(to, "}");
+
+					if ( !recipient ) {
+						recipient = loopNode["$__return" + key] = this.getPermamentName("value");
+
+						if ( argTypeIsPrimitive ) {
+							beforeHead += ";var " + name + ";";
+							result = "if(" + name + "===true){" + name + "=void 0;return " + recipient + "}";
+						}
+						else {
+							funcCallResult = ";var " + name + ", " + recipient + " = ";
+
+							let returnPointName = this.getPermamentName("rp");
+							// wrap return to try/catch to prevent memory leaking
+							result = "if(" + name + "===true){try{throw " + recipient + " }catch(" + returnPointName + "){" + recipient + "=" + name + "=void 0;return " + returnPointName + "}}";
+						}
+					}
+					else {
+						result = "";
+					}
+					to = argument.range[0];
+				}
+				else {
+					let name = this.getPermamentName("retVoid");
+					if ( !loopNode.$__returnVoid ) {
+						loopNode.$__returnVoid = true;
+						result = "if(" + name + "===true){" + name + "=void 0;return}";
+						beforeHead += ";var " + name + ";"
+					}
+					else {
+						result = ""
+					}
+
+					replaceWith = "{" + name + " = true;return}";
+				}
+			}
+			else if (type === "Identifier" && special.name === "arguments") {
+				let hoistScopeNode = loopNode.$scope.closestHoistScope().node;
+				let name = this.getPermamentName("args");
+
+				this.alter.insertAfter(core.__getNodeBegin(hoistScopeNode), ";var " + name + "=arguments;");
+
+				result = "";
+				replaceWith = name;
+			}
+			else if (type === "ThisExpression") {
+				let hoistScopeNode = loopNode.$scope.closestHoistScope().node;
+				let name = this.getPermamentName("that");
+
+				this.alter.insertAfter(core.__getNodeBegin(hoistScopeNode), ";var " + name + "=this;");
+
+				result = "";
+				replaceWith = name;
+			}
+			else if (type === "VariableDeclaration" && special.kind === "var") {
+				beforeHead += (";var " + special.declarations.map(function(node) {
+					if ( isObjectPattern(node.id) || isArrayPattern(node.id) ) {
+						return core.getDestructuringVariablesName(node.id).join(", ");
+					}
+					else if ( node ) {
+						return node.id.name;
+					}
+					else {
+						return null
+					}
+					}).filter(function(name) {
+						return !!name;
+					}).join(", ") + ";"
+				);
+
+				this.alter.replace(special.range[0], special.range[0] + 4, ";");//remove 'val'
+			}
+
+			if ( replaceWith ) {
+				this.alter.replace(from, to, replaceWith);
+			}
+
+			if ( result ) {
+				afterTail += result;
+			}
+		}, this);
+
+		fragmentOption.afterTail = afterTail;
+		fragmentOption.beforeHead = beforeHead.replace(/;;/g, ";") + funcCallResult;
+
 		this.alter.insert(insertHeadPosition, "--head--", fragmentOption);
 		this.alter.insert(insertTailPosition, "--tail--", fragmentOption);
 
@@ -261,17 +399,22 @@ var plugin = module.exports = {
 			newScope = loopNode.body.$scope;
 		}
 		else {
+			loopNode.body.$wrappedHoistScope = true;
 
-			let chs = loopNode.body.$scope.children;
+			let oldScope = loopNode.body.$scope;
 			newScope = new Scope({
 				kind: "hoist",
 				node: loopNode.body,
-				parent: loopNode.body.$scope
+				parent: oldScope,
+				wrapper: true
 			});
-			chs.forEach(function(scope) {
-				scope.parent = newScope;
+
+			oldScope.children.forEach(function(scope) {
+				if ( scope != newScope ) {
+					scope.parent = newScope;
+				}
 			});
-			loopNode.body.$scope.children = [newScope];
+			oldScope.children = [newScope];
 		}
 
 		function setNewRefToScope(variableNode, i) {
@@ -295,6 +438,10 @@ var plugin = module.exports = {
 		else if( variableDeclarationNode.type === "Identifier" ) {
 			setNewRefToScope(variableDeclarationNode);
 		}
+	}
+
+	, getPermamentName: function(name) {
+		return this.permamentNames[name] || (this.permamentNames[name] = core.unique("$" + name, true));
 	}
 };
 

@@ -5,7 +5,7 @@ var a = 1, b = 2, c = 3;
     e = [];
     var a$0, b$0;$D$3 = ([{a: 1, b: 2}, {a: 11, b: 22}, {a: 111, b: 222}]);$D$0 = GET_ITER$0($D$3);$D$1 = $D$0 === 0;$D$2 = ($D$1 ? $D$3.length : void 0);for(  ; $D$1 ? ($D$0 < $D$2) : !($D$2 = $D$0["next"]())["done"]; ){;a$0 = (b$0 = ($D$1 ? $D$3[$D$0++] : $D$2["value"])).a, b$0 = b$0.b;(function(a, b){
         e.push( function()  {return a + b} )
-    }).call(this, a$0, b$0);};$D$0 = $D$1 = $D$2 = $D$3 = void 0;
+    })(a$0, b$0);};$D$0 = $D$1 = $D$2 = $D$3 = void 0;
 
     console.log(e.map( function(x) {return x()} ).join("|") === "3|33|333")
 }
@@ -18,7 +18,7 @@ var a = 1, b = 2, c = 3;
            , { childrens: [ 3         , 4] }
     ]);$D$0 = GET_ITER$0($D$3);$D$1 = $D$0 === 0;$D$2 = ($D$1 ? $D$3.length : void 0);for(  ; $D$1 ? ($D$0 < $D$2) : !($D$2 = $D$0["next"]())["done"]; ){;firstChild = ($D$1 ? $D$3[$D$0++] : $D$2["value"]).childrens[0];(function(firstChild){
         e.push( function()  {return firstChild} )
-    }).call(this, firstChild);};$D$0 = $D$1 = $D$2 = $D$3 = void 0;
+    })(firstChild);};$D$0 = $D$1 = $D$2 = $D$3 = void 0;
 
     console.log(e.map( function(x) {return x()} ).join("|") === "1|2|3")
 }
@@ -29,7 +29,7 @@ var a = 1, b = 2, c = 3;
     while( (c$0 = a$1--) > 0 ) {(function(){
         var a = (b = {a: c$0, b: c$0 * 100}).a, b = b.b
         e.push( function() {return a + b} )
-    }).call(this);}
+    })();}
     console.log(e.map( function(x) {return x()} ).join("|") === "303|202|101")
 }
 
@@ -44,6 +44,6 @@ var a = 1, b = 2, c = 3;
         }
 
         test2();
-    }).call(this);};$D$0 = $D$1 = $D$2 = void 0;
+    })();};$D$0 = $D$1 = $D$2 = void 0;
     console.log(str1 === "012");
 }
