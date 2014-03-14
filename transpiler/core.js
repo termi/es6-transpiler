@@ -56,6 +56,7 @@ function isReference(node) {
 			&& !(parentType === "CatchClause" && parent.param === node) // catch($)
 			&& !(isFunction(parent) && parent.id === node) // function $(..
 			&& !(isFunction(parent) && parent.params.indexOf(node) !== -1) // function f($)..
+			&& node.$parentProp !== 'label'// for 'break label', 'continue label', etc cases
 			&& true
 	;
 }
@@ -752,7 +753,7 @@ let core = module.exports = {
 		let begin;
 		let hoistScopeNodeBody = node.body;
 
-		if( node.type === "Program" ) {
+		if ( node.type === "Program" ) {
 			begin = 0;
 		}
 		else if( node.type === "ClassDeclaration" ) {
@@ -766,7 +767,7 @@ let core = module.exports = {
 		else if( node.type === "ComprehensionExpression" ) {
 			begin = node.range[0] + 1;
 		}
-		else {
+		else if( hoistScopeNodeBody ) {
 			if( hoistScopeNodeBody.length ) {
 				hoistScopeNodeBody = hoistScopeNodeBody[0];
 			}
@@ -775,6 +776,9 @@ let core = module.exports = {
 			if( isFunction(node) ) {
 				begin++;
 			}
+		}
+		else {
+			begin = node.range[0];
 		}
 
 		return begin;
@@ -1135,6 +1139,9 @@ let core = module.exports = {
 		return null;
 	}
 
+	/**
+	 * check declaration for non-empty
+	 * */
 	, declarationContainsDeclarator: function(declarationNode, declaratorNode) {
 		assert(declarationNode.type === 'VariableDeclaration', 'first parameter must be a "VariableDeclaration" node not a "' + declarationNode.type + '"');
 		assert(declaratorNode.type === 'VariableDeclarator', 'second parameter must be a "VariableDeclarator" node not a "' + declaratorNode.type + '"');
