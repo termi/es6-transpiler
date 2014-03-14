@@ -98,7 +98,7 @@ let plugin = module.exports = {
 					if (property) {
 						property.$type = "VariableDeclarator";
 						property.$parentType = "ObjectPattern";
-						renameDeclaration(property);
+						renameDeclaration.call(this, property);
 					}
 				}
 				return;
@@ -109,7 +109,7 @@ let plugin = module.exports = {
 					if (element) {
 						element.$type = "VariableDeclarator";
 						element.$parentType = "ArrayPattern";
-						renameDeclaration(element);
+						renameDeclaration.call(this, element);
 					}
 				}
 				return;
@@ -146,8 +146,10 @@ let plugin = module.exports = {
 			// rename if
 			// 1) name already exists in hoistScope, or
 			// 2) name is already propagated (passed) through hoistScope or manually tainted
-			const rename = (origScope !== hoistScope &&
-				(hoistScope.hasOwn(name) || hoistScope.doesPropagate(name)));
+			// 3) node has been marked
+			const rename = this.isMarkedForRenaming(declarator)
+				|| (origScope !== hoistScope && (hoistScope.hasOwn(name) || hoistScope.doesPropagate(name)))
+			;
 
 			const newName = (rename ? core.unique(name) : name);
 
@@ -246,6 +248,36 @@ let plugin = module.exports = {
 				, options
 			);
 		}
+	}
+
+	, markForRenaming: function(node, forse) {
+		if ( forse ) {
+			node.$forceRename = true;
+			if ( node.$parentProp === 'value' ) {
+				node.$parent.$forceRename = true;
+			}
+		}
+		else if ( node.$variableDeclaration === true ) {
+			node.$forceRename = true;
+			this.markForRenaming(node, true);
+		}
+		else {
+			assert(node.$refToScope && node.$declaration, 'Node should be variable node with link to declaration node');
+
+			this.markForRenaming(node.$declaration);
+		}
+	}
+
+	, isMarkedForRenaming: function(node) {
+		if (node) {
+			if (node.$variableDeclaration === true) {
+				return node.$forceRename === true;
+			}
+			else {
+				return node.$declaration && node.$declaration.$forceRename === true || false;
+			}
+		}
+		return false;
 	}
 };
 
