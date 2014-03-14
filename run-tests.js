@@ -74,11 +74,11 @@ function stringCompare(str1, str2, compareType, removeLines) {
 
 	eofKey = str1.indexOf(EOF_STRING);
 	if ( eofKey !== -1 ) {
-		str1 = str1.substring(0, eofKey);
+		str1 = str1.substring(0, eofKey).trim();
 	}
 	eofKey = str2.indexOf(EOF_STRING);
 	if ( eofKey !== -1 ) {
-		str2 = str2.substring(0, eofKey);
+		str2 = str2.substring(0, eofKey).trim();
 	}
 
 	// check ansidiff.words first due something wrong with ansidiff.lines method result

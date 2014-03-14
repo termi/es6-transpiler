@@ -7,6 +7,7 @@ node_modules
 .settings
 *.iml
 .builder_cache
+crap
 
 build/es5
 build/npm

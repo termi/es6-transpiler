@@ -12,7 +12,7 @@ do
   node --harmony ../es6toes5 ../$i es5/$i
 done
 
-declare -a transpilers=(arrayComprehension.js classes.js core.js destructuring.js forOf.js functions.js letConst.js loopClosures.js objectLiteral.js quasiLiterals.js spread.js optimiser.js)
+declare -a transpilers=(arrayComprehension.js classes.js core.js destructuring.js forOf.js functions.js letConst.js loopClosures.js objectLiteral.js quasiLiterals.js spread.js optimiser.js unicode.js)
 for i in ${transpilers[@]}
 do
   echo "building transpiler/$i"
@@ -38,5 +38,3 @@ cd es5
 echo "running tests (in es5 mode i.e. without --harmony)"
 /usr/bin/env node run-tests.js --path ../../tests
 echo "done self-build. Press Enter"
-
-read
