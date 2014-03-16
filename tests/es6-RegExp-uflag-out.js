@@ -304,25 +304,28 @@ if( !regExp_flag_u_support || !regExp_flag_y_support ) {
 			}
 		})()
 		, updateGlobalRegExpProperties
-		, polyfillSecretKey
 		, globalString_prototype = global["String"].prototype
 		, $string_replace = globalString_prototype.replace
 	;
 
-	var beforeRegExpCreate = function(unicodeAlreadyPrepared, pattern, has_u_flag, has_y_flag) {
+	var beforeRegExpCreate = function(pattern, has_u_flag, has_y_flag) {
 		if( has_u_flag ) {
-			if( !unicodeAlreadyPrepared ) {
-				var newPattern = convertUnicodeSequenceToES5Compatible_Map[pattern];
-				if ( newPattern === void 0 ) {
-					convertUnicodeSequenceToES5Compatible_Map[pattern] = newPattern = convertUnicodeSequenceToES5Compatible(pattern);
-					pattern = newPattern;
-				}
-				else if ( newPattern === true ) {
-
+			var newPattern = convertUnicodeSequenceToES5Compatible_Map[pattern];
+			if ( newPattern === void 0 ) {
+				newPattern = convertUnicodeSequenceToES5Compatible(pattern);
+				if ( convertUnicodeSequenceToES5Compatible_failed === true ) {
+					convertUnicodeSequenceToES5Compatible_Map[pattern] = false;
 				}
 				else {
-					pattern = newPattern;
+					pattern = convertUnicodeSequenceToES5Compatible_Map[pattern] = newPattern;
 				}
+			}
+			else if ( newPattern === true || newPattern === false ) {
+				// true - nothing to convert
+				// false - can't convert
+			}
+			else {
+				pattern = newPattern;
 			}
 		}
 
@@ -357,25 +360,14 @@ if( !regExp_flag_u_support || !regExp_flag_y_support ) {
 		if( flags ) {
 			pattern = String(pattern);
 
-			var unicodeAlreadyPrepared;
-			if ( typeof flags === 'object' && flags["polyfill"] === polyfillSecretKey ) {
-				unicodeAlreadyPrepared = true;
-				originalPattern = flags["original"];
-
-				if ( convertUnicodeSequenceToES5Compatible_Map[originalPattern] === void 0 ) {
-					convertUnicodeSequenceToES5Compatible_Map[originalPattern] = pattern;
-				}
-			}
-			else {
-				originalPattern = pattern;
-			}
+			originalPattern = pattern;
 
 			flags = String(flags);
 			has_u_flag = !regExp_flag_u_support && flags.indexOf("u") !== -1;
 			has_y_flag = !regExp_flag_y_support && flags.indexOf("y") !== -1;
 
 			convertUnicodeSequenceToES5Compatible_failed = false;
-			pattern = beforeRegExpCreate(unicodeAlreadyPrepared, pattern, has_u_flag, has_y_flag);
+			pattern = beforeRegExpCreate(pattern, has_u_flag, has_y_flag);
 
 			if ( convertUnicodeSequenceToES5Compatible_failed === true ) {
 				// something goes wrong and we were not able to modify the es6 Unicode sequence -> do not touch patten and flags
@@ -399,10 +391,6 @@ if( !regExp_flag_u_support || !regExp_flag_y_support ) {
 
 		return re;
 	};
-	polyfillSecretKey = extendedRegExp["__polyfill__"] = function(convertUnicodeSequence_Map, codePointsRange_Map) {
-		convertUnicodeSequenceToES5Compatible_Map = convertUnicodeSequence_Map;
-		codePointsToES5Range_Map = codePointsRange_Map;
-	};
 	extendedRegExp.prototype = $RegExp.prototype;
 	global["RegExp"] = extendedRegExp;
 
@@ -418,12 +406,21 @@ if( !regExp_flag_u_support || !regExp_flag_y_support ) {
 				has_u_flag = !regExp_flag_u_support && flags.indexOf("u") !== -1;
 				has_y_flag = !regExp_flag_y_support && flags.indexOf("y") !== -1;
 
-				pattern = beforeRegExpCreate(false, pattern, has_u_flag, has_y_flag);
+				convertUnicodeSequenceToES5Compatible_failed = false;
+				pattern = beforeRegExpCreate(pattern, has_u_flag, has_y_flag);
+
+				if ( convertUnicodeSequenceToES5Compatible_failed === true ) {
+					// something goes wrong and we were not able to modify the es6 Unicode sequence -> do not touch patten and flags
+					flags = $string_replace.call(flags, "y", "");
+					pattern = originalPattern;
+				}
+				else {
+					flags = $string_replace.call($string_replace.call(flags, "u", ""), "y", "");
+				}
+
 				if ( pattern == originalPattern ) {
 					originalPattern = void 0;
 				}
-
-				flags = $string_replace.call($string_replace.call(flags, "u", ""), "y", "");
 			}
 
 			var re = $compile.apply(this, arguments);
@@ -433,6 +430,26 @@ if( !regExp_flag_u_support || !regExp_flag_y_support ) {
 			}
 		};
 	}
+
+	extendedRegExp["__polyfill__"] = function(convertUnicodeSequence_Map, codePointsRange_Map) {
+		if ( !convertUnicodeSequenceToES5Compatible_Map ) {
+			convertUnicodeSequenceToES5Compatible_Map = convertUnicodeSequence_Map;
+		}
+		else {
+			for( var key in convertUnicodeSequence_Map ) if ( convertUnicodeSequence_Map.hasOwnProperty(key) ) {
+				convertUnicodeSequenceToES5Compatible_Map[key] = convertUnicodeSequence_Map[key];
+			}
+		}
+		if ( !codePointsToES5Range_Map ) {
+			codePointsToES5Range_Map = codePointsRange_Map;
+		}
+		else {
+			for( var key$0 in codePointsToES5Range_Map ) if ( codePointsToES5Range_Map.hasOwnProperty(key$0) ) {
+				convertUnicodeSequenceToES5Compatible_Map[key$0] = codePointsToES5Range_Map[key$0];
+			}
+		}
+
+	};
 
 	if( has__getter__support ) {
 		Object.keys($RegExp).forEach(function(key) {
@@ -598,9 +615,9 @@ if( !regExp_flag_u_support || !regExp_flag_y_support ) {
 			'\\]', 'g');
 
 			convertUnicodeSequenceToES5Compatible = function(pattern) {
-				// TODO:: /foo.bar/u -> /foo(?:[\0-\uD7FF\uDC00-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF])bar/u
+				// TODO:: /foo.bar/u -> /foo(?:\s|[\0-\uD7FF\uDC00-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF])bar/u
 				// TODO:: /foo\Sbar/u -> /foo(?:[\0-\uD7FF\uDC00-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF])bar/u
-				// TODO:: /foo[\s\S]bar/u -> /foo[\\s]|(?:[\0-\uD7FF\uDC00-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF])bar/u
+				// TODO:: /foo[\s\S]bar/u -> /foo[\s]|(?:[\0-\uD7FF\uDC00-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF])bar/u
 
 				return $string_replace.call(pattern, re, unicodeRange);
 			};
