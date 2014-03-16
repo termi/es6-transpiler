@@ -9,6 +9,8 @@ const POLYFILLS_LIB_VERSION = 0.1;
 
 const polifillsMap = {
 	"String.raw": "String_raw"
+	, "RegExp_u_flag": "RegExp"
+	, "RegExp_y_flag": "RegExp"
 };
 
 let plugin = module.exports = {

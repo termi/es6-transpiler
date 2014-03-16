@@ -25,6 +25,7 @@ let plugins = [
 	, require("./transpiler/arrayComprehension")
 	, require("./transpiler/forOf")
 	, require("./transpiler/optimiser")
+	, require("./transpiler/RegExp")
 	, require("./transpiler/unicode")
 	, require("./transpiler/polyfills")
 

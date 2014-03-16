@@ -15,8 +15,10 @@
     "simple-is": "~0.2.0",
     "stringmap": "~0.2.0",
     "stringset": "~0.2.0",
-	"ansidiff": "~1.0.0",
-	"astquery": "latest"
+    "ansidiff": "~1.0.0",
+    "astquery": "latest",
+    "regenerate": "latest",
+    "jsesc": "latest"
   },
   "keywords": [
     "es6-transpiler",

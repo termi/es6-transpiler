@@ -8,6 +8,7 @@
 const assert = require("assert");
 const error = require("./../lib/error");
 const core = require("./core");
+const jsesc = require("jsesc");
 
 function isStringLiteral(node) {
 	let raw;
@@ -79,6 +80,10 @@ var plugin = module.exports = {
 		assert(length && length < 5, 'Invalid unicode sequence.');
 
 		return "\\u" + "0".repeat(4 - length) + charCode;
+	}
+
+	, escape: function(str) {
+		return jsesc(str);
 	}
 };
 
