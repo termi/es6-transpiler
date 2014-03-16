@@ -33,6 +33,8 @@ cp ../lib/StringAlter-es5.js es5/lib/
 
 cp -r ../jshint_globals es5/
 
+polyfills.sh
+
 cd es5
 
 echo "running tests (in es5 mode i.e. without --harmony)"

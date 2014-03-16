@@ -151,6 +151,9 @@ result object is:
         errors: array of error messages or [] // on errors
         stats: statistics object
         ast: transformed ast // ast tree from esprima
+        getNeedfulList: <function: Array.<string>> // list of necessary polyfills
+        getNeedfulLib: <function: string> // text of necessary polyfills
+        getFullLib: <function: string> // text of all available polyfills
     }
 
 ## Options
@@ -171,7 +174,9 @@ Example of `options` object:
         },
         "disallowVars": false,
         "disallowDuplicated": true,
-        "disallowUnknownReferences": true
+        "disallowUnknownReferences": true,
+        "includePolyfills": <boolean> | <"full">,
+        "polyfillsSeparator": <string>
     }
 
 `globals` lets you list your program's globals, and indicate whether they are
@@ -189,6 +194,11 @@ usage of `var` an error.
 
 `disallowUnknownReferences` (defaults to `true`) errors on references to
 unknown global variables.
+
+`includePolyfills` (defaults to `false`) insert polyfills in the output file.
+`true` - insert only the necessary polyfills. `"full"` -  insert all available polyfills.
+
+`polyfillsSeparator` (default - empty string) any string that should be inserted before polyfills library.
 
 ## License
 `MIT`, see [LICENSE](LICENSE) file.

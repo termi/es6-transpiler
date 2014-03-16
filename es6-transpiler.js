@@ -26,6 +26,7 @@ let plugins = [
 	, require("./transpiler/forOf")
 	, require("./transpiler/optimiser")
 	, require("./transpiler/unicode")
+	, require("./transpiler/polyfills")
 
 	, {
 		setup: function(config) {
@@ -52,6 +53,17 @@ if ( IdentifierVK.indexOf('default') === -1 ) {
 	IdentifierVK.push('default');
 }
 
+function consoleArgumentsToOptions(args, options) {
+	args.forEach(function(arg, index, args) {
+		arg = arg + "";
+		if ( arg.startsWith("--") ) {
+			let val = args[index + 1];
+			options[arg.substr(2)] = (!val || val.startsWith("--")) ? true : val;
+		}
+	});
+	return options;
+}
+
 module.exports = {
 	runned: false
 
@@ -72,6 +84,10 @@ module.exports = {
 			}
 
 			if ( passIt === false ) {
+				if ( typeof plugin.onResultObject === 'function' ) {
+					this._onResults.push(plugin.onResultObject);
+				}
+
 				let pluginAstQuerySteps = Object.keys(plugin)
 					.filter(function(prop){ return prop.substr(0, 2) == "::" } )
 				;
@@ -123,6 +139,7 @@ module.exports = {
 			}
 
 			if( config ) {
+				this.reset();
 				this.setupPlugins(config);
 			}
 		}
@@ -139,16 +156,21 @@ module.exports = {
 		});
 
 		this._astQuerySteps = {};
+		this._onResults = [];
 	}
 
 	, run: function run(config) {
 		this.config = config || (config = {});
 		for(let i in defaultOptions)if(defaultOptions.hasOwnProperty(i) && !config.hasOwnProperty(i))config[i] = defaultOptions[i];
+		if ( config["fromConsole"] === true && Array.isArray(config["consoleArgs"]) ) {
+			consoleArgumentsToOptions(config["consoleArgs"], config);
+		}
 
 		if( this.runned === true ) {
 			this.reset();
 		}
 		this._astQuerySteps = {};
+		this._onResults = [];
 		this.runned = true;
 
 		config.fullES6 = true;// by default for now
@@ -250,6 +272,11 @@ module.exports = {
 		if( config.outputFilename ) {
 			fs.writeFileSync(config.outputFilename, output.src)
 		}
+
+		this._onResults.forEach(function(callback) {
+			callback(output)
+		});
+
 		return output;
 	}
 

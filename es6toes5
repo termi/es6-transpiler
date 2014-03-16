@@ -1,2 +1,4 @@
 #!/usr/bin/env node --harmony
-require("./es6-transpiler").run({filename: process.argv[2], outputToConsole: !process.argv[3], outputFilename: process.argv[3], errorsToConsole: true});
+var isParams = false;
+var args = process.argv.filter(function(arg) { return isParams ? false : !(isParams = ((arg + "").indexOf("--") !== -1)) });
+var res = require("./es6-transpiler").run({filename: args[2], outputToConsole: !args[3], outputFilename: args[3], errorsToConsole: true, fromConsole: true, consoleArgs: process.argv});
