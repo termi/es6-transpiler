@@ -367,23 +367,27 @@ if( !regExp_flag_u_support || !regExp_flag_y_support ) {
 	}
 
 	extendedRegExp["__polyfill__"] = function(convertUnicodeSequence_Map, codePointsRange_Map) {
-		if ( !convertUnicodeSequenceToES5Compatible_Map ) {
-			convertUnicodeSequenceToES5Compatible_Map = convertUnicodeSequence_Map;
-		}
-		else {
-			for( let key in convertUnicodeSequence_Map ) if ( convertUnicodeSequence_Map.hasOwnProperty(key) ) {
-				convertUnicodeSequenceToES5Compatible_Map[key] = convertUnicodeSequence_Map[key];
+		if ( convertUnicodeSequence_Map && typeof convertUnicodeSequence_Map === 'object' ) {
+			if ( !convertUnicodeSequenceToES5Compatible_Map ) {
+				convertUnicodeSequenceToES5Compatible_Map = convertUnicodeSequence_Map;
 			}
-		}
-		if ( !codePointsToES5Range_Map ) {
-			codePointsToES5Range_Map = codePointsRange_Map;
-		}
-		else {
-			for( let key in codePointsToES5Range_Map ) if ( codePointsToES5Range_Map.hasOwnProperty(key) ) {
-				convertUnicodeSequenceToES5Compatible_Map[key] = codePointsToES5Range_Map[key];
+			else {
+				for( let key in convertUnicodeSequence_Map ) if ( convertUnicodeSequence_Map.hasOwnProperty(key) ) {
+					convertUnicodeSequenceToES5Compatible_Map[key] = convertUnicodeSequence_Map[key];
+				}
 			}
 		}
 
+		if ( codePointsRange_Map && typeof codePointsRange_Map === 'object' ) {
+			if ( !codePointsToES5Range_Map ) {
+				codePointsToES5Range_Map = codePointsRange_Map;
+			}
+			else {
+				for( let key in codePointsToES5Range_Map ) if ( codePointsToES5Range_Map.hasOwnProperty(key) ) {
+					convertUnicodeSequenceToES5Compatible_Map[key] = codePointsToES5Range_Map[key];
+				}
+			}
+		}
 	};
 
 	if( has__getter__support ) {
@@ -639,16 +643,78 @@ if( !regExp_flag_u_support || !regExp_flag_y_support ) {
 		}
 
 		{
-			globalString_prototype.replace = function(pattern) {
-				// TODO::
+			globalString_prototype.replace = function(pattern, replacer) {
+				let result;
+				let patternIsRegExpWithStickyAndGlobalFlag = pattern && typeof pattern === 'object' && pattern instanceof $RegExp && pattern["sticky"] && pattern.global;
 
+				if( patternIsRegExpWithStickyAndGlobalFlag ) {
+					let isFunction = typeof replacer === 'function';
+					if ( !isFunction ) {
+						replacer = String(replacer);
+					}
 
-				let result = $string_replace.apply(this, arguments);
+					let str = this + "", execRes
+						, parts = [], lastIndex = 0
+					;
+					while( execRes = pattern.exec(str) ) {
+						var found = execRes[0]
+							, args = execRes
+							, end = pattern.lastIndex
+						;
+
+//						parts.push(str.substring(lastIndex, start));
+
+						if ( isFunction ) {
+							args.push(lastIndex, str);
+							parts.push(replacer.apply(void 0, args));
+						}
+						else {
+							// "12345678987654321".replace(/4/g, "($&)") + " - " + "12345678987654321".replace(/4/g, "($`)") + " - " + "12345678987654321".replace(/4/g, "($')") + " - " + "12345678987654321".replace(/(4)/g, "($1)")
+							// "123(4)567898765(4)321 - 123(123)567898765(1234567898765)321 - 123(5678987654321)567898765(321)321 - 123(4)567898765(4)321"
+//							"$1$$1($')($`)($&)($12)".replace(/\$(?:(')|(`)|(\&)|(\d(?:\d)?))/g, function(str, $1, $2, $3, $nn, offset, string){
+//								console.log(string[offset - 1], str, $1, $2, $3, $nn)
+//							})
+							parts.push(replacer.replace(/\$(?:(&)|(`)|(')|(\d(?:\d)?))/g, function(pattern, $1, $2, $3, $nn, offset, string) {
+								if ( string[offset - 1] !== '$' ) {
+									if ( $1 ) {// $& - Inserts the matched substring.
+										return found;
+									}
+									if ( $2 ) {// $` - Inserts the portion of the string that precedes the matched substring.
+										return str.substring(0, lastIndex);
+									}
+									if ( $3 ) {// $' - Inserts the portion of the string that follows the matched substring.
+										return str.substring(end);
+									}
+									if ( $nn ) {// $n or $nn - Where n or nn are decimal digits, inserts the nth parenthesized submatch string, provided the first argument was a RegExp object.
+										$nn = +$nn;
+										if ( $nn !== 0 && $nn < args.length ) {
+											return args[$nn];
+										}
+									}
+								}
+								else {
+									pattern = pattern.substring(1);
+								}
+								return pattern;
+							}));
+						}
+
+						lastIndex = end;
+					}
+
+					parts.push(str.substring(lastIndex));
+
+					result = parts.join("");
+					parts = void 0;
+				}
+				else {
+					result = $string_replace.apply(this, arguments);
+				}
 
 				if ( updateGlobalRegExpProperties !== void 0 )updateGlobalRegExpProperties();
 
 				return result;
-			}
+			};
 			let $match = globalString_prototype.match;
 			globalString_prototype.match = function(pattern) {
 				let result;
@@ -673,7 +739,7 @@ if( !regExp_flag_u_support || !regExp_flag_y_support ) {
 				if ( updateGlobalRegExpProperties !== void 0 )updateGlobalRegExpProperties();
 
 				return result;
-			}
+			};
 		}
 	}
 }
