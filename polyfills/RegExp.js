@@ -345,13 +345,11 @@ if( !regExp_flag_u_support || !regExp_flag_y_support ) {
 				pattern = beforeRegExpCreate(pattern, has_u_flag, has_y_flag);
 
 				if ( convertUnicodeSequenceToES5Compatible_failed === true ) {
-					// something goes wrong and we were not able to modify the es6 Unicode sequence -> do not touch patten and flags
-					flags = $string_replace.call(flags, "y", "");
+					// something goes wrong and we were not able to modify the es6 Unicode sequence -> do not touch patten
 					pattern = originalPattern;
 				}
-				else {
-					flags = $string_replace.call($string_replace.call(flags, "u", ""), "y", "");
-				}
+
+				flags = $string_replace.call($string_replace.call(flags, "u", ""), "y", "");
 
 				if ( pattern == originalPattern ) {
 					originalPattern = void 0;
@@ -541,15 +539,15 @@ if( !regExp_flag_u_support || !regExp_flag_y_support ) {
 				return result;
 			};
 
-			let re = new RegExp('\\[' +
+			let findCodePoint_RE = new RegExp('\\[' +
 				'(?:' +
 					'(?:(?:\\\\u(\\w{4}))(?:\\\\u(\\w{4}))?)' +
-					'|((?:[\\0-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|[\\uD800-\\uDBFF])+?)' +
+					'|((?:[\\0-\\u005A\\u005C\\u005F-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|[\\uD800-\\uDBFF])+?)' +
 				')' +
 				'\\-' +
 				'(?:' +
 					'(?:(?:\\\\u(\\w{4}))(?:\\\\u(\\w{4}))?)' +
-					'|((?:[\\0-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|[\\uD800-\\uDBFF])+?)' +
+					'|((?:[\\0-\\u005A\\u005C\\u005F-\\uD7FF\\uDC00-\\uFFFF][\\uDC00-\\uDFFF]|[\\uD800-\\uDBFF]|[\\uD800-\\uDBFF])+?)' +
 				')' +
 			'\\]', 'g');
 
@@ -558,7 +556,7 @@ if( !regExp_flag_u_support || !regExp_flag_y_support ) {
 				// TODO:: /foo\Sbar/u -> /foo(?:[\0-\uD7FF\uDC00-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF])bar/u
 				// TODO:: /foo[\s\S]bar/u -> /foo[\s]|(?:[\0-\uD7FF\uDC00-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF])bar/u
 
-				return $string_replace.call(pattern, re, unicodeRange);
+				return $string_replace.call(pattern, findCodePoint_RE, unicodeRange);
 			};
 			convertUnicodeSequenceToES5Compatible_Map = {};
 			codePointsToES5Range_Map = {};

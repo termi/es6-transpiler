@@ -48,12 +48,6 @@ let plugins = [
 	}
 ];
 
-// adding custom keys in ASTQuery.VISITOR_KEYS
-let IdentifierVK = ASTQuery.VISITOR_KEYS['Identifier'];
-if ( IdentifierVK.indexOf('default') === -1 ) {
-	IdentifierVK.push('default');
-}
-
 function consoleArgumentsToOptions(args, options) {
 	args.forEach(function(arg, index, args) {
 		arg = arg + "";
@@ -233,7 +227,13 @@ module.exports = {
 
 		this.setupPlugins(config);
 
-		let astQuery = new ASTQuery(this.ast);
+		// adding custom keys in ASTQuery.VISITOR_KEYS
+		let visitorKeys = ASTQuery.getVisitorKeys('es6');
+		let IdentifierVK = visitorKeys['Identifier'];
+		if ( IdentifierVK.indexOf('default') === -1 ) {
+			IdentifierVK.push('default');
+		}
+		let astQuery = new ASTQuery(this.ast, visitorKeys);
 		astQuery.on(this._astQuerySteps);
 
 		plugins.forEach(this.runPlugin, this);

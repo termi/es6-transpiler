@@ -32,7 +32,7 @@ Beta
  * unicode code point escapes
  * RegExp:
    * 'y' flag support
-   * partial 'u' flag support with unicode ranges
+   * partial 'u' flag support with unicode ranges (negative characterClass unsupported)
 
 Static scope analysis and transpilation of ES6 block scoped `const` and `let` variables to ES3 based on [olov/defs](https://github.com/olov/defs).
 
@@ -241,6 +241,4 @@ minor problem in practice.
  1. Generators support
  1. Modules support
  1. 'pre-es6-node10', 'pre-es6-chrome20' and 'pre-es6-ff24' output modes
- 1. /foo.bar/u -> /foo(?:\s|[\0-\uD7FF\uDC00-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF])bar/u
- 1. /foo\Sbar/u -> /foo(?:[\0-\uD7FF\uDC00-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF])bar/u
- 1. /foo[\s\S]bar/u -> /foo[\s]|(?:[\0-\uD7FF\uDC00-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF])bar/u
+ 1. /N[^\s\uD800\uDC00-\uD800\uDCAA1-9]N/u -> /N(?:[^\s1-9]|\uD800[\uDCAB-\uDFFF]|[\uD801-\uDBFF][\uDC00-\uDFFF])N/

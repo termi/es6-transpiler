@@ -12,6 +12,10 @@
 //  regenerate.fromCodePointRange(0x0, 0x10FFFF)
 // '[\0-\uD7FF\uDC00-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF]'
 
+// Unicode in RegExp @see http://www.unicode.org/reports/tr18/index.html
+// Unicode character class @see https://bugzilla.mozilla.org/show_bug.cgi?id=258974 | https://github.com/mathiasbynens/unicode-data
+// proposals:extend_regexps @see http://wiki.ecmascript.org/doku.php?id=proposals:extend_regexps
+
 "use strict";
 
 const assert = require("assert");
@@ -20,26 +24,18 @@ const core = require("./core");
 const polyfills = require("./polyfills");
 const unicode = require("./unicode");
 const regenerate = require("regenerate");
-
-const RE_REGEXP_RANGES =
-	new RegExp('\\[' +
-		'(?:' +
-			'(?:(?:\\\\u(\\w{4}))(?:\\\\u(\\w{4}))?)' +
-			'|((?:[\\0-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|[\\uD800-\\uDBFF])+)' +
-		')' +
-		'\\-' +
-		'(?:' +
-			'(?:(?:\\\\u(\\w{4}))(?:\\\\u(\\w{4}))?)' +
-			'|((?:[\\0-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|[\\uD800-\\uDBFF])+)' +
-		')' +
-	'\\]', 'g')
-;
+const regjsparser = require("./../lib/regjsparser");
+const ASTQuery = require("ASTQuery");
+const StringAlter = require("./../lib/StringAlter-es5");
 
 var plugin = module.exports = {
 	reset: function() {
 		this.codePointsRange_Map = {};
 		this.regExpTranslation_Map = {};
 		this.__alterHasThisChanges = false;
+		this._isInCharacterClass = false;
+		this._reStringAlter = void 0;
+		this._isNegativeCharacterClass = void 0;
 	}
 
 	, setup: function(alter, ast, options) {
@@ -69,7 +65,7 @@ var plugin = module.exports = {
 
 					let newPattern = this.regExpTranslation_Map[oldPattern];
 					if ( newPattern === void 0 ) {
-						newPattern = this.convertUnicodeRegExp(regExpBody);
+						newPattern = this.convertUnicodeRegExp(regExpBody, flags);
 
 						if ( newPattern == oldPatternEscaped ) {
 							this.regExpTranslation_Map[oldPattern] = true;
@@ -77,10 +73,11 @@ var plugin = module.exports = {
 						else {
 							this.regExpTranslation_Map[oldPattern] = newPattern;
 
-							let oldPatternDecoded = (new Function("return '" + oldPattern + "'"))();
-							if ( oldPatternDecoded != oldPatternEscaped ) {
-								this.regExpTranslation_Map[oldPatternDecoded] = newPattern;
-							}
+//							let oldPatternDecoded = (new Function("return '" + oldPattern + "'"))();
+//							if ( oldPatternDecoded != oldPatternEscaped ) {
+//								// TODO:: replace unicode value ('\\uXXXX') with '\uXXXX'
+//								this.regExpTranslation_Map[oldPatternDecoded] = newPattern;
+//							}
 
 							this.regExpTranslation_Map[newPattern] = true;
 						}
@@ -116,65 +113,124 @@ var plugin = module.exports = {
 		}
 	}
 
-	, convertUnicodeRegExp: function(regExpBody) {
-		let self = this;
+	, convertUnicodeRegExp: function(regExpBody, flags) {
+//		try {
+			let regExpAst = regjsparser.parse(regExpBody, flags);
+			let stringAlter = this._reStringAlter = new StringAlter(regExpBody);
 
-		// TODO:: [\x01-\uD7FF\uDC00-\uFFFF], [a-b-c-e] support
-		// TODO:: /foo.bar/u -> /foo(?:[\0-\uD7FF\uDC00-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF])bar/u
-		// TODO:: /foo\Sbar/u -> /foo(?:[\0-\uD7FF\uDC00-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF])bar/u
-		// TODO:: /foo[\s\S]bar/u -> /foo(?:[\\s]|[\0-\uD7FF\uDC00-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF])bar/u
+			(new ASTQuery(regExpAst, 'regexp')).on(this, {prefix: ':re:'});
+
+			let result = stringAlter.apply();
+			this._reStringAlter = void 0;
+			return result;
+//		}
+//		catch(e) {
+			// TODO:: errors('Invalid regular expression: ' + e + ': ' + regExpBody) without throw
+//		}
+	}
+
+	, ':re: characterClass': function(node, astQuery) {
+		this._isInCharacterClass = true;
+
+		if ( node.negative ) {
+			throw new Error("Unsupported for now");
+			// TODO:: astQuery.setMode('negative');
+		}
+	}
+	, ':re: characterClassRange': function(node) {
+		let needToReplace = true;
 
 		try {
-			return unicode.convert(regExpBody).string
-				.replace(RE_REGEXP_RANGES, function(str, code11, code12, char1, code21, code22, char2) {
-					if ( code11 ) {
-						code11 = parseInt(code11, 16);
-						if ( code12 ) {
-							char1 = String.fromCharCode(code11, parseInt(code12, 16));
-						}
-						else {
-							char1 = String.fromCharCode(code11);
-						}
-					}
-
-					if ( code21 ) {
-						code21 = parseInt(code21, 16);
-						if ( code22 ) {
-							char2 = String.fromCharCode(code21, parseInt(code22, 16));
-						}
-						else {
-							char2 = String.fromCharCode(code21);
-						}
-					}
-
-					return self._createRegExpAstralRange(char1, char2);
-				})
-			;
+			(new RegExp("[" + node.raw + "]")).test(1);
+			needToReplace = false;
 		}
-		catch(e) {
-			throw new SyntaxError('Invalid regular expression: ' + e + ': ' + regExpBody);
+		catch(e){}
+
+		if ( !needToReplace && node.min.name != "codePoint" && node.max.name != "codePoint" ) {
+			return false;
+		}
+
+		node.$newRaw = this._createRegExpAstralRange(regjsparser.nodeToCharCode(node.min), regjsparser.nodeToCharCode(node.max));
+	}
+	, ':re: escapeChar[value=W]': function(node) {
+		// The production CharacterClassEscape :: w evaluates by returning the set of characters containing the sixty-three characters:
+		//	a	b	c	d	e	f	g	h	i	j	k	l	m	n	o	p	q	r	s	t	u	v	w	x	y	z
+		//	A	B	C	D	E	F	G	H	I	J	K	L	M	N	O	P	Q	R	S	T	U	V	W	X	Y	Z
+		//	0	1	2	3	4	5	6	7	8	9	_
+		// The production CharacterClassEscape :: W evaluates by returning the set of all characters not included in the set returned by CharacterClassEscape :: w .
+		let pattern = '[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|\\W';
+		let replacer = '(?:' + pattern + ')';
+
+		if(this._isInCharacterClass) {
+			node.$newRaw = replacer;
+		}
+		else {
+			this._reStringAlter.replace(node.from, node.to, replacer);
+		}
+	}
+	, ':re: escapeChar[value=D]': function(node) {
+		// The production CharacterClassEscape :: d evaluates by returning the ten-element set of characters containing the characters 0 through 9 inclusive.
+		// The production CharacterClassEscape :: D evaluates by returning the set of all characters not included in the set returned by CharacterClassEscape :: d .
+		let pattern = '[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|\\D';
+		let replacer = '(?:' + pattern + ')';
+
+		if(this._isInCharacterClass) {
+			node.$newRaw = pattern;
+		}
+		else {
+			this._reStringAlter.replace(node.from, node.to, replacer);
+		}
+	}
+	, ':re: escapeChar[value=S]': function(node) {
+		// The production CharacterClassEscape :: s evaluates by returning the set of characters containing the characters that are on the right-hand side of the WhiteSpace (11.2) or LineTerminator (11.3) productions.
+		// TODO:: For \s: Other category “Zs” | Any other Unicode “space separator” | <USP>
+		// The production CharacterClassEscape :: S evaluates by returning the set of all characters not included in the set returned by CharacterClassEscape :: s .
+		let pattern = '[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|\\S';
+		//alternative: '[\\0-\\x08\\x0E-\\x1F\\x21-\\x9F\\xA1-\\u2027\\u202A-\\uD7FF\\uDC00-\\uFEFE\\uFF00-\\uFFFF]|[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|[\\uD800-\\uDBFF]';
+		//regenerate().addRange(0x000000, 0x10FFFF).remove(0x0009, 0x000A, 0x000B, 0x000C, 0x000D, 0x0020, 0x00A0, 0x2028, 0x2029, 0xFEFF);
+		let replacer = '(?:' + pattern + ')';
+
+		if(this._isInCharacterClass) {
+			node.$newRaw = pattern;
+		}
+		else {
+			this._reStringAlter.replace(node.from, node.to, replacer);
+		}
+	}
+	, ':re: ^ characterClass': function(node) {
+		this._isInCharacterClass = false;
+
+		let isNegative = node.negative;
+		let oldPart = "", newPart = "";
+		node.classRanges.forEach(function(classRange) {
+			let newRaw = classRange.$newRaw;
+			if ( newRaw !== void 0 ) {
+				newPart = newPart + (newPart ? "|" : "") + newRaw;
+				return;
+			}
+			oldPart += classRange.raw;
+		});
+
+		if ( newPart ) {
+			newPart = "(?:" + newPart + ")";
+			if ( oldPart ) {
+				newPart = "(?:" + newPart;
+				oldPart = "|[" + oldPart + "])";
+			}
+			this._reStringAlter.replace(node.from, node.to, newPart + oldPart);
 		}
 	}
 
-	, _createRegExpAstralRange: function(fromChar, toChar) {
-		let fromChar_length = fromChar.length
-			, toChar_length = toChar.length
-		;
+	, ':re: dot': function(node) {
+		// The production Atom :: . evaluates as follows: Let A be the set of all characters except LineTerminator.
+		let pattern = '[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|.';
+		//alternative: '[\\0-\\x09\\x0B\\x0C\\x0E-\\u2027\\u202A-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|[\\uD800-\\uDBFF]'
+		//regenerate().addRange(0x000000, 0x10FFFF).remove(0x000A, 0x000D, 0x2028, 0x2029)
+		let replacer = '(?:' + pattern + ')';
+		this._reStringAlter.replace(node.from, node.to, replacer);
+	}
 
-		assert(fromChar_length <= 2, 'Invalid regular expression (1)');
-		assert(toChar_length <= 2, 'Invalid regular expression (2)');
-
-		let codePoint1 = fromChar.codePointAt(0)
-			, codePoint2 = toChar.codePointAt(0)
-		;
-
-		if ( fromChar_length > 1 ) {
-			assert(String.fromCodePoint(codePoint1) == fromChar, 'Invalid regular expression (3)');
-		}
-		if ( toChar_length > 1 ) {
-			assert(String.fromCodePoint(codePoint2) == toChar, 'Invalid regular expression (4)');
-		}
-
+	, _createRegExpAstralRange: function(codePoint1, codePoint2) {
 		let key = codePoint1 + '|' + codePoint2;
 		let result = this.codePointsRange_Map[key];
 
