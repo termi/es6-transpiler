@@ -1,3 +1,4 @@
+// @see http://www.nczonline.net/blog/2012/08/01/a-critical-review-of-ecmascript-6-quasi-literals/
 "use strict";
 
 const assert = require("assert");
