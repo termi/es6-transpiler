@@ -38,7 +38,7 @@ $D$0 = GET_ITER$0(someArray);$D$4 = $D$0 === 0;$D$5 = ($D$4 ? someArray.length :
     }
 
     test2();
-}).call(this);};$D$0 = $D$4 = $D$5 = void 0;
+})();};$D$0 = $D$4 = $D$5 = void 0;
 console.log(str1 === "012");
 
 var str2 = "";
