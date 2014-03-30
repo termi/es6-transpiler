@@ -66,7 +66,8 @@ var plugin = module.exports = {
 
 	, replaceCallExpression: function(node) {
 		const isMemberExpression = node.callee.type === "MemberExpression";
-		const isSimpleMemberExpression = isMemberExpression && node.callee.object.type === "Identifier";
+		const calleeType = isMemberExpression && node.callee.object.type;
+		const isSimpleMemberExpression = isMemberExpression && (calleeType === "Identifier" || calleeType === "ThisExpression");
 //		const functionNameNode = isMemberExpression ? node.callee.property : node.callee;
 		const args = node["arguments"];
 		const argsLength = args.length;
