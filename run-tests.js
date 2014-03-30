@@ -203,4 +203,6 @@ function test(file) {
 
 //tests = [tests[0], tests[1]];
 
+console.log('test', tests.length, 'files');
 tests.forEach(test);
+console.log(tests.length, 'all done');
