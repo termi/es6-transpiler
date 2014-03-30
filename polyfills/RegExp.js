@@ -241,6 +241,7 @@ if( !regExp_flag_u_support || !regExp_flag_y_support ) {
 		, updateGlobalRegExpProperties
 		, globalString_prototype = global["String"].prototype
 		, $string_replace = globalString_prototype.replace
+		, unescapeUnicode
 	;
 
 	let beforeRegExpCreate = function(pattern, has_u_flag, has_y_flag) {
@@ -253,6 +254,8 @@ if( !regExp_flag_u_support || !regExp_flag_y_support ) {
 				}
 				else {
 					pattern = convertUnicodeSequenceToES5Compatible_Map[pattern] = newPattern;
+
+					convertUnicodeSequenceToES5Compatible_Map[newPattern] = true;
 				}
 			}
 			else if ( newPattern === true || newPattern === false ) {
@@ -364,29 +367,63 @@ if( !regExp_flag_u_support || !regExp_flag_y_support ) {
 		};
 	}
 
-	extendedRegExp["__polyfill__"] = function(convertUnicodeSequence_Map, codePointsRange_Map) {
-		if ( convertUnicodeSequence_Map && typeof convertUnicodeSequence_Map === 'object' ) {
-			if ( !convertUnicodeSequenceToES5Compatible_Map ) {
-				convertUnicodeSequenceToES5Compatible_Map = convertUnicodeSequence_Map;
-			}
-			else {
-				for( let key in convertUnicodeSequence_Map ) if ( convertUnicodeSequence_Map.hasOwnProperty(key) ) {
-					convertUnicodeSequenceToES5Compatible_Map[key] = convertUnicodeSequence_Map[key];
+	if ( !regExp_flag_u_support ) {
+		// TODO:: require('lib/unescapeUnicode')
+		unescapeUnicode = function(escapedString) {
+			return escapedString.replace(/\\u(\w{4})/g, (found, charCode, offset, string) => {
+				var prev1 = string[offset - 1],  prev2 = string[offset - 2];
+				if ( prev1 === '\\' && prev2 !== '\\' ) {
+					return found;
 				}
-			}
-		}
 
-		if ( codePointsRange_Map && typeof codePointsRange_Map === 'object' ) {
-			if ( !codePointsToES5Range_Map ) {
-				codePointsToES5Range_Map = codePointsRange_Map;
+				return String.fromCharCode(parseInt(charCode, 16));
+			});
+		};
+
+		extendedRegExp["__polyfill__"] = function(convertUnicodeSequence_Map, codePointsRange_Map) {
+			if ( convertUnicodeSequence_Map && typeof convertUnicodeSequence_Map === 'object' ) {
+				if ( !convertUnicodeSequenceToES5Compatible_Map ) {
+					convertUnicodeSequenceToES5Compatible_Map = {};
+				}
+
+				for( let key in convertUnicodeSequence_Map ) if ( convertUnicodeSequence_Map.hasOwnProperty(key) ) {
+					let newPattern = convertUnicodeSequenceToES5Compatible_Map[key] = convertUnicodeSequence_Map[key];
+					let unescapedKey = unescapeUnicode(key);
+					if ( key !== unescapedKey ) {
+						convertUnicodeSequenceToES5Compatible_Map[unescapedKey] = newPattern;
+					}
+					if ( typeof newPattern === 'string' ) {
+						convertUnicodeSequenceToES5Compatible_Map[newPattern] = true;
+					}
+				}
 			}
-			else {
-				for( let key in codePointsToES5Range_Map ) if ( codePointsToES5Range_Map.hasOwnProperty(key) ) {
-					convertUnicodeSequenceToES5Compatible_Map[key] = codePointsToES5Range_Map[key];
+
+			if ( codePointsRange_Map && typeof codePointsRange_Map === 'object' ) {
+				if ( !codePointsToES5Range_Map ) {
+					codePointsToES5Range_Map = codePointsRange_Map;
+				}
+				else {
+					for( let key in codePointsToES5Range_Map ) if ( codePointsToES5Range_Map.hasOwnProperty(key) ) {
+						convertUnicodeSequenceToES5Compatible_Map[key] = codePointsToES5Range_Map[key];
+					}
+				}
+			}
+		};
+
+		if ( "__polyfill__" in $RegExp ) {
+			let initialData = $RegExp["__polyfill__"];
+			delete $RegExp["__polyfill__"];
+
+			if ( Array.isArray(initialData) ) {
+				let data;
+				while ( data = initialData.shift() ) {
+					if ( Array.isArray(data) ) {
+						extendedRegExp["__polyfill__"](data[0], data[1]);
+					}
 				}
 			}
 		}
-	};
+	}
 
 	if( has__getter__support ) {
 		Object.keys($RegExp).forEach(function(key) {
@@ -542,12 +579,14 @@ if( !regExp_flag_u_support || !regExp_flag_y_support ) {
 			let findCodePoint_RE = new RegExp('\\[' +
 				'(?:' +
 					'(?:(?:\\\\u(\\w{4}))(?:\\\\u(\\w{4}))?)' +
-					'|((?:[\\0-\\u005A\\u005C\\u005F-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|[\\uD800-\\uDBFF])+?)' +
+//					'|((?:[\\0-\\u005A\\u005C\\u005F-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|[\\uD800-\\uDBFF])+?)' +
+					'|((?:[\\0-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|[\\uD800-\\uDBFF])+?)' +
 				')' +
 				'\\-' +
 				'(?:' +
 					'(?:(?:\\\\u(\\w{4}))(?:\\\\u(\\w{4}))?)' +
-					'|((?:[\\0-\\u005A\\u005C\\u005F-\\uD7FF\\uDC00-\\uFFFF][\\uDC00-\\uDFFF]|[\\uD800-\\uDBFF]|[\\uD800-\\uDBFF])+?)' +
+//					'|((?:[\\0-\\u005A\\u005C\\u005F-\\uD7FF\\uDC00-\\uFFFF][\\uDC00-\\uDFFF]|[\\uD800-\\uDBFF]|[\\uD800-\\uDBFF])+?)' +
+					'|((?:[\\0-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|[\\uD800-\\uDBFF])+?)' +
 				')' +
 			'\\]', 'g');
 
@@ -558,8 +597,12 @@ if( !regExp_flag_u_support || !regExp_flag_y_support ) {
 
 				return $string_replace.call(pattern, findCodePoint_RE, unicodeRange);
 			};
-			convertUnicodeSequenceToES5Compatible_Map = {};
-			codePointsToES5Range_Map = {};
+			if ( !convertUnicodeSequenceToES5Compatible_Map ) {
+				convertUnicodeSequenceToES5Compatible_Map = {};
+			}
+			if ( !codePointsToES5Range_Map ) {
+				codePointsToES5Range_Map = {};
+			}
 		}
 
 		Object.defineProperties(extendedRegExp.prototype, newProps);
@@ -646,6 +689,11 @@ if( !regExp_flag_u_support || !regExp_flag_y_support ) {
 				let patternIsRegExpWithStickyAndGlobalFlag = pattern && typeof pattern === 'object' && pattern instanceof $RegExp && pattern["sticky"] && pattern.global;
 
 				if( patternIsRegExpWithStickyAndGlobalFlag ) {
+					// String.match and String.replace now reset RegExp.lastIndex
+					// [https://bugzilla.mozilla.org/show_bug.cgi?id=501739](Bug 501739 � String match and replace methods do not update global regexp lastIndex per ES3&5)
+					// The String.match and String.replace methods have been refactored to resolve a spec conformance issue on RegExp.lastIndex. When those methods are called with a global regular expression, the lastIndex, if specified, will be reset to 0.
+					pattern.lastIndex = 0;
+
 					let isFunction = typeof replacer === 'function';
 					if ( !isFunction ) {
 						replacer = String(replacer);

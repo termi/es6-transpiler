@@ -20,6 +20,9 @@
     "regenerate": "latest",
     "jsesc": "latest"
   },
+  "devDependencies": {
+    "nodeunit": "latest"
+  },
   "keywords": [
     "es6-transpiler",
     "scope",
