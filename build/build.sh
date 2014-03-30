@@ -12,7 +12,7 @@ do
   node --harmony ../es6toes5 ../$i es5/$i
 done
 
-declare -a transpilers=(arrayComprehension.js classes.js core.js destructuring.js forOf.js functions.js letConst.js loopClosures.js objectLiteral.js quasiLiterals.js spread.js optimiser.js unicode.js)
+declare -a transpilers=(arrayComprehension.js classes.js core.js destructuring.js forOf.js functions.js letConst.js loopClosures.js objectLiteral.js quasiLiterals.js spread.js optimiser.js unicode.js polyfills.js RegExp.js)
 for i in ${transpilers[@]}
 do
   echo "building transpiler/$i"
@@ -30,6 +30,7 @@ cp es6toes5 es5/
 
 cp ../lib/esprima_harmony.js es5/lib/
 cp ../lib/StringAlter-es5.js es5/lib/
+cp ../lib/regjsparser.js es5/lib/
 
 cp -r ../jshint_globals es5/
 
