@@ -1,20 +1,22 @@
 // About 'y' flag
-// @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/sticky
-// @see http://developer.mozilla.org/es4/proposals/extend_regexps.html#y_flag
-// @see http://wiki.ecmascript.org/doku.php?id=proposals:extend_regexps&s=regexp#y_flag
-// @see http://mathiasbynens.be/notes/javascript-unicode#astral-ranges
-// @see https://github.com/google/traceur-compiler/issues/370
-// @see http://stackoverflow.com/questions/4542304/what-does-regex-flag-y-do
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/sticky
+// http://developer.mozilla.org/es4/proposals/extend_regexps.html#y_flag
+// http://wiki.ecmascript.org/doku.php?id=proposals:extend_regexps&s=regexp#y_flag
+// http://mathiasbynens.be/notes/javascript-unicode#astral-ranges
+// https://github.com/google/traceur-compiler/issues/370
+// http://stackoverflow.com/questions/4542304/what-does-regex-flag-y-do
 
 // About 'u' flag
 // http://mathiasbynens.be/notes/javascript-unicode#regex
 // https://github.com/mathiasbynens/regenerate
 //  regenerate.fromCodePointRange(0x0, 0x10FFFF)
-// '[\0-\uD7FF\uDC00-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF]'
+//  '[\0-\uD7FF\uDC00-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF]'
+// http://mathiasbynens.be/notes/javascript-unicode#astral-ranges
+// https://github.com/google/traceur-compiler/issues/370
 
-// Unicode in RegExp @see http://www.unicode.org/reports/tr18/index.html
-// Unicode character class @see https://bugzilla.mozilla.org/show_bug.cgi?id=258974 | https://github.com/mathiasbynens/unicode-data
-// proposals:extend_regexps @see http://wiki.ecmascript.org/doku.php?id=proposals:extend_regexps
+// Unicode in RegExp http://www.unicode.org/reports/tr18/index.html
+// Unicode character class https://bugzilla.mozilla.org/show_bug.cgi?id=258974 | https://github.com/mathiasbynens/unicode-data
+// proposals:extend_regexps http://wiki.ecmascript.org/doku.php?id=proposals:extend_regexps
 
 "use strict";
 
@@ -30,7 +32,6 @@ const StringAlter = require("./../lib/StringAlter-es5");
 
 var plugin = module.exports = {
 	reset: function() {
-		this.codePointsRange_Map = {};
 		this.regExpTranslation_Map = {};
 		this.__alterHasThisChanges = false;
 		this._isInCharacterClass = false;
@@ -47,6 +48,8 @@ var plugin = module.exports = {
 		this.alter = alter;
 		this.ast = ast;
 		this.options = options;
+
+		this.codePointsRange_Map = {};
 	}
 
 	, '::Literal': function(node) {
@@ -60,7 +63,7 @@ var plugin = module.exports = {
 
 			if ( flags.contains("y") || isUnicodeFlag ) {
 				if ( isUnicodeFlag ) {
-					let oldPattern = unicode.convert(regExpBody).string;
+					let oldPattern = regExpBody;
 					let oldPatternEscaped = unicode.escape(oldPattern);
 
 					let newPattern = this.regExpTranslation_Map[oldPattern];
@@ -72,14 +75,6 @@ var plugin = module.exports = {
 						}
 						else {
 							this.regExpTranslation_Map[oldPattern] = newPattern;
-
-//							let oldPatternDecoded = (new Function("return '" + oldPattern + "'"))();
-//							if ( oldPatternDecoded != oldPatternEscaped ) {
-//								// TODO:: replace unicode value ('\\uXXXX') with '\uXXXX'
-//								this.regExpTranslation_Map[oldPatternDecoded] = newPattern;
-//							}
-
-							this.regExpTranslation_Map[newPattern] = true;
 						}
 					}
 
@@ -92,8 +87,14 @@ var plugin = module.exports = {
 
 						let self = this;
 
-						this.alter.insert(0, "(RegExp[\"__polyfill__\"]||function(){})", {onbefore: function() {
-							return this.data + "(" + JSON.stringify(self.regExpTranslation_Map) + ", " + JSON.stringify(self.codePointsRange_Map) + ")";
+						let replacer = "(RegExp[\"__polyfill__\"]||function(obj1, obj2){var arr=RegExp[\"__polyfill__\"];" +
+							"if(!arr)arr=RegExp[\"__polyfill__\"]=[];" +
+							"arr.push([obj1,obj2])" +
+							"})"
+						;
+
+						this.alter.insert(0, replacer, {onbefore: function() {
+							return this.data + "(" + JSON.stringify(self.regExpTranslation_Map) + ", " + JSON.stringify(self.codePointsRange_Map) + ");";
 						}});
 					}
 				}
@@ -129,15 +130,35 @@ var plugin = module.exports = {
 //		}
 	}
 
+	, ':re: escape[name=codePoint]': function(node) {
+		if ( !this._isInCharacterClass ) {
+			this._reStringAlter.replace(node.from, node.to, "(?:" + unicode.charCodesFromCodePoint(node.value) + ")");
+		}
+	}
+
 	, ':re: characterClass': function(node, astQuery) {
 		this._isInCharacterClass = true;
 
 		if ( node.negative ) {
-			throw new Error("Unsupported for now");
-			// TODO:: astQuery.setMode('negative');
+			astQuery.mods.add('negative');
+		}
+		else {
+			let needToReplace = true;
+
+			try {
+				(new RegExp("[" + node.raw + "]")).test(1);
+				needToReplace = false;
+			}
+			catch(e){}
+
+			if ( !needToReplace ) {
+				return false;
+			}
 		}
 	}
-	, ':re: characterClassRange': function(node) {
+	, ':re: ?* characterClassRange': function(node, astQuery) {
+		let isNegative = astQuery.mods.contains("negative");
+
 		let needToReplace = true;
 
 		try {
@@ -150,66 +171,106 @@ var plugin = module.exports = {
 			return false;
 		}
 
-		node.$newRaw = this._createRegExpAstralRange(regjsparser.nodeToCharCode(node.min), regjsparser.nodeToCharCode(node.max));
-	}
-	, ':re: escapeChar[value=W]': function(node) {
-		// The production CharacterClassEscape :: w evaluates by returning the set of characters containing the sixty-three characters:
-		//	a	b	c	d	e	f	g	h	i	j	k	l	m	n	o	p	q	r	s	t	u	v	w	x	y	z
-		//	A	B	C	D	E	F	G	H	I	J	K	L	M	N	O	P	Q	R	S	T	U	V	W	X	Y	Z
-		//	0	1	2	3	4	5	6	7	8	9	_
-		// The production CharacterClassEscape :: W evaluates by returning the set of all characters not included in the set returned by CharacterClassEscape :: w .
-		let pattern = '[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|\\W';
-		let replacer = '(?:' + pattern + ')';
+		let charCode1 = regjsparser.nodeToCharCode(node.min);
+		let charCode2 = regjsparser.nodeToCharCode(node.max);
 
-		if(this._isInCharacterClass) {
-			node.$newRaw = replacer;
+		if ( isNegative ) {
+			if ( charCode1 >= 0x010000 && charCode1 <= 0x10FFFF && charCode2 >= 0x010000 && charCode2 <= 0x10FFFF ) {
+				node.$newRaw = "";
+			}
+			else if ( charCode2 >= 0x010000 && charCode2 <= 0x10FFFF ) {
+				node.$newRaw = node.min.raw + "-\\uFFFF";
+				charCode1 = 0x010000;
+			}
+			else {
+				throw new Error('Invalid regular expression: /' + this._reStringAlter.getSource() + '/: Range out of order in character class');
+			}
 		}
-		else {
-			this._reStringAlter.replace(node.from, node.to, replacer);
-		}
+
+		node.$newRange = [charCode1, charCode2];
 	}
-	, ':re: escapeChar[value=D]': function(node) {
-		// The production CharacterClassEscape :: d evaluates by returning the ten-element set of characters containing the characters 0 through 9 inclusive.
-		// The production CharacterClassEscape :: D evaluates by returning the set of all characters not included in the set returned by CharacterClassEscape :: d .
-		let pattern = '[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|\\D';
-		let replacer = '(?:' + pattern + ')';
+
+	// The production CharacterClassEscape :: w evaluates by returning the set of characters containing the sixty-three characters:
+	//	a	b	c	d	e	f	g	h	i	j	k	l	m	n	o	p	q	r	s	t	u	v	w	x	y	z
+	//	A	B	C	D	E	F	G	H	I	J	K	L	M	N	O	P	Q	R	S	T	U	V	W	X	Y	Z
+	//	0	1	2	3	4	5	6	7	8	9	_
+	// The production CharacterClassEscape :: W evaluates by returning the set of all characters not included in the set returned by CharacterClassEscape :: w .
+	, ':re: escapeChar[value=W]': function(node) {
+		let pattern = '[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]';
 
 		if(this._isInCharacterClass) {
 			node.$newRaw = pattern;
 		}
 		else {
-			this._reStringAlter.replace(node.from, node.to, replacer);
+			this._reStringAlter.replace(node.from, node.to, '(?:' + pattern + '|\\W)');
 		}
 	}
+	, ':re: ?negative escapeChar[value=W]': function(node) {
+		node.$limited = true;// opposite of \W is \w
+	}
+
+	// The production CharacterClassEscape :: d evaluates by returning the ten-element set of characters containing the characters 0 through 9 inclusive.
+	// The production CharacterClassEscape :: D evaluates by returning the set of all characters not included in the set returned by CharacterClassEscape :: d .
+	, ':re: escapeChar[value=D]': function(node) {
+		let pattern = '[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]';
+
+		if(this._isInCharacterClass) {
+			node.$newRaw = pattern;
+		}
+		else {
+			this._reStringAlter.replace(node.from, node.to, '(?:' + pattern + '|\\D)');
+		}
+	}
+	, ':re: ?negative escapeChar[value=D]': function(node) {
+		node.$limited = true;// opposite of \D is \d
+	}
+
+	// The production CharacterClassEscape :: s evaluates by returning the set of characters containing the characters that are on the right-hand side of the WhiteSpace (11.2) or LineTerminator (11.3) productions.
+	// TODO:: For \s: Other category “Zs” | Any other Unicode “space separator” | <USP>
+	// The production CharacterClassEscape :: S evaluates by returning the set of all characters not included in the set returned by CharacterClassEscape :: s .
 	, ':re: escapeChar[value=S]': function(node) {
-		// The production CharacterClassEscape :: s evaluates by returning the set of characters containing the characters that are on the right-hand side of the WhiteSpace (11.2) or LineTerminator (11.3) productions.
-		// TODO:: For \s: Other category “Zs” | Any other Unicode “space separator” | <USP>
-		// The production CharacterClassEscape :: S evaluates by returning the set of all characters not included in the set returned by CharacterClassEscape :: s .
-		let pattern = '[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|\\S';
+		let pattern = '[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]';
 		//alternative: '[\\0-\\x08\\x0E-\\x1F\\x21-\\x9F\\xA1-\\u2027\\u202A-\\uD7FF\\uDC00-\\uFEFE\\uFF00-\\uFFFF]|[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|[\\uD800-\\uDBFF]';
 		//regenerate().addRange(0x000000, 0x10FFFF).remove(0x0009, 0x000A, 0x000B, 0x000C, 0x000D, 0x0020, 0x00A0, 0x2028, 0x2029, 0xFEFF);
-		let replacer = '(?:' + pattern + ')';
 
 		if(this._isInCharacterClass) {
 			node.$newRaw = pattern;
 		}
 		else {
-			this._reStringAlter.replace(node.from, node.to, replacer);
+			this._reStringAlter.replace(node.from, node.to, '(?:' + pattern + '|\\S)');
 		}
 	}
+	, ':re: ?negative escapeChar[value=S]': function(node) {
+		node.$limited = true;// opposite of \S is \s
+	}
+
 	, ':re: ^ characterClass': function(node) {
 		this._isInCharacterClass = false;
 
-		let isNegative = node.negative;
+		let rangesMap = {};
 		let oldPart = "", newPart = "";
 		node.classRanges.forEach(function(classRange) {
-			let newRaw = classRange.$newRaw;
-			if ( newRaw !== void 0 ) {
-				newPart = newPart + (newPart ? "|" : "") + newRaw;
+			let newRange = classRange.$newRange;
+			if ( newRange !== void 0 ) {
+				delete classRange.$newRange;
+
+				newRange = this._createRegExpAstralRange(newRange[0], newRange[1]);
+
+				if ( rangesMap[newRange] === void 0 ) {
+					newPart = newPart + (newPart ? "|" : "") + newRange;
+					rangesMap[newRange] = null;
+				}
 				return;
 			}
+			else {
+				let newRaw = classRange.$newRaw;
+				delete classRange.$newRaw;
+				if ( newRaw !== void 0 ) {
+					newPart = newPart + (newPart ? "|" : "") + newRaw;
+				}
+			}
 			oldPart += classRange.raw;
-		});
+		}, this);
 
 		if ( newPart ) {
 			newPart = "(?:" + newPart + ")";
@@ -218,6 +279,49 @@ var plugin = module.exports = {
 				oldPart = "|[" + oldPart + "])";
 			}
 			this._reStringAlter.replace(node.from, node.to, newPart + oldPart);
+		}
+	}
+
+	, ':re: ^ ?negative characterClass': function(node, astQuery) {
+		this._isInCharacterClass = false;
+		if ( node.negative ) {
+			astQuery.mods.remove('negative');
+		}
+
+		let needUnicodeSurrogatePairRange = node.classRanges.every(function(node) {
+			return node.$limited !== true;
+		});
+
+		let rangesMap = {};
+		let orRanges = [];
+		node.classRanges.forEach(function(classRange) {
+			let newRange = classRange.$newRange;
+			if ( newRange ) {
+				delete classRange.$newRange;
+				if ( rangesMap[newRange] === void 0 ) {
+					orRanges.push(newRange);
+					rangesMap[newRange] = null;
+				}
+			}
+
+			if ( classRange.$newRaw !== void 0 ) {
+				this._reStringAlter.replace(classRange.from, classRange.to, classRange.$newRaw);
+				delete classRange.$newRaw;
+			}
+		}, this);
+
+		if ( needUnicodeSurrogatePairRange ) {
+			let result = "";
+			if ( orRanges.length ) {
+				result = this._createRegExpNegativeAstralRange(orRanges);
+			}
+			else {
+				result = "[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]";
+			}
+
+			this._reStringAlter.insertBefore(node.from, "(?:");
+			this._reStringAlter.insert(node.to, "|" + result);
+			this._reStringAlter.insertAfter(node.to, ")");
 		}
 	}
 
@@ -242,6 +346,57 @@ var plugin = module.exports = {
 			}
 
 			this.codePointsRange_Map[key] = result;
+		}
+
+		return result;
+	}
+
+	, _createRegExpNegativeAstralRange: function(ranges) {
+		let key = "!" + ranges.map(function(range){ return range[0] + "|" + range[1]} ).join("!");
+		let result = this.codePointsRange_Map[key];
+
+		if ( result === void 0 ) {
+			ranges = this._subtractRangesFromSurrogatePairsRange(ranges);
+
+			let reg = new regenerate;
+			ranges.forEach(function(range){ reg.addRange(range[0], range[1]); });
+
+			result = reg + "";
+
+			if ( result.contains("|") ) {
+				result = "(?:" + result + ")";
+			}
+
+			this.codePointsRange_Map[key] = result;
+		}
+
+		return result;
+	}
+
+	, _subtractRangesFromSurrogatePairsRange: function(ranges) {
+		ranges = ranges.sort(function(a, b) {
+			a = a[0];
+			b = b[0];
+
+			return a - b;
+		});
+
+		let result = [];
+		let start = 0x010000, end = 0x10FFFF;
+
+		ranges.forEach(function(range) {//TODO:: tests
+			let rangeStart = range[0], rangeEnd = range[1];
+
+			if ( rangeStart > start ) {
+				result.push([start, rangeStart - 1]);
+				start = rangeEnd + 1;
+			}
+			else if ( rangeStart <= start && rangeEnd > start ) {
+				start = rangeEnd + 1;
+			}
+		});
+		if ( start <= end ) {
+			result.push([start, end]);
 		}
 
 		return result;

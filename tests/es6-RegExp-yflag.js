@@ -88,3 +88,5 @@ function test4() {
 	var regex = /^\\\u0078/gyi;
 	console.log(text.match(regex).join("|") == ["\\x", "\\x"].join("|"));
 }
+
+/* <[tests es6-transpiler test file EOF ]> */

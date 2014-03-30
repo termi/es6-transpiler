@@ -1,4 +1,4 @@
-;applyPolyfills$0();(RegExp["__polyfill__"]||function(){})({"foo.bar":"foo(?:[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|.)bar","foo(?:[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|.)bar":true,"foo\\Sbar":"foo(?:[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|\\S)bar","foo(?:[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|\\S)bar":true,"foo[.]|(.)bar":"foo[.]|((?:[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|.))bar","foo[.]|((?:[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|.))bar":true,"foo[\\s\\S]bar":"foo(?:(?:[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|\\S)|[\\s])bar","foo(?:(?:[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|\\S)|[\\s])bar":true,"foo[1-9\\s\\S]bar":"foo(?:(?:[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|\\S)|[1-9\\s])bar","foo(?:(?:[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|\\S)|[1-9\\s])bar":true,"foo[\\s\\S1-9]bar":"foo(?:(?:[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|\\S)|[\\s1-9])bar","foo(?:(?:[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|\\S)|[\\s1-9])bar":true,"foo[\\S1-9]bar":"foo(?:(?:[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|\\S)|[1-9])bar","foo(?:(?:[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|\\S)|[1-9])bar":true,"foo([1-9\\s]|[\\S1-9])bar":"foo([1-9\\s]|(?:(?:[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|\\S)|[1-9]))bar","foo([1-9\\s]|(?:(?:[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|\\S)|[1-9]))bar":true,"(.)\\|(\\S)":"((?:[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|.))\\|((?:[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|\\S))","((?:[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|.))\\|((?:[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|\\S))":true,"A[\\uD83D\\uDCA9-\\uD83D\\uDCAB]A":"A(?:\\uD83D[\\uDCA9-\\uDCAB])A","A(?:\\uD83D[\\uDCA9-\\uDCAB])A":true,"A[💩-💫]A":"A(?:\\uD83D[\\uDCA9-\\uDCAB])A","A\\uD83D[\\uDCA9-\\uDCAB]A":true,"B[\\uD83D\\uDCA9-\\uD83D\\uDCAB]B":"B(?:\\uD83D[\\uDCA9-\\uDCAB])B","B(?:\\uD83D[\\uDCA9-\\uDCAB])B":true,"B[💩-💫]B":"B(?:\\uD83D[\\uDCA9-\\uDCAB])B","B\\uD83D[\\uDCA9-\\uDCAB]B":true,"C[\\uD83D\\uDCA9-\\uD83D\\uDCAB]C":"C(?:\\uD83D[\\uDCA9-\\uDCAB])C","C(?:\\uD83D[\\uDCA9-\\uDCAB])C":true,"C[💩-💫]C":"C(?:\\uD83D[\\uDCA9-\\uDCAB])C","C\\uD83D[\\uDCA9-\\uDCAB]C":true,"H[a-\\uD83D\\uDCAB]H":"H(?:(?:[a-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uD83C][\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDCAB]|[\\uD800-\\uDBFF]))H","H(?:(?:[a-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uD83C][\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDCAB]|[\\uD800-\\uDBFF]))H":true,"H[a-\\uD83D\\uDCAB]A":"H(?:(?:[a-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uD83C][\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDCAB]|[\\uD800-\\uDBFF]))A","H(?:(?:[a-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uD83C][\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDCAB]|[\\uD800-\\uDBFF]))A":true,"D[\\u0001-\\uD83D\\uDCAB]D":"D(?:(?:[\\x01-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uD83C][\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDCAB]|[\\uD800-\\uDBFF]))D","D(?:(?:[\\x01-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uD83C][\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDCAB]|[\\uD800-\\uDBFF]))D":true,"D[a-\\uD83D\\uDCAB]D":"D(?:(?:[a-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uD83C][\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDCAB]|[\\uD800-\\uDBFF]))D","D(?:(?:[a-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uD83C][\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDCAB]|[\\uD800-\\uDBFF]))D":true,"OR[\\u0001-\\uD83D\\uDCAB]|[a-\\uD83D\\uDCAB]OR":"OR(?:(?:[\\x01-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uD83C][\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDCAB]|[\\uD800-\\uDBFF]))|(?:(?:[a-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uD83C][\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDCAB]|[\\uD800-\\uDBFF]))OR","OR(?:(?:[\\x01-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uD83C][\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDCAB]|[\\uD800-\\uDBFF]))|(?:(?:[a-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uD83C][\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDCAB]|[\\uD800-\\uDBFF]))OR":true,"A[\\u0001-\\uD83D\\uDCAB]A":"A(?:(?:[\\x01-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uD83C][\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDCAB]|[\\uD800-\\uDBFF]))A","A(?:(?:[\\x01-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uD83C][\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDCAB]|[\\uD800-\\uDBFF]))A":true,"A[a-\\uD83D\\uDCAB]A":"A(?:(?:[a-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uD83C][\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDCAB]|[\\uD800-\\uDBFF]))A","A(?:(?:[a-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uD83C][\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDCAB]|[\\uD800-\\uDBFF]))A":true}, {"128169|128171":"\\uD83D[\\uDCA9-\\uDCAB]","97|128171":"(?:[a-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uD83C][\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDCAB]|[\\uD800-\\uDBFF])","1|128171":"(?:[\\x01-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uD83C][\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDCAB]|[\\uD800-\\uDBFF])"})/* <[tests es6-transpiler options: {"includePolyfills":true, "polyfillsSeparator":"\/* <[tests es6-transpiler test file EOF ]> *\/"} ]> */
+;applyPolyfills$0();(RegExp["__polyfill__"]||function(obj1, obj2){var arr=RegExp["__polyfill__"];if(!arr)arr=RegExp["__polyfill__"]=[];arr.push([obj1,obj2])})({"foo.bar":"foo(?:[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|.)bar","foo\\Sbar":"foo(?:[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|\\S)bar","foo[.]|(.)bar":"foo[.]|((?:[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|.))bar","foo(.)bar":"foo((?:[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|.))bar","foo[\\s\\S]bar":"foo(?:(?:[\\uD800-\\uDBFF][\\uDC00-\\uDFFF])|[\\s\\S])bar","foo[1-9\\s\\S]bar":"foo(?:(?:[\\uD800-\\uDBFF][\\uDC00-\\uDFFF])|[1-9\\s\\S])bar","foo[\\s\\S1-9]bar":"foo(?:(?:[\\uD800-\\uDBFF][\\uDC00-\\uDFFF])|[\\s\\S1-9])bar","foo[\\S1-9]bar":"foo(?:(?:[\\uD800-\\uDBFF][\\uDC00-\\uDFFF])|[\\S1-9])bar","foo([1-9\\s]|[\\S1-9])bar":"foo([1-9\\s]|(?:(?:[\\uD800-\\uDBFF][\\uDC00-\\uDFFF])|[\\S1-9]))bar","(.)\\|(\\S)":"((?:[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|.))\\|((?:[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|\\S))","A[\\uD83D\\uDCA9-\\uD83D\\uDCAB]A":"A(?:\\uD83D[\\uDCA9-\\uDCAB])A","A[\\u{1F4A9}-\\u{1F4AB}]A":"A(?:\\uD83D[\\uDCA9-\\uDCAB])A","A[💩-💫]A":"A(?:\\uD83D[\\uDCA9-\\uDCAB])A","A\\uD83D[\\uDCA9-\\uDCAB]A":"A\\uD83D[\\uDCA9-\\uDCAB]A","B[\\uD83D\\uDCA9-\\uD83D\\uDCAB]B":"B(?:\\uD83D[\\uDCA9-\\uDCAB])B","B[\\u{1F4A9}-\\u{1F4AB}]B":"B(?:\\uD83D[\\uDCA9-\\uDCAB])B","B[💩-💫]B":"B(?:\\uD83D[\\uDCA9-\\uDCAB])B","B\\uD83D[\\uDCA9-\\uDCAB]B":"B\\uD83D[\\uDCA9-\\uDCAB]B","C[\\uD83D\\uDCA9-\\uD83D\\uDCAB]C":"C(?:\\uD83D[\\uDCA9-\\uDCAB])C","C[\\u{1F4A9}-\\u{1F4AB}]C":"C(?:\\uD83D[\\uDCA9-\\uDCAB])C","C[💩-💫]C":"C(?:\\uD83D[\\uDCA9-\\uDCAB])C","C\\uD83D[\\uDCA9-\\uDCAB]C":"C\\uD83D[\\uDCA9-\\uDCAB]C","H[a-\\uD83D\\uDCAB]H":"H(?:(?:[a-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uD83C][\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDCAB]|[\\uD800-\\uDBFF]))H","H[a-\\uD83D\\uDCAB]A":"H(?:(?:[a-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uD83C][\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDCAB]|[\\uD800-\\uDBFF]))A","D[\\u0001-\\uD83D\\uDCAB]D":"D(?:(?:[\\x01-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uD83C][\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDCAB]|[\\uD800-\\uDBFF]))D","D[a-\\uD83D\\uDCAB]D":"D(?:(?:[a-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uD83C][\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDCAB]|[\\uD800-\\uDBFF]))D","OR[\\u0001-\\uD83D\\uDCAB]|[a-\\uD83D\\uDCAB]OR":"OR(?:(?:[\\x01-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uD83C][\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDCAB]|[\\uD800-\\uDBFF]))|(?:(?:[a-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uD83C][\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDCAB]|[\\uD800-\\uDBFF]))OR","A[\\u0001-\\uD83D\\uDCAB]A":"A(?:(?:[\\x01-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uD83C][\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDCAB]|[\\uD800-\\uDBFF]))A","A[a-\\uD83D\\uDCAB]A":"A(?:(?:[a-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uD83C][\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDCAB]|[\\uD800-\\uDBFF]))A"}, {"128169|128171":"\\uD83D[\\uDCA9-\\uDCAB]","97|128171":"(?:[a-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uD83C][\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDCAB]|[\\uD800-\\uDBFF])","1|128171":"(?:[\\x01-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uD83C][\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDCAB]|[\\uD800-\\uDBFF])"});/* <[tests es6-transpiler options: {"includePolyfills":true, "polyfillsSeparator":"\/* <[tests es6-transpiler test file EOF ]> *\/"} ]> */
 
 // @see http://mathiasbynens.be/notes/javascript-unicode#astral-ranges
 // @see https://github.com/google/traceur-compiler/issues/370
@@ -47,6 +47,7 @@
 	console.log(
 		(new RegExp("foo.bar", "u")).test('foo💩bar')
 		, (new RegExp("foo[.]|(.)bar", "u")).test('foo💩bar')
+		, (new RegExp("foo(.)bar", "u")).test('foo💩bar')
 		, (new RegExp("foo[\\s\\S]bar", "u")).test('foo💩bar')
 		, (new RegExp("foo[1-9\\s\\S]bar", "u")).test('foo💩bar')
 		, (new RegExp("foo[\\s\\S1-9]bar", "u")).test('foo💩bar')
@@ -62,7 +63,7 @@
 {
 	console.log((new RegExp("A[\\uD83D\\uDCA9-\\uD83D\\uDCAB]A", "u")).test('A\uD83D\uDCA9A')); // match U+1F4A9
 
-	console.log((new RegExp("A[\\uD83D\\uDCA9-\\uD83D\\uDCAB]A", "u")).test('A\uD83D\uDCA9A')); // match U+1F4A9
+	console.log((new RegExp("A[\\u{1F4A9}-\\u{1F4AB}]A", "u")).test('A\uD83D\uDCA9A')); // match U+1F4A9
 
 	console.log((new RegExp("A[\uD83D\uDCA9-\uD83D\uDCAB]A", "u")).test('A💩A')); // match U+1F4A9
 
@@ -70,7 +71,7 @@
 
 	console.log((new RegExp("B[\\uD83D\\uDCA9-\\uD83D\\uDCAB]B", "u")).test('B\uD83D\uDCAAB')); // match U+1F4AA
 
-	console.log((new RegExp("B[\\uD83D\\uDCA9-\\uD83D\\uDCAB]B", "u")).test('B\uD83D\uDCAAB')); // match U+1F4AA
+	console.log((new RegExp("B[\\u{1F4A9}-\\u{1F4AB}]B", "u")).test('B\uD83D\uDCAAB')); // match U+1F4AA
 
 	console.log((new RegExp("B[\uD83D\uDCA9-\uD83D\uDCAB]B", "u")).test('B💪B'));// match U+1F4AA
 
@@ -78,7 +79,7 @@
 
 	console.log((new RegExp("C[\\uD83D\\uDCA9-\\uD83D\\uDCAB]C", "u")).test('C\uD83D\uDCABC')); // match U+1F4AB
 
-	console.log((new RegExp("C[\\uD83D\\uDCA9-\\uD83D\\uDCAB]C", "u")).test('C\uD83D\uDCABC')); // match U+1F4AB
+	console.log((new RegExp("C[\\u{1F4A9}-\\u{1F4AB}]C", "u")).test('C\uD83D\uDCABC')); // match U+1F4AB
 
 	console.log((new RegExp("C[\uD83D\uDCA9-\uD83D\uDCAB]C", "u")).test('C💫C')); // match U+1F4AB
 
@@ -105,7 +106,7 @@
 { // should not match
 	console.log((new RegExp("A[\\uD83D\\uDCA9-\\uD83D\\uDCAB]A", "u")).test('H\uD83D\uDCA9A') === false);
 
-	console.log((new RegExp("A[\\uD83D\\uDCA9-\\uD83D\\uDCAB]A", "u")).test('H\uD83D\uDCA9A') === false);
+	console.log((new RegExp("A[\\u{1F4A9}-\\u{1F4AB}]A", "u")).test('H\uD83D\uDCA9A') === false);
 
 	console.log((new RegExp("A[\uD83D\uDCA9-\uD83D\uDCAB]A", "u")).test('H\uD83D\uDCA9A') === false);
 
@@ -113,6 +114,9 @@
 
 	console.log((new RegExp("A[a-\\uD83D\\uDCAB]A", "u")).test('H\uD83D\uDCA9A') === false);
 }
+
+/* <[tests es6-transpiler test file EOF ]> */
+
 function applyPolyfills$0(){"use strict";
 //(function(){"use strict";
 
@@ -357,6 +361,7 @@ if( !regExp_flag_u_support || !regExp_flag_y_support ) {
 		, updateGlobalRegExpProperties
 		, globalString_prototype = global["String"].prototype
 		, $string_replace = globalString_prototype.replace
+		, unescapeUnicode
 	;
 
 	var beforeRegExpCreate = function(pattern, has_u_flag, has_y_flag) {
@@ -369,6 +374,8 @@ if( !regExp_flag_u_support || !regExp_flag_y_support ) {
 				}
 				else {
 					pattern = convertUnicodeSequenceToES5Compatible_Map[pattern] = newPattern;
+
+					convertUnicodeSequenceToES5Compatible_Map[newPattern] = true;
 				}
 			}
 			else if ( newPattern === true || newPattern === false ) {
@@ -461,13 +468,11 @@ if( !regExp_flag_u_support || !regExp_flag_y_support ) {
 				pattern = beforeRegExpCreate(pattern, has_u_flag, has_y_flag);
 
 				if ( convertUnicodeSequenceToES5Compatible_failed === true ) {
-					// something goes wrong and we were not able to modify the es6 Unicode sequence -> do not touch patten and flags
-					flags = $string_replace.call(flags, "y", "");
+					// something goes wrong and we were not able to modify the es6 Unicode sequence -> do not touch patten
 					pattern = originalPattern;
 				}
-				else {
-					flags = $string_replace.call($string_replace.call(flags, "u", ""), "y", "");
-				}
+
+				flags = $string_replace.call($string_replace.call(flags, "u", ""), "y", "");
 
 				if ( pattern == originalPattern ) {
 					originalPattern = void 0;
@@ -482,29 +487,63 @@ if( !regExp_flag_u_support || !regExp_flag_y_support ) {
 		};
 	}
 
-	extendedRegExp["__polyfill__"] = function(convertUnicodeSequence_Map, codePointsRange_Map) {
-		if ( convertUnicodeSequence_Map && typeof convertUnicodeSequence_Map === 'object' ) {
-			if ( !convertUnicodeSequenceToES5Compatible_Map ) {
-				convertUnicodeSequenceToES5Compatible_Map = convertUnicodeSequence_Map;
-			}
-			else {
-				for( var key in convertUnicodeSequence_Map ) if ( convertUnicodeSequence_Map.hasOwnProperty(key) ) {
-					convertUnicodeSequenceToES5Compatible_Map[key] = convertUnicodeSequence_Map[key];
+	if ( !regExp_flag_u_support ) {
+		// TODO:: require('lib/unescapeUnicode')
+		unescapeUnicode = function(escapedString) {
+			return escapedString.replace(/\\u(\w{4})/g, function(found, charCode, offset, string)  {
+				var prev1 = string[offset - 1],  prev2 = string[offset - 2];
+				if ( prev1 === '\\' && prev2 !== '\\' ) {
+					return found;
 				}
-			}
-		}
 
-		if ( codePointsRange_Map && typeof codePointsRange_Map === 'object' ) {
-			if ( !codePointsToES5Range_Map ) {
-				codePointsToES5Range_Map = codePointsRange_Map;
+				return String.fromCharCode(parseInt(charCode, 16));
+			});
+		};
+
+		extendedRegExp["__polyfill__"] = function(convertUnicodeSequence_Map, codePointsRange_Map) {
+			if ( convertUnicodeSequence_Map && typeof convertUnicodeSequence_Map === 'object' ) {
+				if ( !convertUnicodeSequenceToES5Compatible_Map ) {
+					convertUnicodeSequenceToES5Compatible_Map = {};
+				}
+
+				for( var key in convertUnicodeSequence_Map ) if ( convertUnicodeSequence_Map.hasOwnProperty(key) ) {
+					var newPattern = convertUnicodeSequenceToES5Compatible_Map[key] = convertUnicodeSequence_Map[key];
+					var unescapedKey = unescapeUnicode(key);
+					if ( key !== unescapedKey ) {
+						convertUnicodeSequenceToES5Compatible_Map[unescapedKey] = newPattern;
+					}
+					if ( typeof newPattern === 'string' ) {
+						convertUnicodeSequenceToES5Compatible_Map[newPattern] = true;
+					}
+				}
 			}
-			else {
-				for( var key$0 in codePointsToES5Range_Map ) if ( codePointsToES5Range_Map.hasOwnProperty(key$0) ) {
-					convertUnicodeSequenceToES5Compatible_Map[key$0] = codePointsToES5Range_Map[key$0];
+
+			if ( codePointsRange_Map && typeof codePointsRange_Map === 'object' ) {
+				if ( !codePointsToES5Range_Map ) {
+					codePointsToES5Range_Map = codePointsRange_Map;
+				}
+				else {
+					for( var key$0 in codePointsToES5Range_Map ) if ( codePointsToES5Range_Map.hasOwnProperty(key$0) ) {
+						convertUnicodeSequenceToES5Compatible_Map[key$0] = codePointsToES5Range_Map[key$0];
+					}
+				}
+			}
+		};
+
+		if ( "__polyfill__" in $RegExp ) {
+			var initialData = $RegExp["__polyfill__"];
+			delete $RegExp["__polyfill__"];
+
+			if ( Array.isArray(initialData) ) {
+				var data;
+				while ( data = initialData.shift() ) {
+					if ( Array.isArray(data) ) {
+						extendedRegExp["__polyfill__"](data[0], data[1]);
+					}
 				}
 			}
 		}
-	};
+	}
 
 	if( has__getter__support ) {
 		Object.keys($RegExp).forEach(function(key) {
@@ -660,11 +699,13 @@ if( !regExp_flag_u_support || !regExp_flag_y_support ) {
 			var findCodePoint_RE = new RegExp('\\[' +
 				'(?:' +
 					'(?:(?:\\\\u(\\w{4}))(?:\\\\u(\\w{4}))?)' +
+//					'|((?:[\\0-\\u005A\\u005C\\u005F-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|[\\uD800-\\uDBFF])+?)' +
 					'|((?:[\\0-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|[\\uD800-\\uDBFF])+?)' +
 				')' +
 				'\\-' +
 				'(?:' +
 					'(?:(?:\\\\u(\\w{4}))(?:\\\\u(\\w{4}))?)' +
+//					'|((?:[\\0-\\u005A\\u005C\\u005F-\\uD7FF\\uDC00-\\uFFFF][\\uDC00-\\uDFFF]|[\\uD800-\\uDBFF]|[\\uD800-\\uDBFF])+?)' +
 					'|((?:[\\0-\\uD7FF\\uDC00-\\uFFFF]|[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|[\\uD800-\\uDBFF])+?)' +
 				')' +
 			'\\]', 'g');
@@ -676,8 +717,12 @@ if( !regExp_flag_u_support || !regExp_flag_y_support ) {
 
 				return $string_replace.call(pattern, findCodePoint_RE, unicodeRange);
 			};
-			convertUnicodeSequenceToES5Compatible_Map = {};
-			codePointsToES5Range_Map = {};
+			if ( !convertUnicodeSequenceToES5Compatible_Map ) {
+				convertUnicodeSequenceToES5Compatible_Map = {};
+			}
+			if ( !codePointsToES5Range_Map ) {
+				codePointsToES5Range_Map = {};
+			}
 		}
 
 		Object.defineProperties(extendedRegExp.prototype, newProps);
@@ -764,6 +809,11 @@ if( !regExp_flag_u_support || !regExp_flag_y_support ) {
 				var patternIsRegExpWithStickyAndGlobalFlag = pattern && typeof pattern === 'object' && pattern instanceof $RegExp && pattern["sticky"] && pattern.global;
 
 				if( patternIsRegExpWithStickyAndGlobalFlag ) {
+					// String.match and String.replace now reset RegExp.lastIndex
+					// [https://bugzilla.mozilla.org/show_bug.cgi?id=501739](Bug 501739 � String match and replace methods do not update global regexp lastIndex per ES3&5)
+					// The String.match and String.replace methods have been refactored to resolve a spec conformance issue on RegExp.lastIndex. When those methods are called with a global regular expression, the lastIndex, if specified, will be reset to 0.
+					pattern.lastIndex = 0;
+
 					var isFunction = typeof replacer === 'function';
 					if ( !isFunction ) {
 						replacer = String(replacer);

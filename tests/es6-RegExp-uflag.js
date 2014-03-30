@@ -47,6 +47,7 @@
 	console.log(
 		/foo.bar/u.test('foo💩bar')
 		, /foo[.]|(.)bar/u.test('foo💩bar')
+		, /foo(.)bar/u.test('foo💩bar')
 		, /foo[\s\S]bar/u.test('foo💩bar')
 		, /foo[1-9\s\S]bar/u.test('foo💩bar')
 		, /foo[\s\S1-9]bar/u.test('foo💩bar')
@@ -113,3 +114,5 @@
 
 	console.log(/A[a-\uD83D\uDCAB]A/u.test('H\uD83D\uDCA9A') === false);
 }
+
+/* <[tests es6-transpiler test file EOF ]> */

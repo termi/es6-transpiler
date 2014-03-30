@@ -32,7 +32,7 @@ Beta
  * unicode code point escapes
  * RegExp:
    * 'y' flag support
-   * partial 'u' flag support with unicode ranges (negative characterClass unsupported)
+   * 'u' flag support (partial runtime support: 1. \D, \W, '.' etc unsupported, 2. unicode ranges with negative characterClass unsupported)
 
 Static scope analysis and transpilation of ES6 block scoped `const` and `let` variables to ES3 based on [olov/defs](https://github.com/olov/defs).
 

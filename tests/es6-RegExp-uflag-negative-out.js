@@ -1,92 +1,125 @@
-;applyPolyfills$0();/* <[tests es6-transpiler options: {"includePolyfills":true, "polyfillsSeparator":"\/* <[tests es6-transpiler test file EOF ]> *\/"} ]> */
-test1();
-test2();
-test3();
-test4();
+;applyPolyfills$0();(RegExp["__polyfill__"]||function(obj1, obj2){var arr=RegExp["__polyfill__"];if(!arr)arr=RegExp["__polyfill__"]=[];arr.push([obj1,obj2])})({"N[^1]N":"N(?:[^1]|[\\uD800-\\uDBFF][\\uDC00-\\uDFFF])N","N[^1-9]N":"N(?:[^1-9]|[\\uD800-\\uDBFF][\\uDC00-\\uDFFF])N","N[^\\s1-9]N":"N(?:[^\\s1-9]|[\\uD800-\\uDBFF][\\uDC00-\\uDFFF])N","N[^\\S\\t\\r]N":"N[^\\S\\t\\r]N","N[^\\da-z]N":"N(?:[^\\da-z]|[\\uD800-\\uDBFF][\\uDC00-\\uDFFF])N","N[^\\D1-3]N":"N[^\\D1-3]N","N[^\\w-]N":"N(?:[^\\w-]|[\\uD800-\\uDBFF][\\uDC00-\\uDFFF])N","N[^\\Wa]N":"N[^\\Wa]N","N[^\\s\\uD800\\uDC00-\\uD800\\uDCAA1-9]N":"N(?:[^\\s1-9]|(?:\\uD800[\\uDCAB-\\uDFFF]|[\\uD801-\\uDBFF][\\uDC00-\\uDFFF]))N","N[^\\S\\uD800\\uDC00-\\uD800\\uDCAA\\t\\r]N":"N[^\\S\\t\\r]N","N[^\\d\\uD800\\uDC00-\\uD800\\uDCAAa-z]N":"N(?:[^\\da-z]|(?:\\uD800[\\uDCAB-\\uDFFF]|[\\uD801-\\uDBFF][\\uDC00-\\uDFFF]))N","N[^\\D\\uD800\\uDC00-\\uD800\\uDCAA1-3]N":"N[^\\D1-3]N","N[^\\w\\uD800\\uDC00-\\uD800\\uDCAA-]N":"N(?:[^\\w-]|(?:\\uD800[\\uDCAB-\\uDFFF]|[\\uD801-\\uDBFF][\\uDC00-\\uDFFF]))N","N[^\\W\\uD800\\uDC00-\\uD800\\uDCAAa-]N":"N[^\\Wa-]N","C[^\\uD800\\uDC00-\\uD800\\uDCAA\\uD80F\\uDCAA-\\uD8FF\\uDCAA\\uDAA0\\uDFFF-\\uDAF0\\uDFFFa-z]C":"C(?:[^a-z]|(?:[\\uD800\\uD8FF][\\uDCAB-\\uDFFF]|[\\uD801-\\uD80E\\uD900-\\uDA9F\\uDAF1-\\uDBFF][\\uDC00-\\uDFFF]|\\uD80F[\\uDC00-\\uDCA9]|\\uDAA0[\\uDC00-\\uDFFE]))C","N[^\\uD83D\\uDCA9-\\uD83D\\uDCAB]N":"N(?:[^]|(?:[\\uD800-\\uD83C\\uD83E-\\uDBFF][\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDCA8\\uDCAC-\\uDFFF]))N"}, {"!65536|65706":"(?:\\uD800[\\uDCAB-\\uDFFF]|[\\uD801-\\uDBFF][\\uDC00-\\uDFFF])","!65536|65706!81066|326826!754687|836607":"(?:[\\uD800\\uD8FF][\\uDCAB-\\uDFFF]|[\\uD801-\\uD80E\\uD900-\\uDA9F\\uDAF1-\\uDBFF][\\uDC00-\\uDFFF]|\\uD80F[\\uDC00-\\uDCA9]|\\uDAA0[\\uDC00-\\uDFFE])","!128169|128171":"(?:[\\uD800-\\uD83C\\uD83E-\\uDBFF][\\uDC00-\\uDFFF]|\\uD83D[\\uDC00-\\uDCA8\\uDCAC-\\uDFFF])"});/* <[tests es6-transpiler options: {"includePolyfills":true, "polyfillsSeparator":"\/* <[tests es6-transpiler test file EOF ]> *\/"} ]> */
 
-function test1() {
-    
-    // Test sticky flag.
+// @see http://mathiasbynens.be/notes/javascript-unicode#astral-ranges
+// @see https://github.com/google/traceur-compiler/issues/370
 
-    /*
-     * calls to reportCompare invoke regular expression matches which interfere
-     * with the test of the sticky flag. Collect expect and actual values prior
-     * to calling reportCompare. Note setting y = /(1)/y resets the lastIndex etc.
-     */
-	var re = (new RegExp("(1)", "y")), re2 = /(1)/g;
-	console.log(re.sticky === true, re2.sticky === false);
-	console.log(re instanceof RegExp, re2 instanceof RegExp);
-	console.log(re.__proto__ == RegExp.prototype, re2.__proto__ == RegExp.prototype);
-
-
-    re = (new RegExp("(1)", "y"));
-	var str1 = '1234561';
-	var match1 = re.exec(str1);
-    var expect1 = 'captures: 0::1::1; RegExp.leftContext: ""; RegExp.rightContext: "234561"';
-    var actual1 = 'captures: ' + (match1 == null ? 'null' : match1.index + '::' + match1[0] + '::' + re.lastIndex) +
-        '; RegExp.leftContext: "' + RegExp.leftContext +
-        '"; RegExp.rightContext: "' + RegExp.rightContext + '"';
-
-	var str2 = '1234561';
-	var match2 = re.exec(str2);
-    var expect2 = 'captures: null; RegExp.leftContext: ""; RegExp.rightContext: "234561"';
-    var actual2 = 'captures: ' + (match2 == null ? 'null' : match2.index + '::' + match2[0] + '::' + re.lastIndex) +
-        '; RegExp.leftContext: "' + RegExp.leftContext +
-        '"; RegExp.rightContext: "' + RegExp.rightContext + '"';
-
-    console.log(expect1 == actual1, ' - /(1)/y.exec("' + str1 + '") first call');
-    console.log(expect2 == actual2, ' - /(1)/y.exec("' + str2 + '") second call');
-
-    re = (new RegExp("(1)", "y"));
-    re.exec(str1);
-
-    re = (new RegExp("(1)", "y"));
-    console.log(re.lastIndex == 0, 'Must be the fresh instance of RegExp');
-	var str3 = '1123456';
-	var match3 = re.exec(str3);
-    var expect3 = 'captures: 0::1::1; RegExp.leftContext: ""; RegExp.rightContext: "123456"';
-    var actual3 = 'captures: ' + (match3 == null ? 'null' : match3.index + '::' + match3[0] + '::' + re.lastIndex) +
-        '; RegExp.leftContext: "' + RegExp.leftContext +
-        '"; RegExp.rightContext: "' + RegExp.rightContext + '"';
-
-	var str4 = '1123456';
-	var match4 = re.exec(str4);
-    var expect4 = 'captures: 0::1::2; RegExp.leftContext: "1"; RegExp.rightContext: "23456"';
-    var actual4 = 'captures: ' + (match4 == null ? 'null' : match4.index + '::' + match4[0] + '::' + re.lastIndex) +
-        '; RegExp.leftContext: "' + RegExp.leftContext +
-        '"; RegExp.rightContext: "' + RegExp.rightContext + '"';
-
-    console.log(expect3 == actual3, ' - /(1)/y.exec("' + str3 + '") first call');
-    console.log(expect4 == actual4, ' - /(1)/y.exec("' + str4 + '") second call');
+{// ranges without astral symbols and CharacterClassEscape
+	console.log(
+		(new RegExp("N[^1]N", "u")).test('N\uD83D\uDCA9N')    //N(?:[^1]|[\uD800-\uDBFF][\uDC00-\uDFFF])N
+		, (new RegExp("N[^1]N", "u")).test('N9N')
+		, (new RegExp("N[^1]N", "u")).test('N1N') === false
+	);
+	console.log(
+		(new RegExp("N[^1-9]N", "u")).test('N\uD83D\uDCA9N')    //N(?:[^1-9]|[\uD800-\uDBFF][\uDC00-\uDFFF])N
+		, (new RegExp("N[^1-9]N", "u")).test('NAN')
+		, (new RegExp("N[^1-9]N", "u")).test('N1N') === false
+	);
 }
 
-function test2() {
-	var text = "First line\nsecond line";
-	var regex = (new RegExp("^(\\S+) line\\n?", "y"));
-
-	var match = regex.exec(text);
-	console.log(match[1] === "First", "should be \"First\"");
-	console.log(regex.lastIndex === 11, "should be 11");
-
-	var match2 = regex.exec(text);
-	console.log(match2[1] === "second", "should be \"second\"");
-	console.log(regex.lastIndex == 22, "should be 22");
-
-	var match3 = regex.exec(text);
-	console.log(match3 === null);
+{// ranges without astral symbols and with CharacterClassEscape
+	console.log(
+		(new RegExp("N[^\\s1-9]N", "u")).test('N\uD83D\uDCA9N')    //N(?:[^\s1-9]|[\uD800-\uDBFF][\uDC00-\uDFFF])N
+		, (new RegExp("N[^\\s1-9]N", "u")).test('N9N') === false
+		, (new RegExp("N[^\\s1-9]N", "u")).test('N N') === false
+		, (new RegExp("N[^\\S\\t\\r]N", "u")).test('N\uD83D\uDCA9N') === false //N[^\S\t\r]N
+		, (new RegExp("N[^\\S\\t\\r]N", "u")).test('N\tN') === false
+		, (new RegExp("N[^\\S\\t\\r]N", "u")).test('N\rN') === false
+		, (new RegExp("N[^\\S\\t\\r]N", "u")).test('N N')
+	);
+	console.log(
+		(new RegExp("N[^\\da-z]N", "u")).test('N\uD83D\uDCA9N')  //N(?:[^\da-z]|[\uD800-\uDBFF][\uDC00-\uDFFF])N
+		, (new RegExp("N[^\\da-z]N", "u")).test('N9N') === false
+		, (new RegExp("N[^\\da-z]N", "u")).test('NaN') === false
+		, (new RegExp("N[^\\D1-3]N", "u")).test('N\uD83D\uDCA9N') === false//N[^\D1-3]N
+		, (new RegExp("N[^\\D1-3]N", "u")).test('N9N')
+		, (new RegExp("N[^\\D1-3]N", "u")).test('N3N') === false
+	);
+	console.log(
+		(new RegExp("N[^\\w-]N", "u")).test('N\uD83D\uDCA9N')    //N(?:[^\w-]|[\uD800-\uDBFF][\uDC00-\uDFFF])N
+		, (new RegExp("N[^\\w-]N", "u")).test('N-N') === false
+		, (new RegExp("N[^\\w-]N", "u")).test('NaN') === false
+		, (new RegExp("N[^\\Wa]N", "u")).test('N\uD83D\uDCA9N') === false //N[^\Wa]N
+		, (new RegExp("N[^\\Wa]N", "u")).test('NbN')
+		, (new RegExp("N[^\\Wa]N", "u")).test('NaN') === false
+	);
 }
 
-function test3() {
-	var text = "First line\nsecond line";
-	var regex = (new RegExp("^(\\S+) LINE\\n?", "gyi"));
-	console.log(text.replace(regex, "--") == "----");
-	console.log(text.match(regex ).join('') == ["First line\n", "second line"].join(''));
+{// ranges with astral symbols and CharacterClassEscape
+	// /N[^\s\uD800\uDC00-\uD800\uDCAA1-9]N/u
+	// regenerate().addRange(0xFFFF+1, 0x10FFFF).removeRange('\uD800\uDC00', '\uD800\uDCAA')
+	// //N(?:[^\s1-9]|\uD800[\uDCAB-\uDFFF]|[\uD801-\uDBFF][\uDC00-\uDFFF])N
+
+	console.log(
+		(new RegExp("N[^\\s\\uD800\\uDC00-\\uD800\\uDCAA1-9]N", "u")).test('N\uD83D\uDCA9N') //N(?:[^\s1-9]|\uD800[\uDCAB-\uDFFF]|[\uD801-\uDBFF][\uDC00-\uDFFF])N
+		, (new RegExp("N[^\\s\\uD800\\uDC00-\\uD800\\uDCAA1-9]N", "u")).test('N\uD800\uDC01N') === false
+		, (new RegExp("N[^\\s\\uD800\\uDC00-\\uD800\\uDCAA1-9]N", "u")).test('N9N') === false
+		, (new RegExp("N[^\\s\\uD800\\uDC00-\\uD800\\uDCAA1-9]N", "u")).test('N N') === false
+		, (new RegExp("N[^\\S\\uD800\\uDC00-\\uD800\\uDCAA\\t\\r]N", "u")).test('N\uD83D\uDCA9N') === false //N[^\S\t\r]N
+		, (new RegExp("N[^\\S\\uD800\\uDC00-\\uD800\\uDCAA\\t\\r]N", "u")).test('N\tN') === false
+		, (new RegExp("N[^\\S\\uD800\\uDC00-\\uD800\\uDCAA\\t\\r]N", "u")).test('N\rN') === false
+		, (new RegExp("N[^\\S\\uD800\\uDC00-\\uD800\\uDCAA\\t\\r]N", "u")).test('N N')
+	);
+	console.log(
+		(new RegExp("N[^\\d\\uD800\\uDC00-\\uD800\\uDCAAa-z]N", "u")).test('N\uD83D\uDCA9N')  //N(?:[^\da-z]|\uD800[\uDCAB-\uDFFF]|[\uD801-\uDBFF][\uDC00-\uDFFF])N
+		, (new RegExp("N[^\\d\\uD800\\uDC00-\\uD800\\uDCAAa-z]N", "u")).test('N\uD800\uDC01N') === false
+		, (new RegExp("N[^\\d\\uD800\\uDC00-\\uD800\\uDCAAa-z]N", "u")).test('N9N') === false
+		, (new RegExp("N[^\\d\\uD800\\uDC00-\\uD800\\uDCAAa-z]N", "u")).test('NaN') === false
+		, (new RegExp("N[^\\D\\uD800\\uDC00-\\uD800\\uDCAA1-3]N", "u")).test('N\uD83D\uDCA9N') === false//N[^\D1-3]N
+		, (new RegExp("N[^\\D\\uD800\\uDC00-\\uD800\\uDCAA1-3]N", "u")).test('N9N')
+		, (new RegExp("N[^\\D\\uD800\\uDC00-\\uD800\\uDCAA1-3]N", "u")).test('N3N') === false
+	);
+	console.log(
+		(new RegExp("N[^\\w\\uD800\\uDC00-\\uD800\\uDCAA-]N", "u")).test('N\uD83D\uDCA9N')    //N(?:[^\w-]|\uD800[\uDCAB-\uDFFF]|[\uD801-\uDBFF][\uDC00-\uDFFF])N
+		, (new RegExp("N[^\\w\\uD800\\uDC00-\\uD800\\uDCAA-]N", "u")).test('N\uD800\uDC01N') === false
+		, (new RegExp("N[^\\w\\uD800\\uDC00-\\uD800\\uDCAA-]N", "u")).test('N-N') === false
+		, (new RegExp("N[^\\w\\uD800\\uDC00-\\uD800\\uDCAA-]N", "u")).test('NaN') === false
+		, (new RegExp("N[^\\W\\uD800\\uDC00-\\uD800\\uDCAAa-]N", "u")).test('N\uD83D\uDCA9N') === false //N[^\Wa]N
+		, (new RegExp("N[^\\W\\uD800\\uDC00-\\uD800\\uDCAAa-]N", "u")).test('NbN')
+		, (new RegExp("N[^\\W\\uD800\\uDC00-\\uD800\\uDCAAa-]N", "u")).test('NaN') === false
+	);
 }
 
-function test4() {
-	var text = "\\\u0078\\\u0078";
-	var regex = (new RegExp("^\\\\\\u0078", "gyi"));
-	console.log(text.match(regex).join("|") == ["\\x", "\\x"].join("|"));
+{// complex
+	console.log(
+		(new RegExp("C[^\\uD800\\uDC00-\\uD800\\uDCAA\\uD80F\\uDCAA-\\uD8FF\\uDCAA\\uDAA0\\uDFFF-\\uDAF0\\uDFFFa-z]C", "u")).test('CfC') === false
+
+		, (new RegExp("C[^\\uD800\\uDC00-\\uD800\\uDCAA\\uD80F\\uDCAA-\\uD8FF\\uDCAA\\uDAA0\\uDFFF-\\uDAF0\\uDFFFa-z]C", "u")).test('C\uD800\uDC00C') === false//first
+		, (new RegExp("C[^\\uD800\\uDC00-\\uD800\\uDCAA\\uD80F\\uDCAA-\\uD8FF\\uDCAA\\uDAA0\\uDFFF-\\uDAF0\\uDFFFa-z]C", "u")).test('C\uD800\uDC0AC') === false//middle
+		, (new RegExp("C[^\\uD800\\uDC00-\\uD800\\uDCAA\\uD80F\\uDCAA-\\uD8FF\\uDCAA\\uDAA0\\uDFFF-\\uDAF0\\uDFFFa-z]C", "u")).test('C\uD800\uDCAAC') === false//last
+		, (new RegExp("C[^\\uD800\\uDC00-\\uD800\\uDCAA\\uD80F\\uDCAA-\\uD8FF\\uDCAA\\uDAA0\\uDFFF-\\uDAF0\\uDFFFa-z]C", "u")).test('C\uFFFFC')       //first - 1
+		, (new RegExp("C[^\\uD800\\uDC00-\\uD800\\uDCAA\\uD80F\\uDCAA-\\uD8FF\\uDCAA\\uDAA0\\uDFFF-\\uDAF0\\uDFFFa-z]C", "u")).test('C\uD800\uDCABC') //last + 1
+
+		, (new RegExp("C[^\\uD800\\uDC00-\\uD800\\uDCAA\\uD80F\\uDCAA-\\uD8FF\\uDCAA\\uDAA0\\uDFFF-\\uDAF0\\uDFFFa-z]C", "u")).test('C\uD80F\uDCAAC') === false//first
+		, (new RegExp("C[^\\uD800\\uDC00-\\uD800\\uDCAA\\uD80F\\uDCAA-\\uD8FF\\uDCAA\\uDAA0\\uDFFF-\\uDAF0\\uDFFFa-z]C", "u")).test('C\uD8F0\uDCAAC') === false//middle
+		, (new RegExp("C[^\\uD800\\uDC00-\\uD800\\uDCAA\\uD80F\\uDCAA-\\uD8FF\\uDCAA\\uDAA0\\uDFFF-\\uDAF0\\uDFFFa-z]C", "u")).test('C\uD8FF\uDCAAC') === false//last
+		, (new RegExp("C[^\\uD800\\uDC00-\\uD800\\uDCAA\\uD80F\\uDCAA-\\uD8FF\\uDCAA\\uDAA0\\uDFFF-\\uDAF0\\uDFFFa-z]C", "u")).test('C\uD80F\uDCA9C') //first - 1
+		, (new RegExp("C[^\\uD800\\uDC00-\\uD800\\uDCAA\\uD80F\\uDCAA-\\uD8FF\\uDCAA\\uDAA0\\uDFFF-\\uDAF0\\uDFFFa-z]C", "u")).test('C\uD8FF\uDCABC') //last + 1
+
+		, (new RegExp("C[^\\uD800\\uDC00-\\uD800\\uDCAA\\uD80F\\uDCAA-\\uD8FF\\uDCAA\\uDAA0\\uDFFF-\\uDAF0\\uDFFFa-z]C", "u")).test('C\uDAA0\uDFFFC') === false//first
+		, (new RegExp("C[^\\uD800\\uDC00-\\uD800\\uDCAA\\uD80F\\uDCAA-\\uD8FF\\uDCAA\\uDAA0\\uDFFF-\\uDAF0\\uDFFFa-z]C", "u")).test('C\uDAE0\uDC00C') === false//middle
+		, (new RegExp("C[^\\uD800\\uDC00-\\uD800\\uDCAA\\uD80F\\uDCAA-\\uD8FF\\uDCAA\\uDAA0\\uDFFF-\\uDAF0\\uDFFFa-z]C", "u")).test('C\uDAF0\uDFFFC') === false//last
+		, (new RegExp("C[^\\uD800\\uDC00-\\uD800\\uDCAA\\uD80F\\uDCAA-\\uD8FF\\uDCAA\\uDAA0\\uDFFF-\\uDAF0\\uDFFFa-z]C", "u")).test('C\uDAA0\uDFFEC') //first - 1
+		, (new RegExp("C[^\\uD800\\uDC00-\\uD800\\uDCAA\\uD80F\\uDCAA-\\uD8FF\\uDCAA\\uDAA0\\uDFFF-\\uDAF0\\uDFFFa-z]C", "u")).test('C\uDAF2\uDC00C') //last + 1
+
+		, (new RegExp("C[^\\uD800\\uDC00-\\uD800\\uDCAA\\uD80F\\uDCAA-\\uD8FF\\uDCAA\\uDAA0\\uDFFF-\\uDAF0\\uDFFFa-z]C", "u")).test('C\uDAFC\uDFFFC')
+	);
+}
+
+{// negative
+	{
+		var re = (new RegExp("N[^\\uD83D\\uDCA9-\\uD83D\\uDCAB]N", "u"));
+		console.log(
+			re.test('N\uD83D\uDCA9N') === false
+			, re.test('NCN')
+		);
+	}
+//	{// TODO:: and or
+//		let re = /N([^\uD800\uDC00-\uD800\uDCAA]|[\uD83D\uDCA9-\uD83D\uDCAB])+N/u;
+//		console.log(
+//			re.test('N\uD83D\uDCA9\uD800\uDC01abcN') === false
+//			, re.test('NCN')
+//		);
+//	}
 }
 
 /* <[tests es6-transpiler test file EOF ]> */
