@@ -59,18 +59,27 @@ var plugin = module.exports = {
 
 		rawString = rawString.replace(/\\u\{(\w{1,6})\}/g, function(str, found) {
 			changes++;
-			let codePointString = String.fromCodePoint(parseInt(found, 16));
-			let length = codePointString.length;
 
-			assert(length <= 2 && length > 0, 'Invalid unicode sequence.');
-
-			return self.charCodeToString(codePointString.charCodeAt(0)) + (length > 1 ? self.charCodeToString(codePointString.charCodeAt(1)) : "");
+			return self.charCodesFromCodePoint(found);
 		});
 
 		return {
 			string: rawString
 			, changes: changes
 		}
+	}
+
+	, charCodesFromCodePoint: function(codePoint) {
+		if ( typeof codePoint != "number" ) {
+			codePoint = parseInt(codePoint, 16)
+		}
+
+		let codePointString = String.fromCodePoint(codePoint);
+		let length = codePointString.length;
+
+		assert(length <= 2 && length > 0, 'Invalid unicode sequence.');
+
+		return this.charCodeToString(codePointString.charCodeAt(0)) + (length > 1 ? this.charCodeToString(codePointString.charCodeAt(1)) : "");
 	}
 
 	, charCodeToString: function(charCode) {
