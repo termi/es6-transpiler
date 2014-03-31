@@ -14,6 +14,7 @@ const ASTQuery = require("astquery");
 
 let plugins = [
 	core
+	, require("./transpiler/numericLiteral")
 	, require("./transpiler/classes")
 	, require("./transpiler/loopClosures")
 	, require("./transpiler/letConst")

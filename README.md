@@ -29,6 +29,7 @@ Beta
  * array comprehensions (with iterator protocol)
  * string templates
  * object literals
+ * binary/octal numericLiteral
  * unicode code point escapes
  * RegExp:
    * 'y' flag support
