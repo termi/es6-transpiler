@@ -233,7 +233,7 @@ module.exports = {
 		if ( IdentifierVK.indexOf('default') === -1 ) {
 			IdentifierVK.push('default');
 		}
-		let astQuery = new ASTQuery(this.ast, visitorKeys);
+		let astQuery = new ASTQuery(this.ast, visitorKeys, {onnode: core.onnode});
 		astQuery.on(this._astQuerySteps);
 
 		plugins.forEach(this.runPlugin, this);

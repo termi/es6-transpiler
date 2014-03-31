@@ -38,11 +38,6 @@ function isForInOfWithConstLet(node) {
 	return node && (node.type === "ForInStatement" || node.type === "ForOfStatement") && node.left.type === "VariableDeclaration" && isConstLet(node.left.kind);
 }
 
-function isLoop(node) {
-	const type = node.type;
-	return type === "ForStatement" || type === "ForInStatement" || type === "ForOfStatement" || type === "WhileStatement" || type === "DoWhileStatement";
-}
-
 function isReference(node) {
 	const parent = node.$parent;
 	const parentType = parent && parent.type;
@@ -111,7 +106,6 @@ let core = module.exports = {
 
 	, '::Program': function(node) {
 		// setup scopes
-		traverse(node, {pre: this.createScopes});
 		const topScope = this.createTopScope(node.$scope, this.options.environments, this.options.globals);
 
 		// allIdentifiers contains all declared and referenced vars
@@ -144,73 +138,7 @@ let core = module.exports = {
 		}
 	}
 
-	, detectType: function(valueNode, recipientNode) {
-		if ( !valueNode ) {
-			return "undefined";
-		}
-
-		let type = valueNode.type;
-
-		if ( type === 'Literal' ) {
-			let value = valueNode.value
-				, raw = valueNode.raw
-				, lastSlashIndex
-			;
-			return raw[0] == '/' && (lastSlashIndex = raw.lastIndexOf("/")) !== -1 && lastSlashIndex !== 0
-				? 'RegExp'
-				: typeof value
-			;
-		}
-		else if ( type === 'TemplateLiteral' ) {
-			return 'String';
-		}
-		else if ( type === 'ArrayExpression' ) {
-			return 'Array';
-		}
-		else if ( type === 'ObjectExpression' ) {
-			return 'Object';
-		}
-		else if ( type === 'ClassDeclaration' ) {
-			return 'Class';
-		}
-		else if ( type === 'CatchClause' ) {
-			return 'Error';
-		}
-		else if ( isFunction(valueNode) ) {
-			return 'Function';
-		}
-		else {
-			return 'Variant';
-		}
-	}
-
-	, unique: function (name, newVariable, additionalFilter) {
-		assert(newVariable || this.allIdentifiers.has(name));
-
-		for( let cnt = 0 ; ; cnt++ ) {
-			const genName = name + "$" + cnt;
-			if( !this.allIdentifiers.has(genName) && (!additionalFilter || !additionalFilter.has(genName))) {
-				if( newVariable ) {
-					this.allIdentifiers.add(genName);
-				}
-				return genName;
-			}
-		}
-	}
-
-	, uniqueByToken: function (token, name, newVariable, additionalFilter) {
-		if( this.__nameByToken && token in this.__nameByToken ) {
-			return this.__nameByToken[token];
-		}
-
-		if( !this.__nameByToken ) {
-			this.__nameByToken = {};
-		}
-
-		return this.__nameByToken[token] = this.unique(name, newVariable, additionalFilter);
-	}
-
-	, createScopes: function (node, parent) {
+	, onnode: function createScopes(node, parent) {
 		assert(!node.$scope);
 
 		node.$parent = parent;
@@ -219,17 +147,17 @@ let core = module.exports = {
 		let self = this;
 
 		function addParamToScope(param) {
-			if( param === null ){
+			if ( param === null ) {
 				return;
 			}
 
-			if( isObjectPattern(param) ) {
+			if ( isObjectPattern(param) ) {
 				param.properties.forEach(addParamToScope);
 			}
-			else if( param.type === "Property" ) {//from objectPattern
+			else if ( param.type === "Property" ) {//from objectPattern
 				addParamToScope(param.value);
 			}
-			else if( isArrayPattern(param) ) {
+			else if ( isArrayPattern(param) ) {
 				param.elements.forEach(addParamToScope);
 			}
 			else {
@@ -439,6 +367,72 @@ let core = module.exports = {
 				}
 			}
 		}
+	}
+
+	, detectType: function(valueNode, recipientNode) {
+		if ( !valueNode ) {
+			return "undefined";
+		}
+
+		let type = valueNode.type;
+
+		if ( type === 'Literal' ) {
+			let value = valueNode.value
+				, raw = valueNode.raw
+				, lastSlashIndex
+			;
+			return raw[0] == '/' && (lastSlashIndex = raw.lastIndexOf("/")) !== -1 && lastSlashIndex !== 0
+				? 'RegExp'
+				: typeof value
+			;
+		}
+		else if ( type === 'TemplateLiteral' ) {
+			return 'String';
+		}
+		else if ( type === 'ArrayExpression' ) {
+			return 'Array';
+		}
+		else if ( type === 'ObjectExpression' ) {
+			return 'Object';
+		}
+		else if ( type === 'ClassDeclaration' ) {
+			return 'Class';
+		}
+		else if ( type === 'CatchClause' ) {
+			return 'Error';
+		}
+		else if ( isFunction(valueNode) ) {
+			return 'Function';
+		}
+		else {
+			return 'Variant';
+		}
+	}
+
+	, unique: function (name, newVariable, additionalFilter) {
+		assert(newVariable || this.allIdentifiers.has(name));
+
+		for( let cnt = 0 ; ; cnt++ ) {
+			const genName = name + "$" + cnt;
+			if( !this.allIdentifiers.has(genName) && (!additionalFilter || !additionalFilter.has(genName))) {
+				if( newVariable ) {
+					this.allIdentifiers.add(genName);
+				}
+				return genName;
+			}
+		}
+	}
+
+	, uniqueByToken: function (token, name, newVariable, additionalFilter) {
+		if( this.__nameByToken && token in this.__nameByToken ) {
+			return this.__nameByToken[token];
+		}
+
+		if( !this.__nameByToken ) {
+			this.__nameByToken = {};
+		}
+
+		return this.__nameByToken[token] = this.unique(name, newVariable, additionalFilter);
 	}
 
 	, createTopScope: function(programScope, environments, globals) {
