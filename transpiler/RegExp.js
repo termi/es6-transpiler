@@ -27,7 +27,7 @@ const polyfills = require("./polyfills");
 const unicode = require("./unicode");
 const regenerate = require("regenerate");
 const regjsparser = require("./../lib/regjsparser");
-const ASTQuery = require("ASTQuery");
+const ASTQuery = require("astquery");
 const StringAlter = require("./../lib/StringAlter-es5");
 
 var plugin = module.exports = {
