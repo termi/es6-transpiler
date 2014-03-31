@@ -130,10 +130,11 @@ let core = module.exports = {
 				, declarationNode = node.$declaration
 			;
 
-
-			let types = declarationNode.$types;
-			if ( types.indexOf(assignmentType) === -1 ) {
-				types.push(assignmentType);
+			if ( declarationNode ) {// global has no declaration node
+				let types = declarationNode.$types;
+				if ( types.indexOf(assignmentType) === -1 ) {
+					types.push(assignmentType);
+				}
 			}
 		}
 	}
