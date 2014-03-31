@@ -29,7 +29,6 @@ done
 cp es6toes5 es5/
 
 cp ../lib/esprima_harmony.js es5/lib/
-cp ../lib/StringAlter-es5.js es5/lib/
 cp ../lib/regjsparser.js es5/lib/
 
 cp -r ../jshint_globals es5/

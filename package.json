@@ -18,7 +18,8 @@
     "ansidiff": "~1.0.0",
     "astquery": "latest",
     "regenerate": "latest",
-    "jsesc": "latest"
+    "jsesc": "latest",
+    "string-alter": "latest"
   },
   "devDependencies": {
     "nodeunit": "latest"

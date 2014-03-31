@@ -28,7 +28,7 @@ const unicode = require("./unicode");
 const regenerate = require("regenerate");
 const regjsparser = require("./../lib/regjsparser");
 const ASTQuery = require("astquery");
-const StringAlter = require("./../lib/StringAlter-es5");
+const StringAlter = require("string-alter");
 
 var plugin = module.exports = {
 	reset: function() {
@@ -119,7 +119,10 @@ var plugin = module.exports = {
 			let regExpAst = regjsparser.parse(regExpBody, flags);
 			let stringAlter = this._reStringAlter = new StringAlter(regExpBody);
 
-			(new ASTQuery(regExpAst, 'regexp')).on(this, {prefix: ':re:'});
+			let reASTQuery = new ASTQuery(regExpAst, 'regexp');
+			reASTQuery.on(this, {prefix: ':re:'});
+			reASTQuery.apply();
+			reASTQuery.reset();
 
 			let result = stringAlter.apply();
 			this._reStringAlter = void 0;

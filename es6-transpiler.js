@@ -8,7 +8,7 @@ const traverse = require("./lib/traverse");
 const error = require("./lib/error");
 const defaultOptions = require("./options");
 const core = require("./transpiler/core");
-const StringAlter = require("./lib/StringAlter-es5");
+const StringAlter = require("string-alter");
 const is = require("simple-is");
 const ASTQuery = require("astquery");
 
@@ -236,7 +236,7 @@ module.exports = {
 		}
 		let astQuery = new ASTQuery(this.ast, visitorKeys, {onnode: core.onnode});
 		astQuery.on(this._astQuerySteps);
-
+		astQuery.apply();
 		plugins.forEach(this.runPlugin, this);
 
 		// output
