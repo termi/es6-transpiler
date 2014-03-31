@@ -12,7 +12,7 @@ do
   node --harmony ../es6toes5 ../$i es5/$i
 done
 
-declare -a transpilers=(arrayComprehension.js classes.js core.js destructuring.js forOf.js functions.js letConst.js loopClosures.js objectLiteral.js quasiLiterals.js spread.js optimiser.js unicode.js polyfills.js RegExp.js)
+declare -a transpilers=(arrayComprehension.js classes.js core.js destructuring.js forOf.js functions.js letConst.js loopClosures.js objectLiteral.js quasiLiterals.js spread.js optimiser.js unicode.js polyfills.js RegExp.js numericLiteral.js)
 for i in ${transpilers[@]}
 do
   echo "building transpiler/$i"
