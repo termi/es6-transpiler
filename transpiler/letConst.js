@@ -46,14 +46,14 @@ let plugin = module.exports = {
 		}});
 	}
 
-	, pre: function(node) {
+	, ':: VariableDeclaration[kind=const],VariableDeclaration[kind=let]': function(node) {
 		// change constlet declarations to var, renamed if needed
-		// varify modifies the scopes and AST accordingly and
-		// returns a list of change fragments (to use with alter)
-		if( node.type === "VariableDeclaration" && isConstLet(node.kind) ) {
-			this.renameDeclarations(node);
-		}
-		else if( node.$refToScope ) {
+		this.renameDeclarations(node);
+	}
+
+	, ':: Identifier': function(node) {
+		// varify modifies the scopes and AST accordingly
+		if( node.$refToScope ) {
 			this.renameReferences(node);
 		}
 	}

@@ -40,13 +40,7 @@ var plugin = module.exports = {
 		this.options = options;
 	}
 
-	, pre: function(node) {
-		if( node.type === "ForOfStatement" ) {
-			this.replaceForOf(node);
-		}
-	}
-
-	, replaceForOf: function(node) {
+	, ':: ForOfStatement': function replaceForOf(node) {
 		const hasBlock = (node.body.type === "BlockStatement");
 
 		const nodeStartsFrom = node.body.range[0];

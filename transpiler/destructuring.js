@@ -39,10 +39,10 @@ var plugin = module.exports = {
 		this.options = options;
 	}
 
-	, pre: function replaceDestructuringVariableDeclaration(node) {
+	, ':: ObjectPattern,ArrayPattern': function replaceDestructuringVariableDeclaration(node) {
 		let parentNode, declarationNode;
 
-		if( isObjectPattern(node) || isArrayPattern(node) ) {
+		{
 			parentNode = node.$parent;
 
 			if( parentNode.type === "VariableDeclarator" ) {

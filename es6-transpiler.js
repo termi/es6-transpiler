@@ -4,7 +4,6 @@ require("es5-shim");
 require("es6-shim");
 
 const fs = require("fs");
-const traverse = require("./lib/traverse");
 const error = require("./lib/error");
 const defaultOptions = require("./options");
 const core = require("./transpiler/core");
@@ -63,7 +62,7 @@ function consoleArgumentsToOptions(args, options) {
 module.exports = {
 	runned: false
 
-	, setupPlugins: function(config) {
+	, setupPlugins: function(config, astQuery) {
 		var optionsList = this.optionsList = [];
 
 		config.esprima = this.esprima;
@@ -84,42 +83,14 @@ module.exports = {
 					this._onResults.push(plugin.onResultObject);
 				}
 
-				let pluginAstQuerySteps = Object.keys(plugin)
-					.filter(function(prop){ return prop.substr(0, 2) == "::" } )
-				;
-
-				// algorithm: collect all matches nodes for each plugin in special property "__matchesRecords"
-				// each element in "__matchesRecords" contains 'callbackName' (which is a 'plugin' property key) and matched 'node'
-				// in 'runPlugin' method traverse over "__matchesRecords" and call 'plugin[callbackName]' with 'node' as first parameter
-				pluginAstQuerySteps.forEach(function(callbackName) {
-					let callback
-						, astQueryStep = callbackName.substr(2)
-					;
-					if ( !(callback = this._astQuerySteps[astQueryStep]) ) {
-						callback = this._astQuerySteps[astQueryStep] = function callback(node) {
-							let steps = callback["__steps"];
-							for ( let i = 0, length = steps.length ; i < length ; i++ ) {
-								steps[i](node);
-							}
-						};
-						callback["__steps"] = [];
-					}
-					callback["__steps"].push(function(node) {
-						plugin["__matchesRecords"].push({
-							callbackName: callbackName
-							, node: node
-						});
-					});
-					if ( !plugin["__matchesRecords"] ) {
-						plugin["__matchesRecords"] = [];
-					}
-				}, this);
+				astQuery.on(plugin, {prefix: '::', group: index});
 			}
 		}, this);
 	}
 
 	, applyChanges: function(config, doNotReset) {
 		if( this.alter.hasChanges() ) {// has changes in classes replacement Step
+//			console.log(this.alter.printFragments())
 			this.src = this.alter.apply();
 
 			if( doNotReset !== true ) {
@@ -149,7 +120,6 @@ module.exports = {
 			if( typeof plugin.reset === "function" ) {
 				plugin.reset();
 			}
-			delete plugin["__matchesRecords"];
 		});
 
 		this._astQuerySteps = {};
@@ -228,17 +198,9 @@ module.exports = {
 		// output
 		const output = this.output = {errors: [], src: ""};
 
-		this.setupPlugins(config);
+		let astQuery = this.loadASTQuery();
+		this.setupPlugins(config, astQuery);
 
-		// adding custom keys in ASTQuery.VISITOR_KEYS
-		let visitorKeys = ASTQuery.getVisitorKeys('es6');
-		let IdentifierVK = visitorKeys['Identifier'];
-		if ( IdentifierVK.indexOf('default') === -1 ) {
-			IdentifierVK.push('default');
-		}
-		let astQuery = new ASTQuery(this.ast, visitorKeys, {onnode: core.onnode});
-		astQuery.on(this._astQuerySteps);
-		astQuery.apply();
 		plugins.forEach(this.runPlugin, this);
 
 		// output
@@ -249,9 +211,7 @@ module.exports = {
 		else if (config.outputType === "ast") {
 			// return the modified AST instead of src code
 			// get rid of all added $ properties first, such as $parent and $scope
-			traverse(this.ast, {cleanup: true});
-
-			output.ast = this.ast;
+			output.ast = astQuery.getAST({cleanup: true});
 		}
 		else {
 			// apply changes produced by varify and return the transformed src
@@ -286,17 +246,10 @@ module.exports = {
 
 	, runPlugin: function(plugin, index) {
 		let options = this.optionsList[index];
+		let astQuery = this.astQuery;
 
 		if( options.passIt === true ) {
 			return;
-		}
-
-		let matchesRecords = plugin["__matchesRecords"];
-		if ( matchesRecords ) {
-			for ( let i = 0 , len = matchesRecords.length ; i < len ; i++ ) {
-				let matchesRec = matchesRecords[i];
-				plugin[matchesRec.callbackName](matchesRec.node);
-			}
 		}
 
 		if( typeof plugin.before === "function" ) {
@@ -305,9 +258,7 @@ module.exports = {
 			}
 		}
 
-		if( typeof plugin.pre === "function" || typeof plugin.post === "function" ) {
-			traverse(this.ast, {pre: plugin.pre, post: plugin.post});
-		}
+		astQuery.apply({group: index});
 
 		if( typeof plugin.after === "function" ) {
 			if( plugin.after(this.ast, this.output) === false ) {
@@ -318,6 +269,16 @@ module.exports = {
 		if( options.applyChangesAfter ) {
 			this.applyChanges(this.config);
 		}
+	}
+
+	, loadASTQuery: function() {
+		// adding custom keys in ASTQuery.VISITOR_KEYS
+		let visitorKeys = ASTQuery.getVisitorKeys('es6');
+		let IdentifierVK = visitorKeys['Identifier'];
+		if ( IdentifierVK.indexOf('default') === -1 ) {
+			IdentifierVK.push('default');
+		}
+		return this.astQuery = new ASTQuery(this.ast, visitorKeys, {onpreparenode: core.onpreparenode});
 	}
 };
 

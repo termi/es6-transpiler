@@ -43,15 +43,10 @@ var plugin = module.exports = {
 		this.options = options;
 	}
 
-	, pre: function(node) {
-		let type = node.type;
-		if( (
-				type === "CallExpression"
-				|| type === "NewExpression"
-				|| type === "ArrayExpression"
-			)
-			&& hasSpreadArgument(node)
-		) {
+	, ':: CallExpression,NewExpression,ArrayExpression': function(node) {
+		if( hasSpreadArgument(node) ) {
+			let type = node.type;
+
 			if ( type === "CallExpression" ) {
 				this.replaceCallExpression(node);
 			}

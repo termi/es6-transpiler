@@ -3,7 +3,6 @@
 const assert = require("assert");
 const is = require("simple-is");
 const stringset = require("stringset");
-const traverse = require("./../lib/traverse");
 const jshint_vars = require("./../jshint_globals/vars.js");
 const Scope = require("./../lib/scope");
 const error = require("./../lib/error");
@@ -81,8 +80,6 @@ let UUID_PREFIX = "uuid" + ((Math.random() * 1e6) | 0);
 let UUID = 1;
 
 let core = module.exports = {
-	traverse: traverse,
-
 	reset: function() {
 		this.allIdentifiers = stringset();
 
@@ -162,14 +159,14 @@ let core = module.exports = {
 
 			if ( declarationNode ) {// global has no declaration node
 				let types = declarationNode.$types;
-				if ( types.indexOf(assignmentType) === -1 ) {
+				if ( types && types.indexOf(assignmentType) === -1 ) {
 					types.push(assignmentType);
 				}
 			}
 		}
 	}
 
-	, onnode: function createScopes(node, parent) {
+	, onpreparenode: function createScopes(node, parent) {
 		assert(!node.$scope);
 
 		node.$parent = parent;

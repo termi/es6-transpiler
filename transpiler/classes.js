@@ -76,8 +76,8 @@ const classesTranspiler = {
 		} ).join(", ") + "});";
 	}
 
-	, pre: function replaceClassBody(node) {
-		if( node.type === "ClassDeclaration" ) {
+	, ':: ClassDeclaration': function replaceClassBody(node, astQuery) {
+		{
 			if( !this.__currentSuperRefName ) {
 				// We need only one unique 'super' name for the entire file
 				this.__currentSuperRefName = core.unique("super", true);
@@ -129,7 +129,7 @@ const classesTranspiler = {
 			this.__currentStaticAccessors = {};
 			if( classBodyNodesCount ) {
 				for ( let i = 0 ; i < classBodyNodesCount ; i++ ) {
-					this.replaceClassMethods(classBodyNodes[i]);
+					this.replaceClassMethods(classBodyNodes[i], astQuery);
 				}
 			}
 
@@ -142,7 +142,7 @@ const classesTranspiler = {
 					this.alter.insert(classConstructor.range[1], extendedClassConstructorPostfix);
 				}
 
-				core.traverse(classConstructor, {pre: this.replaceClassConstructorSuper});
+				astQuery.traverse(classConstructor, this.replaceClassConstructorSuper);
 			}
 			else {
 				this.alter.insert(
@@ -172,9 +172,7 @@ const classesTranspiler = {
 			this.alter.insert(node.range[1], ")(" + (superClass || "") + ");");
 
 			this.__currentClassName = null;
-			return false;
 		}
-		this.__currentClassName = null;
 	}
 
 	, unwrapSuperCall: function unwrapSuperCall(node, calleeNode, isStatic, property, isConstructor) {
@@ -219,7 +217,7 @@ const classesTranspiler = {
 		}
 	}
 	
-	, replaceClassMethods: function replaceClassMethods(node) {
+	, replaceClassMethods: function replaceClassMethods(node, astQuery) {
 		if( node.type === "MethodDefinition" && node.key.name !== "constructor" ) {
 			let isStatic = this.__currentClassMethodsStatic = node.static;
 
@@ -267,7 +265,7 @@ const classesTranspiler = {
 				this.alter.insert(nodeKey.range[1], " = function");
 			}
 
-			core.traverse(node.value, {pre: this.replaceClassMethodSuper});
+			astQuery.traverse(node.value, this.replaceClassMethodSuper);
 		}
 		this.__currentClassMethodsStatic = null;
 	}

@@ -2,7 +2,6 @@
 
 const assert = require("assert");
 const error = require("./../lib/error");
-const traverse = require("./../lib/traverse");
 const core = require("./core");
 const Scope = require("./../lib/scope");
 
@@ -126,7 +125,7 @@ var plugin = module.exports = {
 		this.esprima = options.esprima;
 	}
 
-	, pre: function detectLoopClosures(node) {
+	, ':: Identifier': function detectLoopClosures(node, astQuery) {
 		// forbidden pattern:
 		// <any>* <loop> <non-fn>* <constlet-def> <any>* <fn> <any>* <constlet-ref>
 		var loopNode = null;
@@ -181,7 +180,7 @@ var plugin = module.exports = {
 						return error(getline(variableDeclarationNode), "Not yet specced ES6 feature. {0} is declared in for-loop header and then captured in loop closure", variableDeclarationNode.name);
 					}
 
-					let special = this.detectIifyBodyBlockers(loopNode.body, node);
+					let special = this.detectIifyBodyBlockers(loopNode.body, node, astQuery);
 
 					// mark loop for IIFE-insertion
 					loopNode.$iify = true;
@@ -192,10 +191,10 @@ var plugin = module.exports = {
 		}
 	}
 
-	, detectIifyBodyBlockers: function detectIifyBodyBlockers(body) {
+	, detectIifyBodyBlockers: function detectIifyBodyBlockers(body, n, astQuery) {
 		var result = [];
 
-		traverse(body, {pre: function(n) {
+		astQuery.traverse(body, function(n) {
 			// if we hit an inner function of the loop body, don't traverse further
 			if (isFunction(n)) {
 				return false;
@@ -214,7 +213,7 @@ var plugin = module.exports = {
 			} else if (n.type === "ThisExpression" ) {
 				result.push(n);
 			}
-		}});
+		});
 
 		return result;
 	}

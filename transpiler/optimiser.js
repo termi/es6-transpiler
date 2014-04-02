@@ -48,26 +48,23 @@ let plugin = module.exports = {
 		return Array.isArray(resetUnCapturedVariables) && resetUnCapturedVariables.length > 1 || false;
 	}
 
-	, pre: function(node) {
-		let isVariableDeclaration = node.type === "VariableDeclaration";
-		let isFunctionDeclaration = !isVariableDeclaration && node.type === 'FunctionDeclaration';
+	, ':: VariableDeclaration': function(node) {
+		core.getVariableDeclarationNodes(node).forEach(function(declarationNode) {
+			if( !declarationNode.$captured ) {
+				this.resetVariable(
+					declarationNode
+					, null
+				);
+			}
+		}, this);
+	}
 
-		if( isVariableDeclaration ) {
-			let kind = node.$originalKind || node.kind;
+	, ':: FunctionDeclaration': function(node) {
+		this.resetVariable(node.id, "fun", node.$scope.parent.node);
+	}
 
-			core.getVariableDeclarationNodes(node).forEach(function(declarationNode) {
-				if( !declarationNode.$captured ) {
-					plugin.resetVariable(
-						declarationNode
-						, null
-					);
-				}
-			});
-		}
-		else if( isFunctionDeclaration ) {
-			this.resetVariable(node.id, "fun", node.$scope.parent.node);
-		}
-		else if( node.$refToScope ) {
+	, ':: Identifier': function(node) {
+		if( node.$refToScope ) {
 			if( node.$captured === false ) {
 				this.resetVariable(node);
 			}

@@ -40,8 +40,8 @@ var plugin = module.exports = {
 		this.options = options;
 	}
 
-	, pre: function functionDestructuringAndDefaultsAndRest(node) {
-		if ( isFunction(node) ) {
+	, ':: FunctionDeclaration,FunctionExpression,ArrowFunctionExpression': function functionDestructuringAndDefaultsAndRest(node, astQuery) {
+		{
 			const functionBody = node.body;
 
 			const isArrowFunction = node.type === "ArrowFunctionExpression";
@@ -103,7 +103,7 @@ var plugin = module.exports = {
 
 					if( isArrowFunction ) {
 						if( node.$scope.doesThisUsing() ) {
-							this.replaceThisInArrowFunction(node);
+							this.replaceThisInArrowFunction(node, astQuery);
 						}
 
 						// add "function" word before arrow function params list
@@ -329,7 +329,7 @@ var plugin = module.exports = {
 		}
 	}
 
-	, replaceThisInArrowFunction: function(node) {
+	, replaceThisInArrowFunction: function(node, astQuery) {
 		assert(node.type === "ArrowFunctionExpression");
 
 		let self = this;
@@ -352,20 +352,18 @@ var plugin = module.exports = {
 			self.alter.insert(core.__getNodeBegin(hoistScope.node), "var " + thisUniqueName + " = this;");
 		}
 
-		core.traverse(node, {
-			pre: function(childNode) {
-				if( isFunction(childNode) && childNode !== node ) {
-					return false;
-				}
-
-				if( childNode.type === 'ThisExpression' ) {
-					childNode.$originalName = childNode.name;
-					childNode.name = thisUniqueName;
-
-					self.alter.replace(childNode.range[0], childNode.range[1], childNode.name);
-				}
+		astQuery.traverse(node, function(childNode) {
+			if( isFunction(childNode) && childNode !== node ) {
+				return false;
 			}
-		})
+
+			if( childNode.type === 'ThisExpression' ) {
+				childNode.$originalName = childNode.name;
+				childNode.name = thisUniqueName;
+
+				self.alter.replace(childNode.range[0], childNode.range[1], childNode.name);
+			}
+		});
 	}
 };
 
