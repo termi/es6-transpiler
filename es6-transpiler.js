@@ -10,6 +10,7 @@ const core = require("./transpiler/core");
 const StringAlter = require("string-alter");
 const is = require("simple-is");
 const ASTQuery = require("astquery");
+const node_inject = require("./lib/node_inject");
 const esprima = require("./lib/esprima_harmony");
 
 let plugins = [
@@ -62,6 +63,9 @@ function consoleArgumentsToOptions(args, options) {
 
 module.exports = {
 	runned: false
+
+	, node_inject_on: node_inject.node_inject_on
+	, node_inject_off: node_inject.node_inject_off
 
 	, setupPlugins: function(config, astQuery) {
 		var optionsList = this.optionsList = [];
@@ -272,6 +276,8 @@ module.exports = {
 		return this.astQuery = new ASTQuery(this.ast, visitorKeys, {onpreparenode: core.onpreparenode});
 	}
 };
+
+node_inject.setES6transpiler(module.exports);
 
 function outputToConsole(output, config) {
 	if (config.outputType === "stats" && output.stats) {
