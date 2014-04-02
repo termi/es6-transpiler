@@ -125,7 +125,8 @@ module.exports = {
 			if( doNotReset !== true ) {
 				this.ast = this.esprima.parse(this.src, {
 					loc: true,
-					range: true
+					range: true,
+					comment: true
 				});
 
 				error.reset();
@@ -214,7 +215,8 @@ module.exports = {
 		if( !this.ast && isSourceInput ) {
 			this.ast = esprima.parse(this.src, {
 				loc: true,
-				range: true
+				range: true,
+				comment: true
 			});
 		}
 		else {

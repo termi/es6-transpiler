@@ -114,6 +114,36 @@ let core = module.exports = {
 		topScope.traverse({pre: function(scope) {
 			allIdentifiers.addMany(scope.decls.keys());
 		}});
+
+		(node.comments || []).forEach(function(commentNode) {
+			if ( commentNode.type === 'Block' ) {
+				let value = commentNode.value;
+				let re_isJSHintGlobal = /^(\s)?global(s)?\s+/;
+
+				if ( re_isJSHintGlobal.test(value) ) {
+					let variables = {};
+					let defWithValue = /^\s*(\S+)\s*:\s*((?:true)|(?:false))\s*$/;
+					let defWithoutValue = /^\s*(\S+)\s*$/;
+
+					value.replace(re_isJSHintGlobal, "").split(",").reduce(function(obj, val) {
+						let variableDef;
+
+						if ( val.charAt(0) != '-' ) {
+							if ( variableDef = val.match(defWithValue) ) {
+								obj[variableDef[1]] = variableDef[2] == 'true';
+							}
+							else if ( variableDef = val.match(defWithoutValue) ) {
+								obj[variableDef[1]] = false;
+							}
+						}
+
+						return obj;
+					}, variables);
+
+					this._injectGlobals(variables, topScope, commentNode.range[1], "let");
+				}
+			}
+		}, this);
 	}
 
 	, '::Identifier': function(node) {
@@ -194,7 +224,7 @@ let core = module.exports = {
 				if( is.someof(kind, ["var", "const", "let"]) ) {
 					referableFromPos = variable.range[1];
 				}
-				(scope || node.$scope).add(variable.name, kind, variable, referableFromPos, 0, originalDeclarator);
+				(scope || node.$scope).add(variable.name, kind, variable, referableFromPos, void 0, originalDeclarator);
 
 				variable.$types = initNode ? [self.detectType(initNode, variable)] : [];
 			}
@@ -436,18 +466,18 @@ let core = module.exports = {
 		return this.__nameByToken[token] = this.unique(name, newVariable, additionalFilter);
 	}
 
-	, createTopScope: function(programScope, environments, globals) {
-		function inject(obj) {
-			for (let name in obj) {
-				const writeable = obj[name];
-				const kind = (writeable ? "var" : "const");
-				if (topScope.hasOwn(name)) {
-					topScope.remove(name);
-				}
-				topScope.add(name, kind, {loc: {start: {line: -1}}}, -1);
+	, _injectGlobals: function inject(obj, scope, from, varKind) {
+		for ( let name in obj ) {
+			const writeable = obj[name];
+			const kind = (writeable ? (varKind || "var") : "const");
+			if (scope.hasOwn(name)) {
+				scope.remove(name);
 			}
+			scope.add(name, kind, {loc: {start: {line: -1}}, range: [-1, -1]}, from === void 0 ? -1 : from);
 		}
+	}
 
+	, createTopScope: function(programScope, environments, globals) {
 		const topScope = new Scope({
 			kind: "hoist",
 			node: {},
@@ -460,20 +490,20 @@ let core = module.exports = {
 			console: false
 		};
 
-		inject(complementary);
-		inject(jshint_vars.reservedVars);
-		inject(jshint_vars.ecmaIdentifiers);
+		this._injectGlobals(complementary, topScope);
+		this._injectGlobals(jshint_vars.reservedVars, topScope);
+		this._injectGlobals(jshint_vars.ecmaIdentifiers, topScope);
 		if (environments) {
 			environments.forEach(function(env) {
 				if (!jshint_vars[env]) {
 					error(-1, 'environment "{0}" not found', env);
 				} else {
-					inject(jshint_vars[env]);
+					this._injectGlobals(jshint_vars[env], topScope);
 				}
-			});
+			}, this);
 		}
 		if (globals) {
-			inject(globals);
+			this._injectGlobals(globals, topScope);
 		}
 
 		// link it in
@@ -517,7 +547,9 @@ let core = module.exports = {
 				assert(is.finitenumber(allowedFromPos));
 				assert(is.finitenumber(referencedAtPos));
 				if (referencedAtPos < allowedFromPos) {
-					if (!node.$scope.hasFunctionScopeBetween(scope)) {
+					if (!node.$scope.hasFunctionScopeBetween(scope) || decl.isGlobal) {
+						// decl.isGlobal == true: global variable could be defined by jshint-like comment at any
+						//  line the file and this variable will be available after this line
 						error(getline(node), "{0} is referenced before its declaration", node.name);
 					}
 				}
