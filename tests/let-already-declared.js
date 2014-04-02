@@ -28,3 +28,10 @@ function f() {
 
 	}
 }
+
+try {
+	throw 123;
+}
+catch(e) {
+	let e = 321;
+}
