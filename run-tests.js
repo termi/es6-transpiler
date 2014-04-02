@@ -140,6 +140,10 @@ function fail(file, type, diff1, diff2) {
 	console.log("\n---------------------------\n");
 }
 
+function removeCommentsFromErrorsList(str) {
+	return str.replace(/^#[ \t\v\S]+((\n)|(\r\n))/gm, '');
+}
+
 function test(file) {
 	let result;
 	let errors;
@@ -180,7 +184,7 @@ function test(file) {
 
 	const noSuffix = file.slice(0, -3);
 
-	const expectedStderr = slurp(pathToTests + "/" + noSuffix + "-stderr");
+	const expectedStderr = removeCommentsFromErrorsList(slurp(pathToTests + "/" + noSuffix + "-stderr"));
 	const expectedStdout = slurp(pathToTests + "/" + noSuffix + "-out.js");
 
 	const compare1 = stringCompare(expectedStderr, errors, "lines");
