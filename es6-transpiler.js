@@ -10,6 +10,7 @@ const core = require("./transpiler/core");
 const StringAlter = require("string-alter");
 const is = require("simple-is");
 const ASTQuery = require("astquery");
+const esprima = require("./lib/esprima_harmony");
 
 let plugins = [
 	core
@@ -65,7 +66,7 @@ module.exports = {
 	, setupPlugins: function(config, astQuery) {
 		var optionsList = this.optionsList = [];
 
-		config.esprima = this.esprima;
+		config.esprima = esprima;
 
 		plugins.forEach(function(plugin, index) {
 			var options = optionsList[index] = {}, passIt = false;
@@ -94,7 +95,7 @@ module.exports = {
 			this.src = this.alter.apply();
 
 			if( doNotReset !== true ) {
-				this.ast = this.esprima.parse(this.src, {
+				this.ast = esprima.parse(this.src, {
 					loc: true,
 					range: true,
 					comment: true
@@ -153,16 +154,6 @@ module.exports = {
 		else if( !Array.isArray(config.resetUnCapturedVariables) ) {
 			config.resetUnCapturedVariables = [];
 		}
-
-		//esprima
-		let esprima;
-		if( config.fullES6 === true ) {
-			esprima = require("./lib/esprima_harmony");
-		}
-		else {
-			esprima = require("esprima");
-		}
-		this.esprima = esprima;
 
 		// input
 		let isSourceInput = false;
