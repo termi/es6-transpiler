@@ -19,7 +19,7 @@ do
   node --harmony ../es6toes5 ../transpiler/$i es5/transpiler/$i
 done
 
-declare -a libs=(error.js scope.js stats.js traverse.js)
+declare -a libs=(error.js scope.js stats.js node_inject.js)
 for i in ${libs[@]}
 do
   echo "building lib/$i"
