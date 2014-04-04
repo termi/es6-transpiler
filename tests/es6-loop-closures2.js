@@ -73,6 +73,25 @@ console.log(arr.map(call).join("|") == [1, 2].join("|"));
 	console.log(arr.map(call).join("|") == [2, 3, 4, 5].join("|"), GG == 5, j == 1, k == 2, c == 3, d == 4, e == 5);
 }
 
+// simple var support
+arr = [];
+function var_test() {
+	for (var x = 0; x < 3; x++) {
+		let y = x;
+		arr.push(function() { return y; });
+
+		{
+			var variable;
+			if ( variable === void 0 ) {
+				variable = 0;
+			}
+			variable++;
+		}
+	}
+	return variable;
+}
+res = var_test();
+console.log(arr.map(call).join("|") == [0, 1, 2].join("|"), res === 3);
 
 // this test
 arr = (function() {'use strict';let arr = [];
