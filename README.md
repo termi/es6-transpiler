@@ -8,10 +8,15 @@ Beta
 ## Goal
 
  * different output than [traceur-compiler](https://github.com/google/traceur-compiler):
-     1. no runtime library
+     1. no runtime library (only polyfills if needed)
      1. no try/catch for block binding
-     1. no `.bind` using for arrow functions
-     1. `.concat` for spread emulation
+     1. spread:
+       * via `.concat`
+       * should respect Iterator protocol
+       * spread is operator, not a function
+     1. minimal count of temporary variables
+     1. termination stage for temporary variables
+     1. es6 RegExp support
      1. and others
  * output should support [Closure Compiler](https://code.google.com/p/closure-compiler/)
  * line-to-line input/output mapping
@@ -19,21 +24,35 @@ Beta
 ## Supported
 
  * classes
- * destructuring
+ * destructuring (with default values)
  * block binding (let / const)
    * loops: fresh lexical environment per iteration
- * default parameters
+ * function default parameters and rest
  * arrow functions
  * spread (with iterator protocol)
  * for-of (with iterator protocol)
  * array comprehensions (with iterator protocol)
  * string templates
- * object literals
+ * object literals (partial support see: [Not supported](#not-supported))
  * binary/octal numericLiteral
  * unicode code point escapes
  * RegExp:
-   * 'y' flag support
-   * 'u' flag support (partial runtime support: 1. \D, \W, '.' etc unsupported, 2. unicode ranges with negative characterClass unsupported)
+   * 'y' flag support (in runtime via polyfill)
+   * 'u' flag support:
+     * full transpiler-time support: [negative] astral symbols (surrogate pairs) ranges, \D, \W, '.' etc captures astral symbols
+     * partial runtime support see: [Not supported](#not-supported)
+
+## Not supported
+
+ * modules
+ * generators / generator comprehensions
+ * symbols
+ * object literals:
+   * computed properties
+ * RegExp:
+   * 'u' flag in runtime (via polyfill) for the newly generated patterns:
+     1. \D, \W, '.' etc not supported
+     1. negative astral symbols (surrogate pairs) ranges
 
 Static scope analysis and transpilation of ES6 block scoped `const` and `let` variables to ES3 based on [olov/defs](https://github.com/olov/defs).
 
@@ -214,10 +233,8 @@ See tests
 
 
 ## Compatibility
-`es6-transpiler.js` strives to transpile your program as true to the ES6 block scope semantics as
-possible, while being as maximally non-intrusive as possible. The only textual
-differences you'll find between your original and transpiled program is that the latter
-uses `var` and occasional variable renames.
+`es6-transpiler.js` strives to transpile your program as true to the ES6 semantics as
+possible, while being as maximally non-intrusive as possible.
 
 
 ### Referenced (inside closure) before declaration
@@ -242,4 +259,3 @@ minor problem in practice.
  1. Generators support
  1. Modules support
  1. 'pre-es6-node10', 'pre-es6-chrome20' and 'pre-es6-ff24' output modes
- 1. /N[^\s\uD800\uDC00-\uD800\uDCAA1-9]N/u -> /N(?:[^\s1-9]|\uD800[\uDCAB-\uDFFF]|[\uD801-\uDBFF][\uDC00-\uDFFF])N/
