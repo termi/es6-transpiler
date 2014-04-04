@@ -1,3 +1,10 @@
+// Destructuring: The initializer must be an object.
+{
+	let {x} = 1;// transpiling-time error
+	let a = 1;
+	let {y} = a;// runtime error
+}
+
 // Forbidden destructuring
 {
       var test51 = [3, 2, 1];
