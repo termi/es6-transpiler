@@ -89,7 +89,9 @@ var plugin = module.exports = {
 		this.alter.replace(
 			assignment.range[0]
 			, assignment.range[1]
-			, declarationString
+			// additional '(' and ')' would fix the "let a, str = `${obj = ({a: a}) = {a, toString(){ return "test" }}}`" case (assert(obj == {a, toString(){ return "test" }}));
+			// TODO:: add more intelligence check and remove unnecessary '(' and ')'
+			, "(" + declarationString + ")"
 		);
 	}
 

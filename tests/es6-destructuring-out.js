@@ -30,8 +30,8 @@ function test3(array) {var $D$0;
 	var a = 1, b = 2, b$0;
 	{
 		var a$0 = array[0], b$1 = array[2], c = array[3];
-		console.log(a$0 === 9, b$1 === 7, c === 6, (a$0 = ($D$0 = (array.unshift(777), array))[0], b$1 = $D$0[2], c = $D$0[3], $D$0)[3] === 7);
-        console.log(a$0 === 777, b$1 === null, c === 7);
+		console.log(a$0 === 9, b$1 === 7, c === 6, ((a$0 = ($D$0 = (array.unshift(777), array))[0], b$1 = $D$0[2], c = $D$0[3], $D$0))[3] === 7);
+		console.log(a$0 === 777, b$1 === null, c === 7);
 	;$D$0 = void 0}
 	console.log(a === 1, b === 2, b$0 === void 0);
 }
