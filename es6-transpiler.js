@@ -15,6 +15,7 @@ const esprima = require("./lib/esprima_harmony");
 
 let plugins = [
 	core
+	, require("./transpiler/typesDetection")
 	, require("./transpiler/numericLiteral")
 	, require("./transpiler/classes")
 	, require("./transpiler/loopClosures")
