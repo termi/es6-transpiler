@@ -212,6 +212,8 @@ var plugin = module.exports = {
 				result.push(n);
 			} else if (n.type === "ThisExpression" ) {
 				result.push(n);
+			} else if (n.type === "YieldExpression" ) {
+				result.push(n);
 			}
 		});
 
@@ -283,32 +285,33 @@ var plugin = module.exports = {
 					replaceWith = "return;"
 				}
 			}
-			else if (type === "ReturnStatement") {
+			else if ( type === "ReturnStatement" || type === "YieldExpression" ) {
 				let argument = special.argument
 					, argTypeIsPrimitive = argument && argument.type === 'Literal'
+					, keys = type === "YieldExpression"
+						? {primitive: "yieldPrim", probablyObject: "yieldVal", exitPoint: "yield", nodeKey: "$__yield"}
+						: {primitive: "retPrim", probablyObject: "retVal", undefined: "retVoid", exitPoint: "return", nodeKey: "$__return"}
 				;
 
 				if ( argument ) {
-					let key = argTypeIsPrimitive ? "retPrim" : "retVal";
+					let key = argTypeIsPrimitive ? keys.primitive : keys.probablyObject;
 					let name = this.getPermamentName(key);
-					let recipient = loopNode["$__return" + key];
+					let recipient = loopNode[keys.nodeKey + key];
 
 					replaceWith = "{" + name + " = true;return ";
 					this.alter.insertAfter(to, "}");
 
 					if ( !recipient ) {
-						recipient = loopNode["$__return" + key] = this.getPermamentName("value");
+						recipient = loopNode[keys.nodeKey + key] = this.getPermamentName("value");
 
+						funcCallResult = ";var " + name + ", " + recipient + " = ";
 						if ( argTypeIsPrimitive ) {
-							beforeHead += ";var " + name + ";";
-							result = "if(" + name + "===true){" + name + "=void 0;return " + recipient + "}";
+							result = "if(" + name + "===true){" + name + "=void 0;" + keys.exitPoint + " " + recipient + "}";
 						}
 						else {
-							funcCallResult = ";var " + name + ", " + recipient + " = ";
-
 							let returnPointName = this.getPermamentName("rp");
-							// wrap return to try/catch to prevent memory leaking
-							result = "if(" + name + "===true){try{throw " + recipient + " }catch(" + returnPointName + "){" + recipient + "=" + name + "=void 0;return " + returnPointName + "}}";
+							// wrap return/yield to try/catch to prevent memory leaking
+							result = "if(" + name + "===true){try{throw " + recipient + " }catch(" + returnPointName + "){" + recipient + "=" + name + "=void 0;" + keys.exitPoint + " " + returnPointName + "}}";
 						}
 					}
 					else {
@@ -317,10 +320,12 @@ var plugin = module.exports = {
 					to = argument.range[0];
 				}
 				else {
-					let name = this.getPermamentName("retVoid");
-					if ( !loopNode.$__returnVoid ) {
-						loopNode.$__returnVoid = true;
-						result = "if(" + name + "===true){" + name + "=void 0;return}";
+					assert(type === "ReturnStatement");//yield should always return value
+
+					let name = this.getPermamentName(keys.undefined);
+					if ( !loopNode[keys.nodeKey + "Void"] ) {
+						loopNode[keys.nodeKey + "Void"] = true;
+						result = "if(" + name + "===true){" + name + "=void 0;" + keys.exitPoint + "}";
 						beforeHead += ";var " + name + ";"
 					}
 					else {
@@ -330,20 +335,18 @@ var plugin = module.exports = {
 					replaceWith = "{" + name + " = true;return}";
 				}
 			}
-			else if (type === "Identifier" && special.name === "arguments") {
-				let hoistScopeNode = loopNode.$scope.closestHoistScope().node;
-				let name = this.getPermamentName("args");
+			else if (type === "ThisExpression" || (type === "Identifier" && special.name === "arguments")) {
+				let keys = type === "ThisExpression"
+					? {nodeKey: "$__this", varName: "this", permamentName: "that"}
+					: {nodeKey: "$__arguments", varName: "arguments", permamentName: "args"}
+				;
+				let name = this.getPermamentName(keys.permamentName);
 
-				this.alter.insertAfter(core.__getNodeBegin(hoistScopeNode), ";var " + name + "=arguments;");
+				if ( !loopNode[keys.nodeKey] ) {
+					let hoistScopeNode = loopNode.$scope.closestHoistScope().node;
 
-				result = "";
-				replaceWith = name;
-			}
-			else if (type === "ThisExpression") {
-				let hoistScopeNode = loopNode.$scope.closestHoistScope().node;
-				let name = this.getPermamentName("that");
-
-				this.alter.insertAfter(core.__getNodeBegin(hoistScopeNode), ";var " + name + "=this;");
+					this.alter.insertAfter(core.__getNodeBegin(hoistScopeNode), ";var " + name + "=" + keys.varName + ";");
+				}
 
 				result = "";
 				replaceWith = name;

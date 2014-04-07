@@ -24,6 +24,21 @@ res = (function() {
 }).call({aa: 999});
 console.log(arr.map(call).join("|") == "0", res == 999 ? true : 'Error: should return right value');
 
+// return only primitive value
+arr = [];
+function returnPrimitive() {
+	for ( let val of [1, 2, 3, 4, 5] ) {
+		let innerVal = val;
+
+		arr.push(function() { return innerVal; });
+
+		if ( val === 5 ) {
+			return 55;
+		}
+	}
+}
+console.log(returnPrimitive() === 55, arr.map(call).join("|") === [1, 2, 3, 4, 5].join("|"));
+
 // arguments is not allowed inside the loop body because the IIFE would break it
 arr = [];
 res = (function() {
