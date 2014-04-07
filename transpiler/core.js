@@ -1,3 +1,4 @@
+/*globals require, module*/
 "use strict";
 
 const assert = require("assert");
@@ -26,7 +27,7 @@ function isFunction(node) {
 }
 
 function isNonFunctionBlock(node) {
-	return node && node.type === "BlockStatement" && !isFunction(node.$parent.type);
+	return node && node.type === "BlockStatement" && !isFunction(node.$parent);
 }
 
 function isForWithConstLet(node) {
@@ -83,9 +84,8 @@ let core = module.exports = {
 	reset: function() {
 		this.allIdentifiers = stringset();
 
-		this.outermostLoop = null;
 		this.functions = [];
-		this.bubbledVariables = {}
+		this.bubbledVariables = {};
 	}
 
 	, setup: function(alter, ast, options, src) {
@@ -103,7 +103,7 @@ let core = module.exports = {
 
 	, '::Program': function(node) {
 		// setup scopes
-		const topScope = this.createTopScope(node.$scope, this.options.environments, this.options.globals);
+		const topScope = this.createTopScope(node.$scope, this.options.environments, this.options.globals, this.src.length);
 
 		// allIdentifiers contains all declared and referenced vars
 		// collect all declaration names (including those in topScope)
@@ -148,22 +148,6 @@ let core = module.exports = {
 		// also collects all referenced names to allIdentifiers
 		this.setupReferences(node);
 		this.detectConstAssignment(node);// static analysis passes
-
-		let parentNode = node.$parent;
-
-		if ( parentNode.type === 'AssignmentExpression' ) {//TODO: '::AssignmentExpression[operator="="]': function(node) {}
-			let valueNode = parentNode.right
-				, assignmentType = this.detectType(valueNode, parentNode.left)
-				, declarationNode = node.$declaration
-			;
-
-			if ( declarationNode ) {// global has no declaration node
-				let types = declarationNode.$types;
-				if ( types && types.indexOf(assignmentType) === -1 ) {
-					types.push(assignmentType);
-				}
-			}
-		}
 	}
 
 	, onpreparenode: function createScopes(node, parent) {
@@ -171,8 +155,6 @@ let core = module.exports = {
 
 		node.$parent = parent;
 		node.$scope = node.$parent ? node.$parent.$scope : null; // may be overridden
-
-		let self = this;
 
 		function addParamToScope(param) {
 			if ( param === null ) {
@@ -190,7 +172,6 @@ let core = module.exports = {
 			}
 			else {
 				node.$scope.add(param.name, "param", param);
-				param.$types = [];
 			}
 
 			param.$paramDefinition = true;
@@ -222,8 +203,6 @@ let core = module.exports = {
 					referableFromPos = variable.range[1];
 				}
 				(scope || node.$scope).add(variable.name, kind, variable, referableFromPos, void 0, originalDeclarator);
-
-				variable.$types = initNode ? [self.detectType(initNode, variable)] : [];
 			}
 
 			variable.$variableDeclaration = true;
@@ -370,14 +349,12 @@ let core = module.exports = {
 			}
 		}
 		else if ( node.type === "Identifier" && node.name === "arguments" ) {
-			let thisFunctionScope = node.$scope.closestHoistScope()
-				, functionNode = thisFunctionScope.node
-			;
+			let thisFunctionScope = node.$scope.closestHoistScope();
 
 			thisFunctionScope.markArgumentsUsing();
 		}
 		else if ( node.type === "ComprehensionExpression" ) {
-			// TODO:: when I write this, I not looking to spec
+			// TODO:: when I write this, I am not looking to spec
 			// TODO:: check the logic below
 
 			node.$scope = new Scope({
@@ -394,46 +371,6 @@ let core = module.exports = {
 					addVariableToScope(block.left, "let", node);
 				}
 			}
-		}
-	}
-
-	, detectType: function(valueNode, recipientNode) {
-		if ( !valueNode ) {
-			return "undefined";
-		}
-
-		let type = valueNode.type;
-
-		if ( type === 'Literal' ) {
-			let value = valueNode.value
-				, raw = valueNode.raw
-				, lastSlashIndex
-			;
-			return raw[0] == '/' && (lastSlashIndex = raw.lastIndexOf("/")) !== -1 && lastSlashIndex !== 0
-				? 'RegExp'
-				: typeof value
-			;
-		}
-		else if ( type === 'TemplateLiteral' ) {
-			return 'String';
-		}
-		else if ( type === 'ArrayExpression' ) {
-			return 'Array';
-		}
-		else if ( type === 'ObjectExpression' ) {
-			return 'Object';
-		}
-		else if ( type === 'ClassDeclaration' ) {
-			return 'Class';
-		}
-		else if ( type === 'CatchClause' ) {
-			return 'Error';
-		}
-		else if ( isFunction(valueNode) ) {
-			return 'Function';
-		}
-		else {
-			return 'Variant';
 		}
 	}
 
@@ -474,10 +411,10 @@ let core = module.exports = {
 		}
 	}
 
-	, createTopScope: function(programScope, environments, globals) {
+	, createTopScope: function(programScope, environments, globals, to) {
 		const topScope = new Scope({
 			kind: "hoist",
-			node: {},
+			node: {range:[0, to]},
 			parent: null
 		});
 
@@ -789,6 +726,9 @@ let core = module.exports = {
 			begin = hoistScopeNodeBody.range[0] + (isNakedFunction ? 0 : 1);
 		}
 		else if( node.type === "ComprehensionExpression" ) {
+			begin = node.range[0] + 1;
+		}
+		else if( node.type === "BlockStatement" ) {
 			begin = node.range[0] + 1;
 		}
 		else if( hoistScopeNodeBody ) {
@@ -1246,6 +1186,10 @@ let core = module.exports = {
 		assert(keyNode.type == 'Identifier' || isLiteral);
 
 		return isLiteral ? keyNode.value : keyNode.name;
+	}
+
+	, getGlobalVariable: function(node) {
+		return core.bubbledVariableDeclaration(node.$scope, "GLOBAL", '(new Function("return this"))()');
 	}
 };
 
