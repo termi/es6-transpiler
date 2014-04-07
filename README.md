@@ -32,7 +32,7 @@ Beta
  * spread (with iterator protocol)
  * for-of (with iterator protocol)
  * array comprehensions (with iterator protocol)
- * string templates
+ * string templates (with tags support)
  * object literals (partial support see: [Not supported](#not-supported))
  * binary/octal numericLiteral
  * unicode code point escapes
@@ -41,6 +41,8 @@ Beta
    * 'u' flag support:
      * full transpiler-time support: [negative] astral symbols (surrogate pairs) ranges, \D, \W, '.' etc captures astral symbols
      * partial runtime support see: [Not supported](#not-supported)
+
+Static scope analysis and transpilation of ES6 block scoped `const` and `let` variables to ES3 based on [olov/defs](https://github.com/olov/defs).
 
 ## Not supported
 
@@ -53,8 +55,6 @@ Beta
    * 'u' flag in runtime (via polyfill) for the newly generated patterns:
      1. \D, \W, '.' etc not supported
      1. negative astral symbols (surrogate pairs) ranges
-
-Static scope analysis and transpilation of ES6 block scoped `const` and `let` variables to ES3 based on [olov/defs](https://github.com/olov/defs).
 
 ## Supported iterator protocol
 
