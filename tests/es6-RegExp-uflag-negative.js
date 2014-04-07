@@ -1,4 +1,4 @@
-/* <[tests es6-transpiler options: {"includePolyfills":true, "polyfillsSeparator":"\/* <[tests es6-transpiler test file EOF ]> *\/"} ]> */
+/*es6-transpiler includePolyfills:true */
 
 // @see http://mathiasbynens.be/notes/javascript-unicode#astral-ranges
 // @see https://github.com/google/traceur-compiler/issues/370

@@ -27,8 +27,6 @@ let plugin = module.exports = {
 		this.alter = alter;
 		this.options = options;
 
-		this.options.astQuery = true;
-
 		this.polyfills = [];
 		this.polyfillKeys = {};
 
@@ -46,6 +44,13 @@ let plugin = module.exports = {
 			, getNeedfulLib: this.getNeedfulLib.bind(this)
 			, getNeedfulList: this.getNeedfulList.bind(this)
 		};
+	}
+
+	, before: function() {
+		if ( core.getScopeOptions()['includePolyfills'] === true ) {
+			// TODO:: scope-based options
+			this.options.includePolyfills = true;
+		}
 	}
 
 	, after: function(astTree) {

@@ -1,4 +1,4 @@
-;applyPolyfills$0();/* <[tests es6-transpiler options: {"includePolyfills":true, "polyfillsSeparator":"\/* <[tests es6-transpiler test file EOF ]> *\/"} ]> */
+;applyPolyfills$0();/*es6-transpiler includePolyfills:true */
 test1();
 test2();
 test3();
