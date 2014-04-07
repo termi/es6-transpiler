@@ -148,7 +148,7 @@ function test(file) {
 			return;
 		}
 
-		result = es6transpiler.run({src: fileSource});
+		result = es6transpiler.run({src: fileSource, polyfillsSeparator: "\/* <[tests es6-transpiler test file EOF ]> *\/"});
 		errors = result.errors.join("\n");
 	}
 	catch(e) {

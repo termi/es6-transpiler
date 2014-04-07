@@ -1,7 +1,10 @@
+/*global require*/
 "use strict";
 
 require("es5-shim");
 require("es6-shim");
+
+const BUILD_VERSION = '%%BUILD_VERSION%%';
 
 const fs = require("fs");
 const error = require("./lib/error");
@@ -31,24 +34,6 @@ let plugins = [
 	, require("./transpiler/RegExp")
 	, require("./transpiler/unicode")
 	, require("./transpiler/polyfills")
-
-	, {
-		setup: function(config) {
-			this.__cleanup = config.cleanup;
-		}
-
-		, before: function() {
-			return !!this.__cleanup;
-		}
-
-		, pre: function cleanupTree(node) {
-			for (let prop in node) {
-				if (prop[0] === "$") {
-					delete node[prop];
-				}
-			}
-		}
-	}
 ];
 
 function consoleArgumentsToOptions(args, options) {
@@ -269,6 +254,8 @@ module.exports = {
 		}
 		return this.astQuery = new ASTQuery(this.ast, visitorKeys, {onpreparenode: core.onpreparenode});
 	}
+
+	, version: BUILD_VERSION
 };
 
 node_inject.setES6transpiler(module.exports);
