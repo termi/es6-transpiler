@@ -3,7 +3,7 @@ var output;
 
 {
 	var a1 = [1], b2 = [];
-	$D$0 = GET_ITER$0(a1);$D$1 = $D$0 === 0;$D$2 = ($D$1 ? a1.length : void 0);for( var x ; $D$1 ? ($D$0 < $D$2) : !($D$2 = $D$0["next"]())["done"]; ){x = ($D$1 ? a1[$D$0++] : $D$2["value"]);(function(x){
+	$D$0 = GET_ITER$0(a1);$D$2 = $D$0 === 0;$D$1 = ($D$2 ? a1.length : void 0);for( var x ; $D$2 ? ($D$0 < $D$1) : !($D$1 = $D$0["next"]())["done"]; ){x = ($D$2 ? a1[$D$0++] : $D$1["value"]);(function(x){
 		b2.push(function(){ return x })
 	})(x);};$D$0 = $D$1 = $D$2 = void 0;
 	console.log(b2.map(function(a){ return a() }).join("|") === a1.join("|"))
@@ -12,20 +12,20 @@ var output;
 {
 	output = [];
 	var arr = [1, 2, 3]
-	$D$0 = GET_ITER$0(arr);$D$1 = $D$0 === 0;$D$2 = ($D$1 ? arr.length : void 0);for(var f ; $D$1 ? ($D$0 < $D$2) : !($D$2 = $D$0["next"]())["done"]; ){f = ($D$1 ? arr[$D$0++] : $D$2["value"]);
+	$D$0 = GET_ITER$0(arr);$D$2 = $D$0 === 0;$D$1 = ($D$2 ? arr.length : void 0);for(var f ; $D$2 ? ($D$0 < $D$1) : !($D$1 = $D$0["next"]())["done"]; ){f = ($D$2 ? arr[$D$0++] : $D$1["value"]);
 		output.push(f)
 	};$D$0 = $D$1 = $D$2 = void 0;
 	console.log(output.join("|") === arr.join("|"))
 }
 
 {output = [];
-	$D$3 = ([1, 2, 3]);$D$0 = GET_ITER$0($D$3);$D$1 = $D$0 === 0;$D$2 = ($D$1 ? $D$3.length : void 0);for(var f$0 ; $D$1 ? ($D$0 < $D$2) : !($D$2 = $D$0["next"]())["done"]; ){f$0 = ($D$1 ? $D$3[$D$0++] : $D$2["value"]);
+	$D$3 = ([1, 2, 3]);$D$0 = GET_ITER$0($D$3);$D$2 = $D$0 === 0;$D$1 = ($D$2 ? $D$3.length : void 0);for(var f$0 ; $D$2 ? ($D$0 < $D$1) : !($D$1 = $D$0["next"]())["done"]; ){f$0 = ($D$2 ? $D$3[$D$0++] : $D$1["value"]);
 		output.push(f$0)
 	};$D$0 = $D$1 = $D$2 = $D$3 = void 0;
 console.log(output.join("|") === [1, 2, 3].join("|"))}
 
 {
-	output = [];$D$3 = (( function(x) {return [x + 1, x + 2, x + 3]})(1));$D$0 = GET_ITER$0($D$3);$D$1 = $D$0 === 0;$D$2 = ($D$1 ? $D$3.length : void 0);for(var test ; $D$1 ? ($D$0 < $D$2) : !($D$2 = $D$0["next"]())["done"]; ){test = ($D$1 ? $D$3[$D$0++] : $D$2["value"]);
+	output = [];$D$3 = (( function(x) {return [x + 1, x + 2, x + 3]})(1));$D$0 = GET_ITER$0($D$3);$D$2 = $D$0 === 0;$D$1 = ($D$2 ? $D$3.length : void 0);for(var test ; $D$2 ? ($D$0 < $D$1) : !($D$1 = $D$0["next"]())["done"]; ){test = ($D$2 ? $D$3[$D$0++] : $D$1["value"]);
 		output.push(test)
 	};$D$0 = $D$1 = $D$2 = $D$3 = void 0;;console.log(output.join("|") === [2, 3, 4].join("|"))
 }
@@ -33,7 +33,7 @@ console.log(output.join("|") === [1, 2, 3].join("|"))}
 {
 	var output$0 = [];
 	var arr$0 = [], i = 100;
-	$D$3 = (arr$0.push(i++), arr$0.push(i++), arr$0.push(i++), arr$0);$D$0 = GET_ITER$0($D$3);$D$1 = $D$0 === 0;$D$2 = ($D$1 ? $D$3.length : void 0);for(var f$1 ; $D$1 ? ($D$0 < $D$2) : !($D$2 = $D$0["next"]())["done"]; ){f$1 = ($D$1 ? $D$3[$D$0++] : $D$2["value"]);(function(f){
+	$D$3 = (arr$0.push(i++), arr$0.push(i++), arr$0.push(i++), arr$0);$D$0 = GET_ITER$0($D$3);$D$2 = $D$0 === 0;$D$1 = ($D$2 ? $D$3.length : void 0);for(var f$1 ; $D$2 ? ($D$0 < $D$1) : !($D$1 = $D$0["next"]())["done"]; ){f$1 = ($D$2 ? $D$3[$D$0++] : $D$1["value"]);(function(f){
 		output$0.push(function() {
 			return f;
 		})
@@ -44,7 +44,7 @@ console.log(output.join("|") === [1, 2, 3].join("|"))}
 {
 	output = [];
 	var arr$1 = [], i$0 = 100;
-	$D$3 = (arr$1.push(i$0++), arr$1.push(i$0++), arr$1.push(i$0++), arr$1);$D$0 = GET_ITER$0($D$3);$D$1 = $D$0 === 0;$D$2 = ($D$1 ? $D$3.length : void 0);for(var f$2 ; $D$1 ? ($D$0 < $D$2) : !($D$2 = $D$0["next"]())["done"]; ){f$2 = ($D$1 ? $D$3[$D$0++] : $D$2["value"]);(function(f){
+	$D$3 = (arr$1.push(i$0++), arr$1.push(i$0++), arr$1.push(i$0++), arr$1);$D$0 = GET_ITER$0($D$3);$D$2 = $D$0 === 0;$D$1 = ($D$2 ? $D$3.length : void 0);for(var f$2 ; $D$2 ? ($D$0 < $D$1) : !($D$1 = $D$0["next"]())["done"]; ){f$2 = ($D$2 ? $D$3[$D$0++] : $D$1["value"]);(function(f){
 		output.push(function() {
 			return f;
 		})
@@ -54,9 +54,9 @@ console.log(output.join("|") === [1, 2, 3].join("|"))}
 
 {
 	output = [];
-	$D$3 = (["a", "b", "c"]);$D$0 = GET_ITER$0($D$3);$D$1 = $D$0 === 0;$D$2 = ($D$1 ? $D$3.length : void 0);for(var a ; $D$1 ? ($D$0 < $D$2) : !($D$2 = $D$0["next"]())["done"]; ){a = ($D$1 ? $D$3[$D$0++] : $D$2["value"]);
-		$D$7 = ([1, 2, 3]);$D$4 = GET_ITER$0($D$7);$D$5 = $D$4 === 0;$D$6 = ($D$5 ? $D$7.length : void 0);for(var b = void 0 ; $D$5 ? ($D$4 < $D$6) : !($D$6 = $D$4["next"]())["done"]; ){b = ($D$5 ? $D$7[$D$4++] : $D$6["value"]);
-			$D$11 = (["-", "=", "/"]);$D$8 = GET_ITER$0($D$11);$D$9 = $D$8 === 0;$D$10 = ($D$9 ? $D$11.length : void 0);for(var c = void 0 ; $D$9 ? ($D$8 < $D$10) : !($D$10 = $D$8["next"]())["done"]; ){c = ($D$9 ? $D$11[$D$8++] : $D$10["value"]);
+	$D$3 = (["a", "b", "c"]);$D$0 = GET_ITER$0($D$3);$D$2 = $D$0 === 0;$D$1 = ($D$2 ? $D$3.length : void 0);for(var a ; $D$2 ? ($D$0 < $D$1) : !($D$1 = $D$0["next"]())["done"]; ){a = ($D$2 ? $D$3[$D$0++] : $D$1["value"]);
+		$D$7 = ([1, 2, 3]);$D$4 = GET_ITER$0($D$7);$D$6 = $D$4 === 0;$D$5 = ($D$6 ? $D$7.length : void 0);for(var b = void 0 ; $D$6 ? ($D$4 < $D$5) : !($D$5 = $D$4["next"]())["done"]; ){b = ($D$6 ? $D$7[$D$4++] : $D$5["value"]);
+			$D$11 = (["-", "=", "/"]);$D$8 = GET_ITER$0($D$11);$D$10 = $D$8 === 0;$D$9 = ($D$10 ? $D$11.length : void 0);for(var c = void 0 ; $D$10 ? ($D$8 < $D$9) : !($D$9 = $D$8["next"]())["done"]; ){c = ($D$10 ? $D$11[$D$8++] : $D$9["value"]);
 				output.push(a + b + c);
 			};$D$8 = $D$9 = $D$10 = $D$11 = void 0;;
 		};$D$4 = $D$5 = $D$6 = $D$7 = void 0;;

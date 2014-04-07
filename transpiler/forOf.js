@@ -74,16 +74,25 @@ var plugin = module.exports = {
 				, replacementObj.remove[1]
 			);
 		}
+
+		let from = node.left.range[1] + 1
+			, to = insertHeadPosition - (hasBlock ? 1 : 0)//just before {
+		;
+		let lineBreaks = !hasBlock && this.alter.getRange(from, to).match(/[\r\n]/g) || [];
+
 		this.alter.replace(//instead for of declaration body: for(var a of b) -> for(var a <forOfString>)
-			node.left.range[1] + 1
-			, insertHeadPosition - (hasBlock ? 1 : 0)//just before {
-			, replacementObj.loop + ")"
+			from
+			, to
+			, replacementObj.loop + ")" + lineBreaks.join("")
 		);
 		this.alter.restoreState();
 	}
 
 	, createForOfReplacement: function(node, bodyNode, needTemporaryVariableCleaning) {
-		const getIteratorFunctionName = core.bubbledVariableDeclaration(node.$scope, "GET_ITER", getIteratorBody, true);
+		let scopeOptions = core.getScopeOptions(node.$scope, node);
+		const needIteratorSupport = scopeOptions['has-iterators'] !== false || scopeOptions['has-generators'] !== false;
+
+		const getIteratorFunctionName = needIteratorSupport ? core.bubbledVariableDeclaration(node.$scope, "GET_ITER", getIteratorBody, true) : "";
 
 		const variableBlock = node.left;
 		const isDeclaration = variableBlock.type === "VariableDeclaration";
@@ -102,8 +111,7 @@ var plugin = module.exports = {
 			, variableInitIsIdentifier = variableInit.type === "Identifier"
 
 			, tempVars = [
-				core.getScopeTempVar(bodyNode, node.$scope)	// index or iterator
-				, core.getScopeTempVar(bodyNode, node.$scope)	// isArray
+				core.getScopeTempVar(bodyNode, node.$scope)// index or iterator
 				, core.getScopeTempVar(bodyNode, node.$scope)	// length or current value
 			]
 		;
@@ -113,6 +121,12 @@ var plugin = module.exports = {
 			|| variableBlock.type === "Identifier"
 			|| variableIdIsDestructuring
 			, variableBlock.type + " is a wrong type for forOf left part");
+
+		if ( needIteratorSupport ) {
+			tempVars.push(
+				core.getScopeTempVar(bodyNode, node.$scope)// isArray
+			)
+		}
 
 		if( !variableInitIsIdentifier ) {
 			tempVars.push(
@@ -132,23 +146,38 @@ var plugin = module.exports = {
 			variableInitString = tempVars[3];
 		}
 
-		beforeBeginString +=
-			tempVars[0]
-				+ " = " + getIteratorFunctionName + "(" + variableInitString + ");"
-				+ tempVars[1] + " = " + tempVars[0] + " === 0;"
-				+ tempVars[2] + " = (" + tempVars[1] + " ? " + variableInitString + ".length : void 0);"
-		;
-
 		let innerString
-
-			, forOfString =
-				"; " + tempVars[1] + " ? (" + tempVars[0] + " < " + tempVars[2] + ") : !(" + tempVars[2] + " = " + tempVars[0] + "[\"next\"]())[\"done\"]; "
-
-			, initString =
-				"(" + tempVars[1] + " ? " + variableInitString + "[" + tempVars[0] + "++] : " + tempVars[2] + "[\"value\"])"
-
+			, forOfString
+			, initString
 			, afterString = ";" + (needTemporaryVariableCleaning ? (tempVars.join(" = ") + " = void 0;") : "")//cleanup string
 		;
+
+		if ( needIteratorSupport ) {
+			beforeBeginString +=
+				tempVars[0]
+					+ " = " + getIteratorFunctionName + "(" + variableInitString + ");"
+					+ tempVars[2] + " = " + tempVars[0] + " === 0;"
+					+ tempVars[1] + " = (" + tempVars[2] + " ? " + variableInitString + ".length : void 0);"
+			;
+
+			forOfString =
+				"; " + tempVars[2] + " ? (" + tempVars[0] + " < " + tempVars[1] + ") : !(" + tempVars[1] + " = " + tempVars[0] + "[\"next\"]())[\"done\"]; ";
+
+			initString =
+				"(" + tempVars[2] + " ? " + variableInitString + "[" + tempVars[0] + "++] : " + tempVars[1] + "[\"value\"])";
+		}
+		else {
+			beforeBeginString +=
+				tempVars[0] + " = 0;"
+				+ tempVars[1] + " = " + variableInitString + ".length;"
+			;
+
+			forOfString =
+				"; " + tempVars[0] + " < " + tempVars[1] + "; ";
+
+			initString =
+				"(" + variableInitString + "[" + tempVars[0] + "++])";
+		}
 
 		if( variableIdIsDestructuring ) {
 			variableInit["$raw"] = initString;

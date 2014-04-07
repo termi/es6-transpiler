@@ -1,4 +1,3 @@
-
 const a = 1;
 
 function matchAttributes(attributes) {
