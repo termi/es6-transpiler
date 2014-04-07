@@ -11,7 +11,7 @@ function test() {var BIND$0 = Function.prototype.bind;
 		console.log( T.a === 11, T.b === 22, T.c === 33 )
 	}
 
-	function test1(_arr) {var SLICE$0 = Array.prototype.slice;function ITER$0(v,f){if(v){if(Array.isArray(v))return f?v.slice():v;var i,r;if(typeof v==='object'&&typeof v['@@iterator']==='function'){i=v['@@iterator'](),r=[];while((f=i['next']()),f['done']!==true)r.push(f['value']);return r;}}throw new Error(v+' is not iterable')};var rest = SLICE$0.call(arguments, 1);
+	function test1(_arr) {var SLICE$0 = Array.prototype.slice;function ITER$0(v,f){var $Symbol_iterator=typeof Symbol!=='undefined'&&Symbol.iterator||'@@iterator';if(v){if(Array.isArray(v))return f?v.slice():v;var i,r;if(typeof v==='object'&&typeof (f=v[$Symbol_iterator])==='function'){i=f.call(v);r=[];while((f=i['next']()),f['done']!==true)r.push(f['value']);return r;}}throw new Error(v+' is not iterable')};var rest = SLICE$0.call(arguments, 1);
 
 		var arr = [6].concat([].concat(ITER$0(_arr)), ITER$0(rest));
 

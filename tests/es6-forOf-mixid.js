@@ -45,19 +45,19 @@
 {
 	let a, b, c;
 }
-//TODO::
-//{// destructuring & arrow function
-//	let output = [];let arr = [8, 9];
-//	for(let [value, index] of ( arr.push(10), arr.map((value, index)=>[value, index]) ) ) {
-//		output.push(value)
-//	}
-//	console.log(output.join("|") === [8, 9, 10].join("|"))
-//}
-//
-//{// destructuring & arrow function & rest
-//	let output = [];let arr = [8, 9];
-//	for(let [value, index] of ( arr.push(10), arr.map((...r)=>r) ) ) {
-//		output.push(value)
-//	}
-//	console.log(output.join("|") === [8, 9, 10].join("|"))
-//}
+
+{// destructuring & arrow function
+	let output = [];let arr = [8, 9];
+	for(let [value, index] of ( arr.push(10), arr.map((value, index)=>[value, index]) ) ) {
+		output.push(value)
+	}
+	console.log(output.join("|") === [8, 9, 10].join("|"))
+}
+
+{// destructuring & arrow function & rest
+	let output = [];let arr = [8, 9];
+	for(let [value, index] of ( arr.push(10), arr.map((...r)=>r) ) ) {
+		output.push(value)
+	}
+	console.log(output.join("|") === [8, 9, 10].join("|"))
+}

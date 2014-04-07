@@ -16,11 +16,13 @@ function hasSpreadArgument(node) {
 
 const callIteratorBody =
 	"(v,f){" +
+		"var $Symbol_iterator=typeof Symbol!=='undefined'&&Symbol.iterator||'@@iterator';" +
 		"if(v){" +
 			"if(Array.isArray(v))return f?v.slice():v;" +
 			"var i,r;"+
-			"if(typeof v==='object'&&typeof v['@@iterator']==='function'){" +
-				"i=v['@@iterator'](),r=[];while((f=i['next']()),f['done']!==true)r.push(f['value']);" +
+			"if(typeof v==='object'&&typeof (f=v[$Symbol_iterator])==='function'){" +
+				"i=f.call(v);r=[];" +
+				"while((f=i['next']()),f['done']!==true)r.push(f['value']);" +
 				"return r;" +
 			"}" +
 		"}" +
@@ -162,15 +164,26 @@ var plugin = module.exports = {
 	, replaceArrayExpression: function(node) {
 		// found new line symbols
 		const str =
-			this.alter._source.substring(node.range[0], node.range[1])//TODO this.alter.getSource(node.range[0], node.range[1])
+			this.alter.getRange(node.range[0], node.range[1])
 		;
-		const newLines = str.match(/(\n\r)|(\n)|(\r)/g);
+		const lineBreaks = str.match(/[\r\n]/g) || [];
+		const lineBreaksCount = lineBreaks.length;
 
-		let arrayExpressionStr = this.__unwrapSpread(node) + (newLines ? newLines.join("") : "");
+		let arrayExpressionStr = this.__unwrapSpread(node);
+
 		this.alter.replace(
 			node.range[0]
 			, node.range[1]
 			, arrayExpressionStr
+			, {transform: function(str) {
+				const newLineBreaks = str.match(/[\r\n]/g) || [];
+				const newLineBreaksCount = newLineBreaks.length;
+
+				if ( newLineBreaksCount < lineBreaksCount ) {
+					str = str + lineBreaks.slice(newLineBreaksCount).join("");
+				}
+				return str;
+			}}
 		);
 	}
 

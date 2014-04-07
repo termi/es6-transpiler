@@ -97,28 +97,26 @@
 	console.log(obj.test({a: 1}, ...[2, 3, 4]) === 15)
 }
 
-// TODO::
-//{
-//	let obj = {
-//		test: ({a}, ...rest) => {
-//			return (
-//				a + (([a, b, c, d]) => a + b +
-//					c
-//				)([...rest, 5])
-//			)
-//		}
-//	}
-//	console.log(obj.test({a: 1}, [2, 3, 4]))
-//}
+{
+	let obj = {
+		test: ({a}, ...rest) => {
+			return (
+				[a, ...(([a, b, c, d]) => [a, b,
+					c]
+				)([...rest, 5])]
+			)
+		}
+	}
+	console.log(obj.test({a: 1}, 2, 3, 4).join("|") === [1, 2, 3, 4].join("|"))
+}
 
-// TODO::
-//{
-//	let obj = {
-//		test: ({a}, ...rest) => {
-//			return a + (([a, b, c, d]) => a + b +
-//					c
-//				)([...rest, 5])
-//		}
-//	}
-//	console.log(obj.test({a: 1}, [2, 3, 4]))
-//}
+{
+	let obj = {
+		test: ({a}, ...rest) => {
+			return [a, ...(([a, b, c, d]) => [a, b,
+					c]
+				)([...rest, 5])]
+		}
+	}
+	console.log(obj.test({a: 1}, 2, 3, 4).join("|") === [1, 2, 3, 4].join("|"))
+}

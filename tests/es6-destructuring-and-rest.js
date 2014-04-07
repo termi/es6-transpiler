@@ -11,7 +11,7 @@ function test(first) {
 				var some = arr[i];
 				var a = some.a, b = some.b;
 
-				this.method.apply(this, [b].concat(a));
+				return this.method.apply(this, [b].concat(a));
 			}
 		}
 	}
@@ -20,7 +20,7 @@ function test(first) {
 			var some$0 = arr[i$0];
 			let {a, b} = some$0;
 
-			this.method(b, ...a);
+			return this.method(b, ...a);
 		}
 	}
 }
@@ -33,5 +33,5 @@ var obj = {
 	}
 };
 
-console.log(test.call(obj, true));
-console.log(test.call(obj, false));
+console.log(test.call(obj, true) === 'undefined-1|2|3');
+console.log(test.call(obj, false) === 'undefined-1|2|3');
