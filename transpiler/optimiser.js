@@ -4,10 +4,6 @@ const assert = require("assert");
 const core = require("./core");
 const is = require("simple-is");
 
-function getline(node) {
-	return node.loc.start.line;
-}
-
 function isFunction(node) {
 	let type;
 	return node && (type = node.type)
@@ -42,29 +38,41 @@ let plugin = module.exports = {
 
 		this.alter = alter;
 		this.options = options;
+	}
 
-		let resetUnCapturedVariables = options.resetUnCapturedVariables;
+	, before: function() {
+		let resetUnCapturedVariables = this.options.resetUnCapturedVariables
+			|| core.getScopeOptions()['resetUnCaptured']
+		;
 
-		return Array.isArray(resetUnCapturedVariables) && resetUnCapturedVariables.length > 1 || false;
+		if( resetUnCapturedVariables === true ) {
+			this.options.resetUnCapturedVariables = resetUnCapturedVariables = ['let', 'const', 'fun', 'var'];
+		}
+
+		return resetUnCapturedVariables && Array.isArray(resetUnCapturedVariables) && resetUnCapturedVariables.length > 1 || false;
 	}
 
 	, ':: VariableDeclaration': function(node) {
-		core.getVariableDeclarationNodes(node).forEach(function(declarationNode) {
-			if( !declarationNode.$captured ) {
-				this.resetVariable(
-					declarationNode
-					, null
-				);
-			}
-		}, this);
+		if ( core.getScopeOptions(node.$scope, node)['resetUnCaptured'] === true ) {
+			core.getVariableDeclarationNodes(node).forEach(function(declarationNode) {
+				if( !declarationNode.$captured ) {
+					this.resetVariable(
+						declarationNode
+						, null
+					);
+				}
+			}, this);
+		}
 	}
 
 	, ':: FunctionDeclaration': function(node) {
-		this.resetVariable(node.id, "fun", node.$scope.parent.node);
+		if ( core.getScopeOptions(node.$scope, node)['resetUnCaptured'] === true ) {
+			this.resetVariable(node.id, "fun", node.$scope.parent.node);
+		}
 	}
 
 	, ':: Identifier': function(node) {
-		if( node.$refToScope ) {
+		if( node.$refToScope && core.getScopeOptions(node.$scope, node)['resetUnCaptured'] === true ) {
 			if( node.$captured === false ) {
 				this.resetVariable(node);
 			}

@@ -47,8 +47,12 @@ let plugin = module.exports = {
 	}
 
 	, ':: VariableDeclaration[kind=const],VariableDeclaration[kind=let]': function(node) {
-		// change constlet declarations to var, renamed if needed
-		this.renameDeclarations(node);
+		let scopeOptions = core.getScopeOptions(node.$scope, node);
+
+		if ( scopeOptions['let-const'] !== false ) {
+			// change constlet declarations to var, renamed if needed
+			this.renameDeclarations(node);
+		}
 	}
 
 	, ':: Identifier': function(node) {

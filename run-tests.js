@@ -5,13 +5,6 @@ const path = require("path");
 const ansidiff = require("ansidiff");
 const es6transpiler = require("./es6-transpiler");
 
-const assign = function(target, source) {
-	return Object.keys(source).reduce(function(target, key) {
-		target[key] = source[key];
-		return target;
-	}, target);
-};
-
 const EOF_STRING = '/* <[tests es6-transpiler test file EOF ]> */';
 const SUSPENDED_STRING = '/* <[tests es6-transpiler SUSPENDED test file ]> */';
 
@@ -147,9 +140,6 @@ function removeCommentsFromErrorsList(str) {
 function test(file) {
 	let result;
 	let errors;
-	let options = {
-		fullES6: true
-	};
 
 	try {
 		let fileSource = String(fs.readFileSync(path.join(pathToTests, file)));
@@ -158,19 +148,7 @@ function test(file) {
 			return;
 		}
 
-		// options reading from something like this '/* <[tests es6-transpiler options: {"resetNotCapturedVariables":true} ]> */'
-		let fileOptions = fileSource.match(/^\/\*\s+<\[tests es6-transpiler options:\s*(.*?)\s*\]>\s+\*\//);
-		if( fileOptions ) {
-			try {
-				fileOptions = JSON.parse(fileOptions[1]);
-				assign(options, fileOptions);
-			}
-			catch(e){}
-		}
-
-		options.src = fileSource;
-
-		result = es6transpiler.run(options);
+		result = es6transpiler.run({src: fileSource});
 		errors = result.errors.join("\n");
 	}
 	catch(e) {

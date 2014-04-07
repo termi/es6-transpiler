@@ -7,6 +7,7 @@ const stringset = require("stringset");
 const jshint_vars = require("./../jshint_globals/vars.js");
 const Scope = require("./../lib/scope");
 const error = require("./../lib/error");
+const comments = require('./core/comments.js');
 
 function getline(node) {
 	return node.loc.start.line;
@@ -86,6 +87,8 @@ let core = module.exports = {
 
 		this.functions = [];
 		this.bubbledVariables = {};
+		this.commentOptionsCount = 0;
+		this.astTopScope = null;
 	}
 
 	, setup: function(alter, ast, options, src) {
@@ -112,35 +115,21 @@ let core = module.exports = {
 			allIdentifiers.addMany(scope.decls.keys());
 		}});
 
-		(node.comments || []).forEach(function(commentNode) {
-			if ( commentNode.type === 'Block' ) {
-				let value = commentNode.value;
-				let re_isJSHintGlobal = /^(\s)?global(s)?\s+/;
+		let topOptions = [], from = node.range[0];
 
-				if ( re_isJSHintGlobal.test(value) ) {
-					let variables = {};
-					let defWithValue = /^\s*(\S+)\s*:\s*((?:true)|(?:false))\s*$/;
-					let defWithoutValue = /^\s*(\S+)\s*$/;
-
-					value.replace(re_isJSHintGlobal, "").split(",").reduce(function(obj, val) {
-						let variableDef;
-
-						if ( val.charAt(0) != '-' ) {
-							if ( variableDef = val.match(defWithValue) ) {
-								obj[variableDef[1]] = variableDef[2] == 'true';
-							}
-							else if ( variableDef = val.match(defWithoutValue) ) {
-								obj[variableDef[1]] = false;
-							}
-						}
-
-						return obj;
-					}, variables);
-
-					this._injectGlobals(variables, topScope, commentNode.range[1], "let");
+		if ( from != 0 ) {
+			let newOptions = node.$scope.options.filter(function(record) {
+				if ( record.range[1] < from ) {
+					topOptions.push(record);
+					return false;
 				}
-			}
-		}, this);
+				return true;
+			});
+			node.$scope.options = newOptions;
+		}
+
+		topScope.options = topOptions;
+		this.astTopScope = topScope;
 	}
 
 	, '::Identifier': function(node) {
@@ -155,6 +144,8 @@ let core = module.exports = {
 
 		node.$parent = parent;
 		node.$scope = node.$parent ? node.$parent.$scope : null; // may be overridden
+
+		let newNotProgramScope;
 
 		function addParamToScope(param) {
 			if ( param === null ) {
@@ -211,14 +202,27 @@ let core = module.exports = {
 		if (node.type === "Program") {
 			// Top-level program is a scope
 			// There's no block-scope under it
-			node.$scope = new Scope({
+			let newScope = node.$scope = new Scope({
 				kind: "hoist",
 				node: node,
 				parent: null
 			});
 
+			const self = this, rangedOptions = [], minFrom = node.range[0];
+			comments.scanCommentsForOptions(node.comments || [], function(commentNode, optionName, data) {
+				if ( optionName === 'globals' ) {
+					self._injectGlobals(data, newScope, commentNode.range[1], "let");
+				}
+				else if ( optionName === 'es6' ) {
+					rangedOptions.push({range: commentNode.range, data: data});
+				}
+			});
+
+			newScope.options = rangedOptions;
+			this.commentOptionsCount = rangedOptions.length;
+
 		} if (node.type === "ClassDeclaration") {// class declaration
-			node.$scope = new Scope({
+			newNotProgramScope = node.$scope = new Scope({
 				kind: "hoist",
 				node: node,
 				parent: node.$parent.$scope
@@ -243,7 +247,7 @@ let core = module.exports = {
 			// Function is a scope, with params in it
 			// There's no block-scope under it
 
-			node.$scope = new Scope({
+			newNotProgramScope = node.$scope = new Scope({
 				kind: "hoist",
 				node: node,
 				parent: node.$parent.$scope
@@ -294,7 +298,7 @@ let core = module.exports = {
 		} else if (isForWithConstLet(node) || isForInOfWithConstLet(node)) {
 			// For(In) loop with const|let declaration is a scope, with declaration in it
 			// There may be a block-scope under it
-			node.$scope = new Scope({
+			newNotProgramScope = node.$scope = new Scope({
 				kind: "block",
 				node: node,
 				parent: node.$parent.$scope
@@ -302,7 +306,7 @@ let core = module.exports = {
 
 		} else if (isNonFunctionBlock(node)) {
 			// A block node is a scope unless parent is a function
-			node.$scope = new Scope({
+			newNotProgramScope = node.$scope = new Scope({
 				kind: "block",
 				node: node,
 				parent: node.$parent.$scope
@@ -311,7 +315,7 @@ let core = module.exports = {
 		} else if (node.type === "CatchClause") {
 			const identifier = node.param;
 
-			node.$scope = new Scope({
+			newNotProgramScope = node.$scope = new Scope({
 				kind: "catch-block",
 				node: node,
 				parent: node.$parent.$scope
@@ -357,7 +361,7 @@ let core = module.exports = {
 			// TODO:: when I write this, I am not looking to spec
 			// TODO:: check the logic below
 
-			node.$scope = new Scope({
+			newNotProgramScope = node.$scope = new Scope({
 				kind: "hoist",
 				node: node,
 				parent: node.$parent.$scope
@@ -371,6 +375,28 @@ let core = module.exports = {
 					addVariableToScope(block.left, "let", node);
 				}
 			}
+		}
+
+		if ( newNotProgramScope ) {
+			let from = node.range[0]
+				, to = node.range[1]
+			;
+			let parentScope = newNotProgramScope.parent
+				, parentOptions = parentScope.options
+				, options = []
+			;
+
+			parentScope.options = parentOptions.filter(function(record) {
+				let range = record.range, data = record.data;
+
+				if ( range[0] >= from && range[1] <= to ) {
+					options.push({range: range, data: data});
+					return false;
+				}
+				return true;
+			});
+
+			newNotProgramScope.options = options;
 		}
 	}
 
@@ -1190,6 +1216,79 @@ let core = module.exports = {
 
 	, getGlobalVariable: function(node) {
 		return core.bubbledVariableDeclaration(node.$scope, "GLOBAL", '(new Function("return this"))()');
+	}
+
+	, getScopeOptions: function(scope, node) {
+		if ( scope === void 0 ) {
+			let options = this.astTopScope.options;
+
+			return options['computedAll'] || (options['computedAll'] =
+				options.reduce(function(computedOptions, record){
+					let options = record.data;
+					Object.keys(options).reduce(function(options, key) {
+						computedOptions[key] = options[key];
+						return options;
+					}, options);
+					return computedOptions;
+				}, {}))
+			;
+		}
+		if ( node === void 0 )node = scope.node;
+
+		let commentOptionsCount = this.commentOptionsCount;
+
+		let to = node.range[0];
+		let computedOptions = [];
+
+		let options = scope.options;
+		let parentScope = scope;
+		let parentRange = parentScope.node.range;
+		let from = parentRange[0], key = from + '-' + to;
+
+		do {
+			if ( !commentOptionsCount ) {
+				break;//just fast return for files without comment options
+			}
+			parentRange = parentScope.node.range;
+			options = parentScope.options;
+
+			let from = parentRange[0], key = from + '-' + to;
+
+			let parentComputedOptions = options;// TODO:: computed property now working not so good as expected
+			if ( false && (parentComputedOptions = parentComputedOptions['computed']) && (parentComputedOptions = parentComputedOptions[key]) ) {
+				computedOptions.unshift(parentComputedOptions);
+				break;
+			}
+			else {
+//				console.log(from, to, options, parentScope.options)
+				computedOptions.unshift.apply(computedOptions, options.filter(function(record) {
+					--commentOptionsCount;
+
+					let range = record.range;
+					if ( from <= range[0] && to >= range[1] ) {
+						return true;
+					}
+					return false;
+				}).map(function(record){ return record.data }));
+			}
+		}
+		while ( (parentScope = parentScope.parent) );
+
+		options = scope.options;
+		(options = (options['computed'] || (options['computed'] = {})));
+		if ( computedOptions.length === 1 ) {
+			return options[key] = computedOptions[0];
+		}
+		else {
+			options[key] = computedOptions.reduce(function(computedOptions, options) {
+				Object.keys(options).reduce(function(options, key) {
+					computedOptions[key] = options[key];
+					return options;
+				}, options);
+				return computedOptions;
+			}, {});
+			return options[key]
+		}
 	}
 };
 

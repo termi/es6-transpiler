@@ -1,4 +1,5 @@
-/* <[tests es6-transpiler options: {"resetUnCapturedVariables":true} ]> */
+
+/*es6-transpiler resetUnCaptured:true*/
 function test0(){}
 
 {

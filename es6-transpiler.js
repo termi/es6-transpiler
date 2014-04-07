@@ -152,13 +152,6 @@ module.exports = {
 			, "node"
 		];
 
-		if( config.resetUnCapturedVariables === true ) {
-			config.resetUnCapturedVariables = ['let', 'const', 'fun', 'var'];
-		}
-		else if( !Array.isArray(config.resetUnCapturedVariables) ) {
-			config.resetUnCapturedVariables = [];
-		}
-
 		// input
 		let isSourceInput = false;
 		if( typeof config.filename === "string" ) {
