@@ -62,6 +62,17 @@
 	console.log(tetragram4 === "\uD834\uDF06\u00A9");
 }
 
+{// escaped
+	let tetragram1 = "\\u{1D306}\\u00A9";
+	let tetragram2 = '\\u{1D306}\\u00A9';
+	let tetragram3 = `\\u{1D306}\\u00A9`;
+	let tetragram4 = tag`\\u{1D306}\\u00A9`;
+	console.log(tetragram1 === "\\u{1D306}\\u00A9");
+	console.log(tetragram2 === "\\u{1D306}\\u00A9");
+	console.log(tetragram3 === "\\u{1D306}\\u00A9");
+	console.log(tetragram4 === "\\u{1D306}\\u00A9");
+}
+
 function tag(quasis, ...expressionValues) {
 	const quasisLen = quasis.length;
 

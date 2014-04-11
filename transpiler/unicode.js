@@ -57,10 +57,21 @@ var plugin = module.exports = {
 	, convert: function(rawString) {
 		let changes = 0, self = this;
 
-		rawString = rawString.replace(/\\u\{(\w{1,6})\}/g, function(str, found) {
-			changes++;
+		rawString = rawString.replace(/\\u\{(\w{1,6})\}/g, function(found, group, offset, str) {
+			var sFount = 0, prevChar;
 
-			return self.charCodesFromCodePoint(found);
+			while( (prevChar = str[offset--]) === '\\' ) {
+				sFount++;
+			}
+
+			if ( sFount % 2 === 1 ) {//not escaped
+				changes++;
+
+				return self.charCodesFromCodePoint(group);
+			}
+			else {
+				return "\\u{" + group + "}";
+			}
 		});
 
 		return {
