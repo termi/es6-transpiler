@@ -5,7 +5,7 @@ let a = "a", b = "b", a$1, b$1;
 	console.log(`${a + 1}|${b}` === "2|2")
 }
 
-{// complex
+{// with line breaks and \n's
 	let a = "3a", b = 4;
 	console.log(
 		`"${a.toUpperCase()}\"
@@ -14,11 +14,16 @@ let a = "a", b = "b", a$1, b$1;
 
 {// with function call inside
 	let a = "a", b = "b";
-	function test1(a, b) {
-		return [a, b];
+	function test1(...rest) {
+		return rest;
 	}
 	let string = `a = ${a} | bb = ${b + b} | function call = ${test1(a, b).join("\n")}`;
 	console.log(string === "a = " + a + " | bb = " + b + b + " | function call = " + a + "\n" + b);
+
+	{
+		let string = `a = ${a} | bb = ${b + b} | function call = ${test1(a, b, ...["c", "d"]).join("\n")}`;
+		console.log(string === "a = a | bb = bb | function call = a\nb\nc\nd");
+	}
 }
 
 {// with multy function calls inside

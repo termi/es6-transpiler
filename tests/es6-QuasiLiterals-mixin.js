@@ -67,3 +67,35 @@ let arr = [1, 2, 3, 4, 5, 6], obj = { arr, method(){ return `value` } };
 		console.log(str === arr.join(`2`));	
 	}
 }
+
+{// arrow function inside
+	{
+		let str = `
+string${ ( (x = 1) => x + 2 )() }string${ ( (x = 1, ...rest) => x + 2 + rest.join("") )(2, 3, 4) }string\n`;
+		console.log(str === '\nstring3string434string\n');
+	}
+
+	{// tagged
+		let simpleTag = (quasis, ...expressions) => {
+			let {length} = quasis;
+
+			length |= 0;
+
+			if ( length === 0 ) {
+				return '';
+			}
+
+			let s = '', i = 0;
+			while ( true ) {
+				s += quasis[i];
+				if ( i + 1 === length ) {
+					return s;
+				}
+				s += arguments[++i];
+			}
+		};
+		let str = simpleTag`
+string${ ( (x = 1) => x + 2 )() }string${ ( (x = 1, ...rest) => x + 2 + rest.join("") )(2, 3, 4) }string\n`;
+		console.log(str === '\nstring3string434string\n');
+	}
+}

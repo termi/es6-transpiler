@@ -1,3 +1,4 @@
+/*globals module,require*/
 // @see http://www.nczonline.net/blog/2012/08/01/a-critical-review-of-ecmascript-6-quasi-literals/
 "use strict";
 
@@ -5,6 +6,17 @@ const assert = require("assert");
 const error = require("./../lib/error");
 const core = require("./core");
 const unicode = require("./unicode");
+
+function generateUUID() {
+	var d = new Date().getTime();
+	return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+		var r = (d + Math.random()*16)%16 | 0;
+		d = Math.floor(d/16);
+		return (c=='x' ? r : (r&0x7|0x8)).toString(16);
+	});
+};
+
+let UUID = generateUUID();
 
 var plugin = module.exports = {
 	reset: function() {
@@ -33,10 +45,41 @@ var plugin = module.exports = {
 		}
 	}
 
-	, escapeQuoters: function(templateString) {
-		return templateString
-			.replace(/([^\\]|^)"/g, "$1\\\"").replace(/([^\\]|^)"/g, "$1\\\"")
+	, escape: function(templateString, options) {
+		options = options || {};
+		let raw = options.raw
+			, compat = options.compat
 		;
+
+		if ( raw ) {
+			templateString = templateString.replace(/\\/g, "\\\\");
+		}
+
+		templateString = templateString
+			.replace(/(")/g, function(fount, group, offset, str){
+				var sFount = 0, prevChar;
+
+				while( (prevChar = str[--offset]) === '\\' ) {
+					sFount++;
+				}
+
+				return (sFount % 2 === 1 ? "" : "\\") + group;
+			})
+//			.replace(/\t/g, "\\t").replace(/\v/g, "\\v").replace(/\f/g, "\\f")
+//			.replace(/\f/g, "\\f")
+//			.replace(/\b/g, "\\b")
+		;
+
+		if ( compat ) {
+			templateString = templateString.replace(/((?:\r\n)|\n)/g, "\\n");
+//			templateString = templateString.replace(/((?:\r\n)|\n)/g, function(found, group) {return group === "\n" ? "\\n" : "\\r\\n";});
+		}
+		else {
+			templateString = templateString.replace(/((?:\r\n)|\n)/g, "\\\n\\n");
+//			templateString = templateString.replace(/((?:\r\n)|\n)/g, function(found, group) {return group === "\n" ? "\\\n\\n" : "\\\n\\r\\n";});
+		}
+
+		return templateString;
 	}
 
 	, cleanupTemplateString: function(templateString) {
@@ -49,22 +92,29 @@ var plugin = module.exports = {
 	}
 
 	, __replaceTaggedTemplateExpression: function(expressionContainer, quasiContainer) {
-		let quasis = quasiContainer.quasis.map(function(quasi) {
+		let quasisCooked = []
+			, quasisRaw = []
+		;
+
+		quasiContainer.quasis.forEach(function(quasi) {
 			let valueNode = quasi.value, rawString = valueNode.raw;
+
+			quasisRaw.push(rawString);
+
 			let unicodeResult = unicode.convert(rawString);
 			if ( unicodeResult.changes ) {
 				unicode.markToSkip(valueNode);
 				rawString = unicodeResult.string;
 			}
-			return rawString;
+			quasisCooked.push(rawString);
 		});
 
-		let quasiRawString = quasis.map(function(quasiString) {
-			return "\"" + this.cleanupTemplateString(quasiString).replace(/\\/g, "\\\\").replace(/"/g, "\\\"") + "\"";
+		let quasiRawString = quasisRaw.map(function(quasiString) {
+			return "\"" + this.escape(quasiString, {raw: true, compat: true}) + "\"";
 		}, this).join(", ");
 
-		let quasiCookedString = quasis.map(function(quasiString) {
-			return "\"" + this.escapeQuoters(this.cleanupTemplateString(quasiString)) + "\"";
+		let quasiCookedString = quasisCooked.map(function(quasiString) {
+			return "\"" + this.escape(this.cleanupTemplateString(quasiString), {compat: true}) + "\"";
 		}, this).join(", ");
 
 		let quasisesTmpKey;
@@ -90,7 +140,10 @@ var plugin = module.exports = {
 
 			let quasiString, variableNamePlaceholder;
 			if( !quasiRawString ) {
-				variableNamePlaceholder = "%" + (Math.random() * 1e9 | 0) + "name" + (Math.random() * 1e9 | 0) + "%";
+				while ( quasiCookedString.contains(UUID) ) {// paranoiac mode: on
+					UUID = generateUUID();
+				}
+				variableNamePlaceholder = UUID;
 				quasiString = "[" + quasiCookedString + "];" + variableNamePlaceholder + " = " + _Object_freeze + "(" + _Object_defineProperties + "(" + variableNamePlaceholder + ", {\"raw\": {\"value\": " + variableNamePlaceholder + "}}))";
 			}
 			else {
@@ -100,22 +153,17 @@ var plugin = module.exports = {
 			temporaryVarName = this.quasisesTmp[quasisesTmpKey] = core.bubbledVariableDeclaration(nearestIIFENode.$scope, "$TS", quasiString, false, variableNamePlaceholder);
 		}
 
-		let expressionsString = quasiContainer.expressions.map(function(expression) {
-			return this.alter.get(expression.range[0], expression.range[1])
-		}, this).join(", ");
-		let resultString =
-			"("
-				+ temporaryVarName
-				+ (expressionsString ? ", " + expressionsString : "")
-				+ ")"
-		;
+		quasiContainer.quasis.forEach(function(quasi, index, array) {
+			let isLast = array.length - 1 === index;
+			let start = quasi.range[0], end = quasi.range[1];
+			let lineBreaks = this.alter.getRange(start, end).match(/[\r\n]/g) || [];
+			return this.alter.replace(quasi.range[0], quasi.range[1], lineBreaks.join("") + (isLast ? "" : ", "));
+		}, this);
 
-		this.alter.replace(
-			quasiContainer.range[0]
-			, quasiContainer.range[1]
-			, resultString
-		);
+		let start = quasiContainer.range[0], end = quasiContainer.range[1];
 
+		this.alter.insert(start, "(" + temporaryVarName);
+		this.alter.insertBefore(end, ")");
 	}
 
 	, __replaceQuasiLiterals: function(quasiContainer) {
@@ -138,9 +186,7 @@ var plugin = module.exports = {
 		for( let index = 0 ; index < quasisLength ; index++ ) {
 			quasi = quasis[index];
 
-			quasiString = this.escapeQuoters(this.cleanupTemplateString(quasi.value.raw)
-				.replace(/((?:\r\n)|\n)/g, "\\\n\\n"))
-			;
+			quasiString = this.escape(this.cleanupTemplateString(quasi.value.raw));
 
 			let unicodeResult = unicode.convert(quasiString);
 			if ( unicodeResult.changes ) {
