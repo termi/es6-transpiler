@@ -1,28 +1,28 @@
-var Greeter = (function(){
+var DP$0 = Object.defineProperty;var Greeter = (function(){"use strict";
 	Greeter.test = function(){ return "test" }
 
 	//static A = 123;
 
 	function Greeter(message) {
 		this.greeting = message;
-	}
+	}DP$0(Greeter, "prototype", {"configurable": false, "enumerable": false, "writable": false});
 
 	Greeter.prototype.greet = function() {
 		return "Hello 1, " + this.greeting;
 	}
 ;return Greeter;})();
 
-var Greeter1 = (function(super$0){var MIXIN$0 = function(t,s){for(var p in s){if(s.hasOwnProperty(p)){Object.defineProperty(t,p,Object.getOwnPropertyDescriptor(s,p));}}return t};MIXIN$0(Greeter1, super$0);
+var Greeter1 = (function(super$0){var MIXIN$0 = function(t,s){for(var p in s){if(s.hasOwnProperty(p)){DP$0(t,p,Object.getOwnPropertyDescriptor(s,p));}}return t};"use strict";MIXIN$0(Greeter1, super$0);
 	function Greeter1(message) {
 		super$0.call(this, message);
 		this.greeting = message;
-	}Greeter1.prototype = Object.create(super$0.prototype, {"constructor": {"value": Greeter1, "configurable": true, "writable": true} });
+	}Greeter1.prototype = Object.create(super$0.prototype, {"constructor": {"value": Greeter1, "configurable": true, "writable": true} });DP$0(Greeter1, "prototype", {"configurable": false, "enumerable": false, "writable": false});
 	Greeter1.prototype.greet = function() {
 		return super$0.prototype.greet.call(this) + "Hello 2, " + this.greeting;
 	}
 ;return Greeter1;})(Greeter);
 
-var A = (function(){function A() {return this}
+var A = (function(){"use strict";function A() {}DP$0(A, "prototype", {"configurable": false, "enumerable": false, "writable": false});
 
 ;return A;})();
 

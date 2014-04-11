@@ -16,6 +16,13 @@ const ASTQuery = require("astquery");
 const node_inject = require("./lib/node_inject");
 const esprima = require("./lib/esprima_harmony");
 
+const ESPRIMA_OPTIONS = {
+	loc: true,
+	range: true,
+	comment: true,
+	strictMode: true
+};
+
 let plugins = [
 	core
 	, require("./transpiler/typesDetection")
@@ -85,11 +92,7 @@ module.exports = {
 			this.src = this.alter.apply();
 
 			if( doNotReset !== true ) {
-				this.ast = esprima.parse(this.src, {
-					loc: true,
-					range: true,
-					comment: true
-				});
+				this.ast = esprima.parse(this.src, ESPRIMA_OPTIONS);
 
 				error.reset();
 				core.reset();
@@ -157,11 +160,7 @@ module.exports = {
 		}
 
 		if( !this.ast && isSourceInput ) {
-			this.ast = esprima.parse(this.src, {
-				loc: true,
-				range: true,
-				comment: true
-			});
+			this.ast = esprima.parse(this.src, ESPRIMA_OPTIONS);
 		}
 		else {
 			throw new Error("Input not found " + config.filename);

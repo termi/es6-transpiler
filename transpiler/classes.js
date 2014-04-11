@@ -3,11 +3,12 @@
 const assert = require("assert");
 const core = require("./core");
 
-const objectMixin =
+const $defineProperty = "Object.defineProperty";
+const objectMixinBody =
 		"function(t,s){"
 			+ "for(var p in s){"
 				+ "if(s.hasOwnProperty(p)){"
-					+ "Object.defineProperty(t,p,Object.getOwnPropertyDescriptor(s,p));"
+					+ "${Object_defineProperty}(t,p,Object.getOwnPropertyDescriptor(s,p));"
 				+ "}"
 			+ "}"
 		+ "return t}"
@@ -21,7 +22,6 @@ const classesTranspiler = {
 		this.__currentAccessors = null;
 		this.__currentStaticAccessors = null;
 		this.__currentFirstStaticAccessor = null;
-		this.__objectMixinFunctionName = null;
 	}
 
 	, setup: function(alter, ast, options) {
@@ -34,13 +34,16 @@ const classesTranspiler = {
 	}
 
 	, createPrototypeString: function(node, className, superName, accessors) {
-		let accessorsKeys = Object.keys(accessors);
+		const accessorsKeys = Object.keys(accessors);
 
-		let accessorsString = accessorsKeys.map(function(key) {
+		const accessorsString = accessorsKeys.map(function(key) {
 			let accessor = accessors[key];
 			let raw = accessor.raw, getter = accessor.get, setter = accessor.set;
 			return (raw || key) + ": {" + (getter ? "\"get\": " + getter + ", " : "") + (setter ? "\"set\": " + setter + ", " : "") + "\"configurable\": true, \"enumerable\": true}"
 		} ).join(", ");
+
+		let Object_defineProperty_name = core.bubbledVariableDeclaration(node.$scope, "DP", $defineProperty);
+		const freezePrototypeString = Object_defineProperty_name + "(" + className + ", \"prototype\", {\"configurable\": false, \"enumerable\": false, \"writable\": false});";
 
 		if ( superName ) {
 			return className
@@ -50,15 +53,17 @@ const classesTranspiler = {
 				+ (accessorsString ? ", " + accessorsString : "")
 				+ " }"
 				+ ");"
+				+ freezePrototypeString
 			;
 		}
 		else if ( accessorsString ) {
 			return "Object.defineProperties("
 				+ className	+ ".prototype, {" + accessorsString + "});"
+				+ freezePrototypeString
 			;
 		}
 		else {
-			return "";
+			return freezePrototypeString;
 		}
 	}
 
@@ -76,36 +81,42 @@ const classesTranspiler = {
 		} ).join(", ") + "});";
 	}
 
-	, ':: ClassDeclaration': function replaceClassBody(node, astQuery) {
+	, ':: ClassDeclaration, ClassExpression': function replaceClassBody(node, astQuery) {
 		{
 			if( !this.__currentSuperRefName ) {
 				// We need only one unique 'super' name for the entire file
 				this.__currentSuperRefName = core.unique("super", true);
 			}
 
-			const nodeId = node.id
-				, classBodyNodes = node.body.body
-				, currentClassName = nodeId.name
-				, SUPER_NAME = this.__currentSuperRefName
+			const isClassExpression = node.type === 'ClassExpression'
+				, nodeId = node.id
 			;
 
-			let classStr
-				, superClass = node.superClass
+			assert(nodeId ? nodeId.type === "Identifier" : isClassExpression);
+
+			const classBodyNodes = node.body.body
+				, currentClassName = nodeId ? nodeId.name : core.unique("constructor", true)
+				, SUPER_NAME = this.__currentSuperRefName
+				, useStrictString = node.strictMode ? "" : "\"use strict\";"
+			;
+
+			let superClass = node.superClass
 				, classBodyNodesCount = classBodyNodes.length
-				, insertAfterBodyBegin_string
+				, insertAfterBodyBegin_string = ""
 				, classConstructor
 				, extendedClassConstructorPostfix
 				, objectMixinFunctionName
 			;
 
-			assert(nodeId && nodeId.type === "Identifier");
-
 			this.__currentClassName = currentClassName;
 
-			classStr = "var " + currentClassName + " = (function(";
+			let classStr = (isClassExpression ? "(" : "var " + currentClassName + " = ")
+				+ "(function("
+			;
 
 			if( superClass ) {
-				objectMixinFunctionName = core.bubbledVariableDeclaration(node.$scope, "MIXIN", objectMixin);
+				let Object_defineProperty_name = core.bubbledVariableDeclaration(node.$scope, "DP", $defineProperty);
+				objectMixinFunctionName = core.bubbledVariableDeclaration(node.$scope, "MIXIN", objectMixinBody.replace("${Object_defineProperty}", Object_defineProperty_name));
 
 				classStr += SUPER_NAME;
 				superClass = superClass.name;
@@ -143,20 +154,21 @@ const classesTranspiler = {
 				}
 
 				astQuery.traverse(classConstructor, this.replaceClassConstructorSuper);
+
+				insertAfterBodyBegin_string = useStrictString + insertAfterBodyBegin_string;
+
+				if ( insertAfterBodyBegin_string ) {
+					this.alter.insert(node.body.range[0] + 1, insertAfterBodyBegin_string);
+				}
 			}
 			else {
 				this.alter.insert(
 					node.body.range[0] + 1
-					, "function " + currentClassName + "() {return "
-						+ (superClass ? SUPER_NAME + ".apply(this, arguments)" : "this")
+					, useStrictString + "function " + currentClassName + "() {"
+						+ (superClass ? SUPER_NAME + ".apply(this, arguments)" : "")
 						+ "}" + (insertAfterBodyBegin_string || "") + (extendedClassConstructorPostfix || "")
 					, {before: true}
 				);
-				insertAfterBodyBegin_string = null;
-			}
-
-			if ( insertAfterBodyBegin_string ) {
-				this.alter.insert(node.body.range[0] + 1, insertAfterBodyBegin_string);
 			}
 
 			if ( staticAccessorsDefinitionString ) {
@@ -164,12 +176,15 @@ const classesTranspiler = {
 			}
 
 			// replace class definition
-			// text change 'class A[ extends B]' => 'var A = (function([0$0])'
+			// text change 'class A[ extends B]' => 'var A = (function([super$0])'
 			this.alter.replace(node.range[0], node.body.range[0], classStr);
 
 			this.alter.insert(node.range[1] - 1, ";return " + currentClassName + ";");
 
-			this.alter.insert(node.range[1], ")(" + (superClass || "") + ");");
+			this.alter.insert(node.range[1],
+				")(" + (superClass || "") + ")"
+				+ (isClassExpression ? ")" : ";")//tail ')' or semicolon
+			);
 
 			this.__currentClassName = null;
 		}

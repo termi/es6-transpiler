@@ -221,14 +221,18 @@ let core = module.exports = {
 			newScope.options = rangedOptions;
 			this.commentOptionsCount = rangedOptions.length;
 
-		} if (node.type === "ClassDeclaration") {// class declaration
+		} if (node.type === "ClassDeclaration" || node.type === "ClassExpression") {// class definition
 			newNotProgramScope = node.$scope = new Scope({
 				kind: "hoist",
 				node: node,
 				parent: node.$parent.$scope
 			});
 
-			addVariableToScope(node.id, "let"/*TODO::"class"*/, node.id, node.$parent.$scope, node);
+			let nodeId = node.id;
+
+			if ( node.type !== "ClassExpression" || nodeId ) {
+				addVariableToScope(nodeId, "let"/*TODO::"class"*/, nodeId, node.$parent.$scope, node);
+			}
 
 			if( node.superClass ) {
 				node.$scope.add("super", "var");
