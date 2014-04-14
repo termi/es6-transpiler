@@ -15,11 +15,14 @@ function isArrayPattern(node) {
 	return node && node.type == 'ArrayPattern';
 }
 
+const SymbolIteratorBody = "typeof Symbol!=='undefined'&&Symbol.iterator||'@@iterator'";
 const getIteratorBody =
 	"(v){" +
 		"if(v){" +
 			"if(Array.isArray(v))return 0;" +
-			"if(typeof v==='object'&&typeof v['@@iterator']==='function')return v['@@iterator']();" +
+			"var f;" +
+			"if(typeof v==='object'&&typeof (f=v[${Symbol_iterator}])==='function')return f.call(v);" +
+			"if((v+'')==='[object Generator]')return v;" +
 		"}" +
 		"throw new Error(v+' is not iterable')"+
 	"};"
@@ -92,7 +95,14 @@ var plugin = module.exports = {
 		let scopeOptions = core.getScopeOptions(node.$scope, node);
 		const needIteratorSupport = scopeOptions['has-iterators'] !== false || scopeOptions['has-generators'] !== false;
 
-		const getIteratorFunctionName = needIteratorSupport ? core.bubbledVariableDeclaration(node.$scope, "GET_ITER", getIteratorBody, true) : "";
+		let getIteratorFunctionName;
+		if ( needIteratorSupport ) {
+			let Symbol_iterator = core.bubbledVariableDeclaration(node.$scope, "S_ITER", SymbolIteratorBody);
+			getIteratorFunctionName = core.bubbledVariableDeclaration(node.$scope, "GET_ITER", getIteratorBody.replace("${Symbol_iterator}", Symbol_iterator), true);
+		}
+		else {
+			getIteratorFunctionName = "";
+		}
 
 		const variableBlock = node.left;
 		const isDeclaration = variableBlock.type === "VariableDeclaration";
