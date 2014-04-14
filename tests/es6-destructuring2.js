@@ -50,3 +50,44 @@ console.log(a === 1, b === 2, c.join("|") === "3|4|5|6")
 	[a, b, c, ...rest] = [1, 2, 3, 4, 5];
 	console.log(a === 1, b === 2, c === 3, rest.join("|") === "4|5");
 }
+
+{// destructuring and line breaks - array
+	let [
+		a
+		, b
+		, c
+		, ...rest
+	] = [1, 2, 3, 4, 5];
+	console.log(a === 1, b === 2, c === 3, rest.join("|") === "4|5");
+
+	[
+		b
+		,
+		a
+	] = [
+		a
+		,
+		b
+	];
+	console.log(a === 2, b === 1);
+}
+
+{// destructuring and line breaks - objecr
+	let {
+		a = "a"
+		, b = (function(){ return "b" })()
+		, c
+	} = {a: 1, b: void 0, c: 3};
+	console.log(a === 1, b === "b", c === 3);
+
+	({
+		b: a
+		,
+		a: b
+	}) = {
+		a
+		,
+		b
+	};
+	console.log(a === "b", b === 1);
+}

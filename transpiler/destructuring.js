@@ -24,6 +24,36 @@ function isForInOf(node) {
 	return node && (node.type === "ForInStatement" || node.type === "ForOfStatement");
 }
 
+function isEmptyDestructuring(node) {
+	if ( isObjectPattern(node) ) {
+		return node.properties.length === 0;
+	}
+	if ( isArrayPattern(node) ) {
+		return node.elements.length === 0
+			|| node.elements.every(function(node) { return node === null })
+		;
+	}
+	return false;
+}
+
+function isBodyStatement(node) {
+	let type = node && node.type;
+	return type === "BlockStatement"
+		|| type === "FunctionDeclaration"
+		|| type === "FunctionExpression"
+		|| type === "ArrowFunctionExpression"
+		|| type === "ForStatement"
+		|| type === "ForInStatement"
+		|| type === "ForOfStatement"
+		|| type === "WhileStatement"
+		|| type === "DoWhileStatement"
+	;
+}
+
+function isBinaryExpression(node) {
+	return node && node.type === "BinaryExpression";
+}
+
 var plugin = module.exports = {
 	reset: function() {
 
@@ -89,9 +119,7 @@ var plugin = module.exports = {
 		this.alter.replace(
 			assignment.range[0]
 			, assignment.range[1]
-			// additional '(' and ')' would fix the "let a, str = `${obj = ({a: a}) = {a, toString(){ return "test" }}}`" case (assert(obj == {a, toString(){ return "test" }}));
-			// TODO:: add more intelligence check and remove unnecessary '(' and ')'
-			, "(" + declarationString + ")"
+			, declarationString
 		);
 	}
 
@@ -102,14 +130,24 @@ var plugin = module.exports = {
 		if( !newVariables )newVariables = [];
 		assert(Array.isArray(newVariables));
 
-		if( (_isObjectPattern ? definitionNode.properties : definitionNode.elements).length === 0 ) {
-			// an empty destructuring
-			var temporaryVarName = core.getScopeTempVar(definitionNode, definitionNode.$scope.closestHoistScope());
-			core.setScopeTempVar(temporaryVarName, definitionNode, definitionNode.$scope.closestHoistScope());
-			return temporaryVarName;
-		}
-
 		newDefinitions = newDefinitions || [];
+
+		if( isEmptyDestructuring(definitionNode) ) {
+			// an empty destructuring
+			let placeholderVarName = core.getScopeTempVar(definitionNode, definitionNode.$scope.closestHoistScope());
+			core.setScopeTempVar(placeholderVarName, definitionNode, definitionNode.$scope.closestHoistScope());
+
+			let newDefinition = {
+				"type": "VariableDeclarator",
+				"id": {
+					"type": "Identifier",
+					"name": placeholderVarName
+				}
+			};
+			newDefinitions.push(newDefinition);
+
+			return placeholderVarName;
+		}
 
 		this.__unwrapDestructuring(kind === "var" ? 1 : 0, definitionNode, valueNode, newVariables, newDefinitions);
 
@@ -138,11 +176,11 @@ var plugin = module.exports = {
 
 			assert( typeof definition["$raw"] === "string" );//"$raw" defined in this.__unwrapDestructuring
 
-			destructurisationString += ( delimiter + definition["$raw"] );
+			destructurisationString += ( delimiter + definition["$raw"] + (definition["$lineBreaks"] || '') );
 
 			if( definition["$assignmentExpressionResult"] === true ) {
 				let $parent = valueNode.$parent;
-				if( $parent && ($parent = $parent.$parent) && ($parent = $parent.$parent) && $parent.type === "ExpressionStatement" ) {
+				if( $parent && ($parent = $parent.$parent) && ($parent = $parent.$parent) && !isBodyStatement($parent) && !isBinaryExpression($parent) ) {
 					let isExpressionStatementWithoutBrackets = this.alter.getRange(valueNode.range[1], valueNode.$parent.$parent.range[1]) !== ')';
 
 					if( isExpressionStatementWithoutBrackets ) {
@@ -168,6 +206,8 @@ var plugin = module.exports = {
 			, localFreeVariables
 			, isLocalFreeVariable = type === 1
 		;
+
+		assert(elementsList.length);
 
 		if( isLocalFreeVariable || valueNode_isArrayPattern || valueNode_isObjectPattern ) {
 			//TODO:: tests
@@ -246,9 +286,19 @@ var plugin = module.exports = {
 			isTemporaryValueAssignment = true;
 		}
 
-		for( let k = 0, len = elementsList.length ; k < len ; k++ ) {
+		let lastElement;
+		for( let k = 0, len = elementsList.length, lineBreaksFrom = definitionNode.range[0] ; k < len ; k++ ) {
 			const element = elementsList[k], elementId = _isObjectPattern ? element.value : element;
-			if (element) {
+
+			let lineBreaks = "";
+			if ( element ) {
+				lineBreaks = (this.alter.getRange(lineBreaksFrom, element.range[0]).match(/[\r\n]/g) || []).join("");
+
+				lineBreaksFrom = element.range[1];
+				lastElement = element;
+			}
+
+			if ( element ) {
 				if( isObjectPattern(elementId) || isArrayPattern(elementId) ) {
 					this.__unwrapDestructuring(
 						1
@@ -256,6 +306,7 @@ var plugin = module.exports = {
 						, {
 							type: "Identifier"
 							, name: valueIdentifierName + (_isObjectPattern ? core.PropertyToString(element.key) : ("[" + k + "]"))
+							, "$lineBreaks": lineBreaks
 						}
 						, newVariables
 						, newDefinitions
@@ -305,6 +356,7 @@ var plugin = module.exports = {
 
 					if( element.type === "SpreadElement" ) {
 						newDefinition["$raw"] = core.unwrapRestDeclaration(element.argument, valueIdentifierName, k);
+						newDefinition["$lineBreaks"] = lineBreaks;
 					}
 					else {
 //						if( type === 1 ) {//VariableDeclarator
@@ -314,6 +366,7 @@ var plugin = module.exports = {
 //							newDefinition["$raw"] = core.AssignmentExpressionString(newDefinition);
 //						}
 					}
+					newDefinition["$lineBreaks"] = lineBreaks;
 
 					newDefinitions.push(newDefinition);
 				}
@@ -325,12 +378,38 @@ var plugin = module.exports = {
 			}
 		}
 
+		let lastLineBreaks = "";
+		if ( lastElement ) {
+			let start = definitionNode.range[1]
+				, end = valueNode.range && valueNode.range[0]
+			;
+			let lineBreaksBetween =
+				end
+				&& (start < end)
+				&& (this.alter.getRange(start, end).match(/[\r\n]/g))
+				|| []
+			;
+
+			start = lastElement.range[1];
+			end = definitionNode.range[1];
+			lastLineBreaks = lineBreaksBetween.concat(
+				(start < end)
+				&& this.alter.getRange(start, end).match(/[\r\n]/g) || []
+			);
+			lastLineBreaks = lastLineBreaks.join("")
+		}
+
 		if( type === 0 ) {//AssignmentExpression
 			newDefinitions.push({
 				"type": "VariableDeclarator"
 				, "$raw": temporaryVariableIndexOrName || valueIdentifierName
 				, "$assignmentExpressionResult": true
+				, "$lineBreaks": lastLineBreaks + (valueNode["$lineBreaks"] || "")
 			});
+		}
+		else {
+			assert(newDefinitions.length);
+			newDefinitions[newDefinitions.length - 1]["$lineBreaks"] += lastLineBreaks;
 		}
 
 		assert(!isTemporaryValueAssignment);

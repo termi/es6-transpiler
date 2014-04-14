@@ -179,7 +179,7 @@ var plugin = module.exports = {
 					const prevParam = params[i - 1];
 					const doesArgumentsInsideFunction = node.$scope.doesArgumentsUsing();
 					const _isObjectPattern = isObjectPattern(param);
-					const _isArrayPattern = isArrayPattern(param);
+					const _isArrayPattern = !_isObjectPattern && isArrayPattern(param);
 
 					if( _isObjectPattern || _isArrayPattern ) {
 
@@ -193,49 +193,39 @@ var plugin = module.exports = {
 								: element
 									? (_isObjectPattern ? element.value : element)
 									: {$raw: '', name: ''}// empty destructuring
-							;
+						;
 
-						if( elementsLength === 0 ) {//empty destructuring
-							// cleanup
-							this.alter.replace(
-								(prevParam ? prevParam.range[1] + 1 : param.range[0]) - (prevParam ? 1 : 0)
-								, param.range[1]
-								, ""
-							);
+						let newDeclarations = [];
+						let paramStr =
+							destructuring.unwrapDestructuring(
+								"var"
+								, param
+								, functionParamReplacer
+								, []
+								, newDeclarations
+							) + ";"
+						;
+						if( paramStr === "var ;" ) {// empty destructuring
+							paramStr = "";
 						}
-						else {
-							let newDeclarations = [];
-							let paramStr =
-								destructuring.unwrapDestructuring(
-									"var"
-									, param
-									, functionParamReplacer
-									, []
-									, newDeclarations
-								) + ";"
-							;
-							if( paramStr === "var ;" ) {// empty destructuring
-								paramStr = "";
-							}
 
-							param.$replaced = true;
+						param.$replaced = true;
 
-							// add
-							insertIntoBodyBegin += paramStr;
+						// add
+						insertIntoBodyBegin += paramStr;
 
-							let paramReplacerName = (_isObjectPattern || _isArrayPattern) && !doesArgumentsInsideFunction
-								//assuming that in this case the last destructuring parameter would be the new parameter name
-								? newDeclarations[newDeclarations.length - 1].id.name
-								: functionParamReplacer.name
-							;
+						let paramReplacerName = (_isObjectPattern || _isArrayPattern) && !doesArgumentsInsideFunction
+							//assuming that in this case the last destructuring parameter would be the new parameter name
+							? newDeclarations[newDeclarations.length - 1].id.name
+							: functionParamReplacer.name
+						;
 
-							// cleanup
-							this.alter.replace(
-								(prevParam ? prevParam.range[1] + 1 : param.range[0]) - (prevParam ? 1 : 0)
-								, param.range[1]
-								, (i === 0 ? "" : ", ") + paramReplacerName
-							);
-						}
+						// cleanup
+						this.alter.replace(
+							(prevParam ? prevParam.range[1] + 1 : param.range[0]) - (prevParam ? 1 : 0)
+							, param.range[1]
+							, (i === 0 ? "" : ", ") + paramReplacerName
+						);
 					}
 				}
 			}

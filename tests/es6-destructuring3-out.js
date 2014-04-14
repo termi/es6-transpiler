@@ -57,8 +57,8 @@ test2();
 	}
 	console.log(test5([{a: 1, b: 2}, {c: 3, d: 4}]) == "1|2|3|4");
 
-	function test6(b) {var a = (b = (b).test[0]).a, b = b.b;
+	function test6(b) {var a = (b = (b).test).a, b = b.b;
 		return a + "|" + b;
 	}
-	console.log(test6({test: [{a: 1, b: 2}]}) == "1|2");
+	console.log(test6({test:{a: 12, b: 21}}) === "12|21")
 }

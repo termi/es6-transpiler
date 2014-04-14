@@ -29,6 +29,31 @@ console.log(test4() === 4);
 function test5(){var a,b = ({a}={a:5});function test6(){var a,b = ({a}={a:6});return b.a}return b.a+test6()}
 console.log(test5() === 11);
 
+function test6([ , ]) {
+	return 6;
+}
+console.log(test6() === 6);
+
+function test7([ , , a3]) {
+	return a3;
+}
+console.log(test7([3, 6, 9]) === 9);
+
+function test8({}, a) {
+	return a;
+}
+console.log(test8(null, 8) === 8);
+
+function test9([], a) {
+	return a;
+}
+console.log(test9(null, 9) === 9);
+
+function test10([ , ], a) {
+	return a;
+}
+console.log(test10(null, 10) === 10);
+
 function empty() {
 
 }
