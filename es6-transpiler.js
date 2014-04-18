@@ -18,7 +18,9 @@ const esprima = require("./lib/esprima_harmony");
 
 const ESPRIMA_OPTIONS = {
 	loc: true,
+	groupLoc: true,
 	range: true,
+	groupRange: true,
 	comment: true,
 	strictMode: true
 };
