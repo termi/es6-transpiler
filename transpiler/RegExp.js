@@ -342,7 +342,7 @@ var plugin = module.exports = {
 		let result = this.codePointsRange_Map[key];
 
 		if ( result === void 0 ) {
-			result = regenerate.fromCodePointRange(codePoint1, codePoint2);
+			result = regenerate().addRange(codePoint1, codePoint2).toString();
 
 			if ( result.contains("|") ) {
 				result = "(?:" + result + ")";
@@ -361,8 +361,14 @@ var plugin = module.exports = {
 		if ( result === void 0 ) {
 			ranges = this._subtractRangesFromSurrogatePairsRange(ranges);
 
-			let reg = new regenerate;
+			let reg = new regenerate();
 			ranges.forEach(function(range){ reg.addRange(range[0], range[1]); });
+			/* TODO:: https://github.com/termi/es6-transpiler/issues/33 Update to Regenerate v0.6.0
+			//ranges = this._subtractRangesFromSurrogatePairsRange(ranges);//<- don't need this any more
+			 let reg = new regenerate();
+			 reg.addRange(0, 0x10FFFF);
+			 ranges.forEach(function(range){ reg.removeRange(range[0], range[1]); });
+			*/
 
 			result = reg + "";
 
