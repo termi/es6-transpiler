@@ -31,3 +31,9 @@ function test5(a = 1, b = {c: 333}, {test} = (  ({A})  =>  ( A = [...A, ...A] , 
 	console.log(a === 1, typeof b === "object" && b.c === 333, test.join("|") === [1,2,3,1,2,3].join("|"));
 }
 test5(void 0, void 0, void 0, 9, 8, 7, 6, 5, 4);
+
+{
+	let a = [1, 2];
+	let test6 = function(arr = [...a, ...(([a, b = 4], c = 3)=>[a, b, c])([a[1]+1]), ...a.reverse()]) { return arr }
+	console.log(test6().join("|") === [1, 2, 3, 4, 3, 2, 1].join("|"))
+}

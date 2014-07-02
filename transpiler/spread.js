@@ -9,19 +9,34 @@ function isSpreadElement(node) {
 	return node && node.type === 'SpreadElement';
 }
 
-function hasSpreadArgument(node) {
-	let elements;
-	return node && Array.isArray(elements = (node.elements || node["arguments"])) && elements.some(isSpreadElement);
+function isArrayExpression(node) {
+	return node && node.type === 'ArrayExpression';
 }
 
+function isSequenceExpression(node) {
+	return node && node.type === 'SequenceExpression';
+}
+
+function isFunction(node) {
+	let type;
+	return node && (type = node.type)
+		&& type === "FunctionDeclaration" || type === "FunctionExpression" || type === "ArrowFunctionExpression";
+}
+
+const SymbolIteratorBody = "typeof Symbol!=='undefined'&&Symbol.iterator||'@@iterator'";
 const callIteratorBody =
 	"(v,f){" +
-		"var $Symbol_iterator=typeof Symbol!=='undefined'&&Symbol.iterator||'@@iterator';" +
 		"if(v){" +
 			"if(Array.isArray(v))return f?v.slice():v;" +
 			"var i,r;"+
-			"if(typeof v==='object'&&typeof (f=v[$Symbol_iterator])==='function'){" +
+			"if(typeof v==='object'&&typeof (f=v[${Symbol_iterator}])==='function'){" +
 				"i=f.call(v);r=[];" +
+			"}" +
+			"else if((v+'')==='[object Generator]'){" +
+				"i=v;" +
+				"r=[];" +
+			"};" +
+			"if(r) {" +
 				"while((f=i['next']()),f['done']!==true)r.push(f['value']);" +
 				"return r;" +
 			"}" +
@@ -29,6 +44,40 @@ const callIteratorBody =
 		"throw new Error(v+' is not iterable')"+
 	"};"
 ;
+
+function findSpreadArgument(node) {
+	let spreadIndex = -1;
+	let elements;
+	if( node && Array.isArray(elements = (node.elements || node["arguments"])) ) {
+		elements.forEach(function(arg, i) {
+			if( spreadIndex === -1 && isSpreadElement(arg) ) {
+				spreadIndex = i;
+			}
+		});
+	}
+	return spreadIndex;
+}
+
+function getRange(node) {
+	return node && (node.groupRange || node.range);
+}
+
+function getLastNotNullElementIndex(elements, index) {
+	if ( index === void 0 )index = elements.length;
+
+	let element = null;
+
+	while( element == null && index > 0 ) {
+		element = elements[--index];
+	}
+
+	return element === null ? -1 : index;
+}
+function createArrayHoles(holesCount) {
+	return holesCount > 0
+		? "(new Array(" + holesCount + "))"
+		: ""
+}
 
 var plugin = module.exports = {
 	reset: function() {
@@ -46,16 +95,17 @@ var plugin = module.exports = {
 	}
 
 	, ':: CallExpression,NewExpression,ArrayExpression': function(node) {
-		if( hasSpreadArgument(node) ) {
+		let spreadIndex = findSpreadArgument(node);
+		if( spreadIndex !== -1 ) {
 			let type = node.type;
 
 			if ( type === "CallExpression" ) {
 				this.replaceCallExpression(node);
 			}
 			else if ( type === "NewExpression" ) {
-				this.replaceNewExpression(node);
+				this.replaceNewExpression(node, spreadIndex);
 			}
-			else if ( type === "ArrayExpression" ) {
+			else if ( type === "ArrayExpression" && node.$despread !== true ) {
 				this.replaceArrayExpression(node);
 			}
 		}
@@ -65,20 +115,18 @@ var plugin = module.exports = {
 		const isMemberExpression = node.callee.type === "MemberExpression";
 		const calleeType = isMemberExpression && node.callee.object.type;
 		const isSimpleMemberExpression = isMemberExpression && (calleeType === "Identifier" || calleeType === "ThisExpression");
-//		const functionNameNode = isMemberExpression ? node.callee.property : node.callee;
 		const args = node["arguments"];
 		const argsLength = args.length;
 
 		assert(argsLength);
 
 		let expressionBefore = ""
-			, expressionAfter = ""
-			, expressionParams = ""
+			, expressionInside = ""
 		;
 
 		if( isMemberExpression ) {
 			if( isSimpleMemberExpression ) {
-				expressionAfter =
+				expressionInside =
 					".apply("
 					+ this.alter.get(node.callee.object.range[0], node.callee.object.range[1])
 					+ ", "
@@ -94,66 +142,71 @@ var plugin = module.exports = {
 					, ")"
 				);
 
-				expressionAfter =
-					".apply(" + tempVar
-					+ ", "
-				;
+				expressionInside = ".apply(" + tempVar + ", ";
 
 				core.setScopeTempVar(tempVar, node, node.$scope, true);
 			}
 		}
 		else {
-			expressionAfter =
+			expressionInside =
 				".apply(null, "
 			;
 
 			if( node.callee.type === "FunctionExpression" ) {
 				expressionBefore = "(";
-				expressionAfter = ")" + expressionAfter;
+				expressionInside = ")" + expressionInside;
 			}
 		}
 
-		if( argsLength === 1 ) {
-			const isSequenceExpression = args[0].type === "SequenceExpression";
-			const callIteratorFunctionName = core.bubbledVariableDeclaration(node.$scope, "ITER", callIteratorBody, true);
-
-			expressionParams = (
-				callIteratorFunctionName
-				+ "(" + (isSequenceExpression ? "(" : "")
-				+ this.alter.get(args[0].range[0] + 3, args[0].range[1])
-				+ ")" + (isSequenceExpression ? ")" : "")
+		if( expressionBefore ) {
+			this.alter.insertBefore(
+				node.callee.range[0]
+				, expressionBefore
 			);
 		}
-		else {
-			expressionParams += this.__unwrapSpread(node, args);
-		}
 
-		this.alter.insertBefore(
-			node.callee.range[0]
-			, expressionBefore
-		);
-
-
-		this.alter.replace(
-			args.range[0]
-			, args[argsLength - 1].range[1]
-			, expressionAfter + expressionParams
-		);
-	}
-
-	, replaceNewExpression: function(node) {
-		const bindFunctionName = core.bubbledVariableDeclaration(node.$scope, "BIND", "Function.prototype.bind");
-
-		let expressionString =
-			"(" + bindFunctionName + ".apply(" + this.alter.get(node.callee.range[0], node.callee.range[1]) + ", "
-			+ this.__unwrapSpread(node, node["arguments"], "null")
+		let needFirstSquareBracket = argsLength > 1
+			|| isArrayExpression(args[0].argument)
+				&& !isSpreadElement(args[0].argument.elements[0])
 		;
 
 		this.alter.replace(
-			node.callee.range[0]
-			, node.range[1]
-			, expressionString + ")"
+			args.range[0]
+			, getRange(args[0])[0]
+			, expressionInside + (needFirstSquareBracket ? "[" : "")
 		);
+//		if ( !((argsLength === 1 && !isArrayExpression(args[0].argument)) ) ) {
+//			console.log(argsLength, isArrayExpression(args[0].argument), args[0].argument, needFirstSquareBracket);
+//			process.exit(0)
+//		}
+
+
+		this.replaceSpreads(node, args, true);
+	}
+
+	, replaceNewExpression: function(node, spreadIndex) {
+		const bindFunctionName = core.bubbledVariableDeclaration(node.$scope, "BIND", "Function.prototype.bind");
+		const args = node["arguments"];
+
+		this.alter.insert(
+			node.callee.range[0]
+			, "(" + bindFunctionName + ".apply("
+		);
+
+		args.unshift({
+			type: "Literal",
+			value: null,
+			raw: "null",
+			range: [args.range[0] + 1, args.range[0] + 1]
+		});
+
+		this.alter.replace(// replace '(' from 'new test(...a)'
+			args.range[0]
+			, args.range[0] + 1
+			, ", [null" + (spreadIndex === 0 && !isArrayExpression(args[1]["argument"]) ? "" : ", ")
+		);
+
+		this.replaceSpreads(node, args, true);
 
 		this.alter.insertAfter(
 			node.range[1]
@@ -163,175 +216,337 @@ var plugin = module.exports = {
 
 	, replaceArrayExpression: function(node) {
 		// found new line symbols
-		const str =
-			this.alter.getRange(node.range[0], node.range[1])
-		;
-		const lineBreaks = str.match(/[\r\n]/g) || [];
-		const lineBreaksCount = lineBreaks.length;
-
-		let arrayExpressionStr = this.__unwrapSpread(node);
-
-		this.alter.replace(
-			node.range[0]
-			, node.range[1]
-			, arrayExpressionStr
-			, {transform: function(str) {
-				const newLineBreaks = str.match(/[\r\n]/g) || [];
-				const newLineBreaksCount = newLineBreaks.length;
-
-				if ( newLineBreaksCount < lineBreaksCount ) {
-					str = str + lineBreaks.slice(newLineBreaksCount).join("");
-				}
-				return str;
-			}}
-		);
+		this.replaceSpreads(node);
 	}
 
-	,
-	__unwrapSpread: function(node, elements, firstElementString) {
+	, replaceSpreads: function(node, elements, innerSpread) {
+		let self = this;
+
+		function getCallIteratorFunctionName() {
+			let Symbol_iterator = core.bubbledVariableDeclaration(node.$scope, "S_ITER", SymbolIteratorBody);
+			return core.bubbledVariableDeclaration(node.$scope, "ITER", callIteratorBody.replace("${Symbol_iterator}", Symbol_iterator), true);
+		}
+
+		let nonSpreadElementStart = -1;
+		function startNotSpreadElementsGroup(start) {
+			if( nonSpreadElementStart === -1 ) {
+				nonSpreadElementStart = start;
+			}
+		}
+		function endNotSpreadElementsGroup(end) {
+			if( nonSpreadElementStart < 0 )return;
+
+			let startElement = elements[nonSpreadElementStart]
+				, endElement = elements[end || elements.length - 1]
+			;
+
+			assert(!!startElement);
+
+			if( !endElement ) {
+				endElement = elements[getLastNotNullElementIndex(elements, end)];
+			}
+
+			self.alter
+				.insertBefore(getRange(startElement)[0], "[")
+				.insert(getRange(endElement)[1], "]")
+			;
+
+			nonSpreadElementStart = -1;
+		}
+
+		let firstElemIsSpreadFlag = -1, that = this;
+
+		function removeFirstSquareBracket() {
+			if ( firstElemIsSpreadFlag >= 0 ) {
+				if( !concatOpen ) {
+//					let _isArrayExpression = isArrayExpression(node);// for "NewExpression" and "CallExpression", node is not a SpreadElement
+//					let from = _isArrayExpression ? node.range[0] : firstElemIsSpreadFlag;
+					let from = firstElemIsSpreadFlag;
+
+					that.alter.remove(from, from + 1);
+				}
+				firstElemIsSpreadFlag = -1;
+			}
+		}
+
 		elements = elements || node.elements;
 
-		const argsLength = elements.length;
-		let spreadIndex = 0;
-		let callIteratorFunctionName;
-		function getCallIteratorFunctionName() {
-			if( !callIteratorFunctionName ) {
-				callIteratorFunctionName = core.bubbledVariableDeclaration(node.$scope, "ITER", callIteratorBody, true);
-			}
-			return callIteratorFunctionName;
-		}
+		let argsLength = elements.length;
+		let callIteratorOpen = false, concatOpen = false, prevConcatOpen = false;
+		let lastNullElementCount = 0, ArrayExpressionElementInInnerSpread = null;
+		let callIteratorFunctionName, endString = "";
+		let i = 0;
 
-		elements.some(function(arg, index) {
-			if( isSpreadElement(arg) ) {
-				spreadIndex = index;
-				return true;
-			}
-		});
-
-		firstElementString = firstElementString || "";
-
-		let expressionString
-			, nonSpreadStart
-			, nonSpreadEnd = null
-		;
-
-		if( spreadIndex > 0 ) {
-			expressionString =
-				"["
-				+ (firstElementString ? (firstElementString + ", ") : "")
-				+ this.alter.get(elements[0].range[0], elements[spreadIndex - 1].range[1]) + "]"
+		for( ; i < argsLength ; i++ ) {
+			const element = elements[i]
+				, elementRange = getRange(element)
 			;
-		}
-		else {
-			expressionString = "[" + firstElementString + "]";
-		}
-
-		expressionString += ".concat(";
-
-		function addNonSpreadStr() {
-			var str = "", nodeStart, nodeEnd, isStart = true;
-
-			if( nonSpreadStart ) {
-				str += ", [";
-
-				if( nonSpreadEnd === null ) {
-					nonSpreadEnd = nonSpreadStart;
-				}
-
-				while( (nodeStart = elements[nonSpreadStart]) === null ) {
-					str += ",";
-					nonSpreadStart++;
-				}
-
-				if( nonSpreadStart > nonSpreadEnd ) {
-					// next element is Spread Element
-				}
-				else {
-					while( (nodeEnd = elements[nonSpreadEnd]) === null ) {
-						str += ",";
-						nonSpreadEnd--;
-					}
-
-					isStart = true;
-					while( nonSpreadStart <= nonSpreadEnd ) {
-						str += ((isStart ? "" : ", ") + core.unwrapNode(elements[nonSpreadStart]));
-						nonSpreadStart++;
-						isStart = false;
-					}
-				}
-
-				str += "]";
-
-//				expressionString += (", [" + str + (nonSpreadStart !== nonSpreadEnd ? alter.get(nonSpreadStart, nonSpreadEnd) : "") + "]")
-				expressionString += str;
-			}
-
-			nonSpreadStart = nonSpreadEnd = null;
-		}
-
-		let spreadExpressionsCount = 0;
-		let currentSpread = 0;
-
-		for(let currentIndex = spreadIndex ; currentIndex < argsLength ; currentIndex++ ) {
-			let arg = elements[currentIndex];
-
-			if( arg && arg.type !== "Literal" && arg.type !== "Identifier" ) {
-				spreadExpressionsCount++;
-			}
-		}
-
-		for(let currentIndex = spreadIndex ; currentIndex < argsLength ; currentIndex++ ) {
-			let arg = elements[currentIndex]
-				, isSpread = isSpreadElement(arg)
-				, spreadTypeIsArrayExpression
+			const isFirst = i === 0
+				, isLast = i === argsLength - 1
+				, isLastAndNull = isLast && element == null
+				, theOnlyOne = isLast && isFirst
+				, isSpreadEl = isSpreadElement(element)
 			;
 
-			if( isSpread ) {
-				addNonSpreadStr();
-			}
-			else {
-				if( nonSpreadStart ) {
-					nonSpreadEnd = currentIndex;
+			prevConcatOpen = concatOpen;
+
+			if( concatOpen ) {
+				if( element || isLastAndNull ) {
+					if( lastNullElementCount ) {
+						let fistNullIndex = i - lastNullElementCount;
+
+						if( isLastAndNull )lastNullElementCount++;// [1, ...a, , , , ] -> [1].concat(ITER(a), [ , , , ]) case
+
+						if( !isSpreadEl ) {/* see: LINK createArrayHoles#1 */
+							this.alter.replace(
+								getRange(elements[getLastNotNullElementIndex(elements, fistNullIndex)])[1]
+								, isLastAndNull ? node.range[1] - 1 : elementRange[0]
+								, (isFirst ? "" : ", ") + createArrayHoles(lastNullElementCount) + (isLastAndNull ? "" : ", ")
+							);
+						}
+
+						lastNullElementCount = 0;
+					}
 				}
 				else {
-					if( arg && arg.type === "Literal" ) {
-						expressionString += (
-							(currentIndex ? ", " : "")
-							+ arg.raw
-						);
+					lastNullElementCount++;
+				}
+			}
+
+			if( isSpreadEl ) {
+				const argument = element.argument
+					, argumentRange = getRange(argument)
+				;
+
+				if( isArrayExpression(argument) ) {
+					removeFirstSquareBracket();
+					firstElemIsSpreadFlag = theOnlyOne && isSpreadElement(argument.elements[0]) ? argument.range[0] : -1;
+					// link `spread_in_spread` 1
+					// cases: [...[...obj]] and [...[N, , ...obj]], [...([...obj])] and [...([N, , ...obj])]
+					this.alter.remove(elementRange[0], argument.range[0] + (firstElemIsSpreadFlag === -1 ? 1 : 0), {a: 1});// remove "...[" or "...(["
+
+					if ( argument.groupRange ) {
+						// cases: [...([...obj])] and [...([N, , ...obj])]
+						this.alter.remove(argument.range[1], argument.groupRange[1], {a: 2});// remove ")" from "])"
+					}
+					let index;
+					if ( !isLast
+						&& (index = getLastNotNullElementIndex(argument.elements)) != argument.elements.length - 1
+					) {
+						// cases: [...[ , ], 1] -> [, 1], [...[2, ], 1] -> [2, 1]
+						let start = index == -1 ? argument.range[0] + 1 : argument.elements[index].range[0]
+							, end = argument.range[1] - 1
+						;
+						this.alter.remove(start, end, {a: 3});// remove "," from "[ , ]"
+					}
+
+					if( !innerSpread || ArrayExpressionElementInInnerSpread ) {
+						// link `spread_in_spread` 2
+						// cases: [...[N, , ...obj]]
+						this.alter.remove(argument.range[1] - 1, argumentRange[1], {a: 4});// remove "]"
 					}
 					else {
-						nonSpreadStart = currentIndex;
+						// FIXME: do something better
+						ArrayExpressionElementInInnerSpread = argument;
 					}
+
+					elements.splice.apply(elements, [i, 1].concat(argument.elements));
+					i--;
+					argsLength = elements.length;
+
+					argument.$despread = true;
+
+					continue;
+				}
+				else {
+					endNotSpreadElementsGroup(i - 1);
+
+					if( !callIteratorFunctionName ) callIteratorFunctionName = getCallIteratorFunctionName();
+
+					const concatStr = concatOpen ? ", " :
+						theOnlyOne
+							? ""
+							: ( (isFirst ? " " : "") + "].concat(" )
+					;
+					if( !concatOpen )concatOpen = !!concatStr;
+
+					const callIteratorCloseStr = this.__detectNeedToCloneSpreadVariable(argument, elements, i)
+						? ", true)"
+						: ")"
+					;
+
+					if( isFirst ) {
+						// TODO:: one this.alter.replace
+						let from = elementRange[0];
+						if ( !innerSpread && !concatStr ) {
+							do {
+								--from;
+							}
+							while ( this.alter.getRange(from, from + 1) !== "[" );
+						}
+
+						this.alter.remove(//remove "[..." or "..."
+							from
+							, argumentRange[0], {a: 5}
+						);
+						this.alter.insertBefore(
+							argumentRange[0]
+							, concatStr + callIteratorFunctionName + "("
+						);
+						if( !theOnlyOne && (concatOpen || callIteratorCloseStr) ) {
+							this.alter.insert(argumentRange[1], callIteratorCloseStr);
+						}
+//						else{
+//							this.alter.remove(node.range[0], node.range[0] + 1);
+//						}
+					}
+					else {
+						const lastNotNullElementIndex = getLastNotNullElementIndex(elements, i);
+
+						if( lastNotNullElementIndex === -1 ) {// [ , , ...spread] case
+							let arrayHolesString = createArrayHoles(i);
+							this.alter.replace(
+								node.range[0]
+								, argumentRange[0]
+								, arrayHolesString + ".concat([" + concatStr + callIteratorFunctionName + "("
+							);
+							endString = ")";
+						}
+						else {
+							let arrayHolesString = createArrayHoles(i - lastNotNullElementIndex - 1);/* LINK createArrayHoles#1 */
+							if( arrayHolesString ) {
+								arrayHolesString += ", ";
+							}
+
+							let from = getRange(elements[lastNotNullElementIndex])[1]
+								, to = argumentRange[0]
+							;
+
+							const lineBreaks = this.alter.getRange(from, to).match(/[\r\n]/g) || [];
+							const lineBreaksCount = lineBreaks.length;
+
+							this.alter.replace(
+								from
+								, argumentRange[0]
+								, concatStr + arrayHolesString + callIteratorFunctionName + "("
+								, {transform: function(str) {
+									const newLineBreaks = str.match(/[\r\n]/g) || [];
+									const newLineBreaksCount = newLineBreaks.length;
+
+									if ( newLineBreaksCount < lineBreaksCount ) {
+										str = lineBreaks.slice(newLineBreaksCount).join("") + str;
+									}
+									return str;
+								}}
+							);
+						}
+						this.alter.insert(argumentRange[1], callIteratorCloseStr);
+					}
+
+					callIteratorOpen = true;
+				}
+			}
+			else if( concatOpen ) {
+				if( element ) {
+					startNotSpreadElementsGroup(i);
+				}
+				else {
+					endNotSpreadElementsGroup(i);
 				}
 			}
 
-			if( isSpread ) {
-				currentSpread++;
-				spreadTypeIsArrayExpression = arg.argument.type === "ArrayExpression";
-				const isSequenceExpression = arg.argument.type === "SequenceExpression";
-				const forcedCopyFlag = currentSpread < spreadExpressionsCount;
+			removeFirstSquareBracket();
+		}
+		endNotSpreadElementsGroup();
 
-				//console.log(spreadIndex, argsLength)
+		if( endString ) {
+			this.alter.insertBefore(node.range[1], endString, {extend: true});
+		}
 
-				expressionString += (
-					(currentIndex !== spreadIndex ? ", " : "")
-					+ (spreadTypeIsArrayExpression ? "" : getCallIteratorFunctionName() + "(")
-						+ (isSequenceExpression ? "(" : "")
-					+ this.alter.get(arg.argument.range[0], arg.argument.range[1])
-						+ (isSequenceExpression ? ")" : "")
-					+ (spreadTypeIsArrayExpression ? "" : (forcedCopyFlag ? ", true" : "") + ")")
-				);
+		if ( elements.length == 1 && !concatOpen && callIteratorOpen ) {
+			if ( isArrayExpression(node) ) {// for "NewExpression" and "CallExpression", node is not a SpreadElement )
+				this.alter.remove(node.range[0], node.range[0] + 1);
 			}
 		}
 
-		if( nonSpreadStart ) {
-			addNonSpreadStr();
+		if( (concatOpen || callIteratorOpen) ) {
+			if( innerSpread ) {
+				this.alter.insertBefore(node.range[1], ")", {extend: true});
+				if( ArrayExpressionElementInInnerSpread ) {
+					this.alter.remove(getRange(ArrayExpressionElementInInnerSpread)[1] - 1, getRange(ArrayExpressionElementInInnerSpread)[1], {a: 6});// remove "]"
+					ArrayExpressionElementInInnerSpread = null;
+				}
+			}
+			else {
+				this.alter.replace(node.range[1] - 1, node.range[1], ")", {extend: true});
+			}
+
+		}
+	}
+
+	, __detectNeedToCloneSpreadVariable: function(variable, elements, startsFrom) {
+		startsFrom = +startsFrom + 1;
+
+		if( startsFrom >= elements.length )return false;
+		if( isSequenceExpression(variable) )return true;// need more work to deep analise SequenceExpression
+		if( variable.type !== "Identifier" )return false;
+
+		elements = elements.slice(startsFrom);
+
+		let variableName = variable.name;
+
+		function checkElement(variableName, element, parentType) {
+			let elementType = element.type;
+
+			if( elementType === "Identifier" ) {
+				return element.name === variableName
+					&& parentType !== "Property"		// [...a, 0, {prop: a}]
+					&& parentType !== "ArrayExpression"	// [...a, 0, [a]]
+					&& parentType !== "SpreadElement"	// [...a, 0, ...a]
+				;
+			}
+			else if( isSpreadElement(element) || elementType === "UpdateExpression" || elementType === "UnaryExpression" ) {
+				return checkElement.call(this, variableName, element.argument, element.type);
+			}
+			else if( elementType === "BinaryExpression" ) {
+				return checkElement.call(this, variableName, element.left)
+					|| checkElement.call(this, variableName, element.right)
+				;
+			}
+			else if( elementType === "MemberExpression" ) {
+				return checkElement.call(this, variableName, element.object);
+			}
+			else if( elementType === "Property" ) {
+				return checkElement.call(this, variableName, element.value, "Property");
+			}
+			else if( elementType === "ArrayExpression" ) {
+				return checkManyElements.call(this, variableName, element.elements, elementType);
+			}
+			else if( elementType === "SequenceExpression" ) {
+				return checkManyElements.call(this, variableName, element.expressions, elementType);
+			}
+			else if( elementType === "ObjectExpression" ) {
+				return /*parentType !== "ArrayExpression" || */checkManyElements.call(this, variableName, element.properties, elementType);
+			}
+			else if( elementType === "CallExpression" ) {
+				return true;
+			}
+			else if( elementType === "Literal" ) {
+				return false;
+			}
+			else {
+				// all other nodeS can affect to the original variable. Example: var arr = [1], a = [...arr, (()=>(arr.push(2),arr))()]
+				return parentType !== "Property" && parentType !== "ArrayExpression";
+			}
 		}
 
-		expressionString += ")";
+		function checkManyElements(variableName, elements, parentType) {
+			return elements.some(function(element) {
+				return element && checkElement.call(this, variableName, element, parentType);
+			}, this);
+		}
 
-		return expressionString;
+		return checkManyElements(variableName, elements);
 	}
 };
 

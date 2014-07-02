@@ -1,4 +1,4 @@
-function GET_ITER$0(v){if(v){if(Array.isArray(v))return 0;if(typeof v==='object'&&typeof v['@@iterator']==='function')return v['@@iterator']();}throw new Error(v+' is not iterable')};var $D$4;var $D$5;var $D$6;var $D$10;"use strict";
+var S_ITER$0 = typeof Symbol!=='undefined'&&Symbol.iterator||'@@iterator';function GET_ITER$0(v){if(v){if(Array.isArray(v))return 0;var f;if(typeof v==='object'&&typeof (f=v[S_ITER$0])==='function')return f.call(v);if((v+'')==='[object Generator]')return v;}throw new Error(v+' is not iterable')};var $D$4;var $D$5;var $D$6;var $D$10;"use strict";
 var arr, res, loop, call = function(callback){ return callback()};
 
 // can be transformed (common WAT)
@@ -109,11 +109,11 @@ res = var_test();
 console.log(arr.map(call).join("|") == [0, 1, 2].join("|"), res === 3);
 
 // this test
-arr = (function() {;var $that$0=this;var this$0 = this;;var $that$0=this;;var $args$0=arguments;'use strict';var arr = [];
+arr = (function() {var this$0 = this;;var $that$0=this;;var $that$0=this;;var $args$0=arguments;'use strict';var arr = [];var temp;
 
 // Block-less For-In
-for (var x in [0,1,2]) (function(x){($that$0.aa+=1),arr.push(function()  { return x + (this$0.a || 0); });})(x);/*with semicolon*/
-for (var x$1 in [0,1,2]) (function(x){($that$0.aa+=$args$0[0]),arr.push(function() { return x; })/*no semicolon*/
+for (var x in (temp = [0,1,2])) (function(x){if(temp.hasOwnProperty(x)) ($that$0.aa+=1),arr.push(function()  { return x + (this$0.a || 0); });})(x);/*with semicolon*/
+for (var x$1 in (temp = [0,1,2])) (function(x){if(temp.hasOwnProperty(x)) ($that$0.aa+=$args$0[0]),arr.push(function() { return x; })/*no semicolon*/
 
 })(x$1);null; // previous semicolon-less for statement's range ends just before 'n' in 'null'
 

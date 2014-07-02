@@ -46,10 +46,40 @@ function test() {
 	}
 
 	{
-		let T = test(...[...(function(){ let a = 0; {let b = 1; a+=b;} {let b = 2; a+=b;} return [a] })(), ...arr]);
-		console.log( T === "3|6|3" )
+		let T = test(...[...(function(){ let a = 0; {let b = 1; a+=b;} {let b = 2; a+=b;} return [a + 1] })(), ...(1,arr), ...(2,arr.slice())/*<*/]/*>*/);
+		console.log( T === "4|6|36" )
 	}
 
+	{
+		let arr = [1, 2, 3];
+		let T = test(...[...arr]);
+		console.log( T == "1|2|3" )
+	}
+
+	{
+		let arr = [1, 2, 3];
+		let T = test(...[...(arr)]);
+		console.log( T == "1|2|3" )
+	}
+
+	{
+		let arr = [1, 2];
+		let T = test(...[...arr, ...arr]);
+		console.log( T == "1|2|12" )
+	}
+
+	{
+		let arr = [1, 2];
+		let T = test(...[...(arr), ...(arr)]);
+		console.log( T == "1|2|12" )
+	}
+
+	{
+		let T = (function(r){
+			return r;
+		})(...[[9, 8, 7], 2, 3]);
+		console.log(T.join("|") == "9|8|7" )
+	}
 }
 
 test();

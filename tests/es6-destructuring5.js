@@ -30,6 +30,12 @@
 	[...test42] = test41;
 	test41.push(4);
 	console.log(test41.join("|") === "1|2|3|4", test42.join("|") === "1|2|3");
+
+	{
+		var test43 = [1, 2, 3];
+		var test44 = [ ...test43 ];
+		console.log(test44.join("|") === "1|2|3");
+	}
 }
 
 {

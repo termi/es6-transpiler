@@ -24,7 +24,18 @@ function test() {
 
 		{
 			let arr = void 0;
-			let T = new test(...(arr || [1, 2]));
+			let T = new test(... (arr || [1, 2]));
+			console.log( T.a === 1, T.b === 2 )
+		}
+
+		{
+			let arr = void 0;
+			let T = new test(1, ... ( arr || [2, 3 ] ) );
+			console.log( T.a === 1, T.b === 2 )
+		}
+
+		{
+			let T = new test(1, ...(0 ? '' : [2, 3] ) );
 			console.log( T.a === 1, T.b === 2 )
 		}
 
@@ -54,6 +65,30 @@ function test() {
 		{
 			let T = new test(...[...(function(){ let a = 0; {let b = 1; a+=b;} {let b = 2; a+=b;} return [a] })(), ...arr]);
 			console.log( T.a === 3, T.b === 6, T.c === 3 )
+		}
+
+		{
+			let arr = [1, 2, 3];
+			let T = new test(...[...arr]);
+			console.log( T.a === 1, T.b === 2, T.c === 3 )
+		}
+
+		{
+			let arr = [1, 2, 3];
+			let T = new test(...[...(arr)]);
+			console.log( T.a === 1, T.b === 2, T.c === 3 )
+		}
+
+		{
+			let arr = [1, 2];
+			let T = new test(...[...arr, ...arr]);
+			console.log( T.a === 1, T.b === 2, T.c === 1 )
+		}
+
+		{
+			let arr = [1, 2];
+			let T = new test(...[...(arr), ...(arr)]);
+			console.log( T.a === 1, T.b === 2, T.c === 1 )
 		}
 
 	}

@@ -1,19 +1,19 @@
-function test() {function ITER$0(v,f){var $Symbol_iterator=typeof Symbol!=='undefined'&&Symbol.iterator||'@@iterator';if(v){if(Array.isArray(v))return f?v.slice():v;var i,r;if(typeof v==='object'&&typeof (f=v[$Symbol_iterator])==='function'){i=f.call(v);r=[];while((f=i['next']()),f['done']!==true)r.push(f['value']);return r;}}throw new Error(v+' is not iterable')};var $D$0;
+function test() {var S_ITER$0 = typeof Symbol!=='undefined'&&Symbol.iterator||'@@iterator';function ITER$0(v,f){if(v){if(Array.isArray(v))return f?v.slice():v;var i,r;if(typeof v==='object'&&typeof (f=v[S_ITER$0])==='function'){i=f.call(v);r=[];}else if((v+'')==='[object Generator]'){i=v;r=[];};if(r) {while((f=i['next']()),f['done']!==true)r.push(f['value']);return r;}}throw new Error(v+' is not iterable')};var $D$0;
 
 
 	function test() {var a = arguments[0];if(a === void 0)a = 0;var b = arguments[1];if(b === void 0)b = 0;var c = arguments[2];if(c === void 0)c = 0;var d = arguments[3];if(d === void 0)d = "";
 		return (this && this.TEST ? "THIS|" : "") + a + "|" + b + "|" + c + d;
 	}
 
-	var arr = [6].concat([3]);
+	var arr = [6, 3];
 
 	{
-		var T = test.apply(null, [8, 6, 4].concat([]));
+		var T = test.apply(null, [8, 6, 4, ]);
 		console.log( T === "8|6|4" )
 	}
 
 	{
-		var arr$0 = [66].concat([33]);
+		var arr$0 = [66, 33];
 		var T$0 = test.apply(null, ITER$0(arr$0));
 		console.log( T$0 === "66|33|0" )
 	}
@@ -46,10 +46,40 @@ function test() {function ITER$0(v,f){var $Symbol_iterator=typeof Symbol!=='unde
 	;$D$0 = void 0}
 
 	{
-		var T$4 = test.apply(null, ITER$0([].concat(ITER$0((function(){ var a = 0; {var b = 1; a+=b;} {var b$0 = 2; a+=b$0;} return [a] })(), true), ITER$0(arr))));
-		console.log( T$4 === "3|6|3" )
+		var T$4 = test.apply(null, [ ].concat(ITER$0((function(){ var a = 0; {var b = 1; a+=b;} {var b$0 = 2; a+=b$0;} return [a + 1] })()), ITER$0((1,arr), true), ITER$0((2,arr.slice()))/*<*//*>*/));
+		console.log( T$4 === "4|6|36" )
 	}
 
+	{
+		var arr$1 = [1, 2, 3];
+		var T$5 = test.apply(null, ITER$0(arr$1));
+		console.log( T$5 == "1|2|3" )
+	}
+
+	{
+		var arr$2 = [1, 2, 3];
+		var T$6 = test.apply(null, ITER$0((arr$2)));
+		console.log( T$6 == "1|2|3" )
+	}
+
+	{
+		var arr$3 = [1, 2];
+		var T$7 = test.apply(null, [ ].concat(ITER$0(arr$3), ITER$0(arr$3)));
+		console.log( T$7 == "1|2|12" )
+	}
+
+	{
+		var arr$4 = [1, 2];
+		var T$8 = test.apply(null, [ ].concat(ITER$0((arr$4)), ITER$0((arr$4))));
+		console.log( T$8 == "1|2|12" )
+	}
+
+	{
+		var T$9 = ((function(r){
+			return r;
+		})).apply(null, [[9, 8, 7], 2, 3]);
+		console.log(T$9.join("|") == "9|8|7" )
+	}
 }
 
 test();

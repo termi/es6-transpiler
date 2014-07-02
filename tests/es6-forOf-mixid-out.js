@@ -22,7 +22,7 @@ var S_ITER$0 = typeof Symbol!=='undefined'&&Symbol.iterator||'@@iterator';functi
 		, {test: c + 3, c: c}	//{test: 3, c: 0}
 	]}
 	var output$0 = [];
-	var arr = [].concat([2], [1, 0])
+	var arr = [2, 1, 0]
 	var test$1, a$0, b$0, c$0;$D$3 = (retArr.apply(null, ITER$0(arr)));$D$0 = GET_ITER$0($D$3);$D$2 = $D$0 === 0;$D$1 = ($D$2 ? $D$3.length : void 0);for( ; $D$2 ? ($D$0 < $D$1) : !($D$1 = $D$0["next"]())["done"]; ){;test$1 = (c$0 = ($D$2 ? $D$3[$D$0++] : $D$1["value"])).test, a$0 = ((a$0 = c$0.a) === void 0 ? 1 : a$0), b$0 = ((b$0 = c$0.b) === void 0 ? 2 : b$0), c$0 = ((c$0 = c$0.c) === void 0 ? 3 : c$0);
 		output$0.push(test$1 + (a$0 + b$0 + c$0))
 	};$D$0 = $D$1 = $D$2 = $D$3 = void 0;
@@ -30,7 +30,7 @@ var S_ITER$0 = typeof Symbol!=='undefined'&&Symbol.iterator||'@@iterator';functi
 
 	{
 		var output$1 = [];
-		var arr$0 = [].concat([2], [1, 0]);
+		var arr$0 = [2, 1, 0];
 		var test$2, a$1, b$1, c$1;$D$3 = ((  function(a, b, c)   {return [
 			{test: a + 1, a: a}	//{test: 3, a: 2}
 			, {test: b + 2, b: b}	//{test: 3, b: 1}

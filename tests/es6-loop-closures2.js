@@ -109,11 +109,11 @@ res = var_test();
 console.log(arr.map(call).join("|") == [0, 1, 2].join("|"), res === 3);
 
 // this test
-arr = (function() {'use strict';let arr = [];
+arr = (function() {'use strict';let arr = [];let temp;
 
 // Block-less For-In
-for (let x in [0,1,2]) (this.aa+=1),arr.push(() => { return x + (this.a || 0); });/*with semicolon*/
-for (let x in [0,1,2]) (this.aa+=arguments[0]),arr.push(function() { return x; })/*no semicolon*/
+for (let x in (temp = [0,1,2])) if(temp.hasOwnProperty(x)) (this.aa+=1),arr.push(() => { return x + (this.a || 0); });/*with semicolon*/
+for (let x in (temp = [0,1,2])) if(temp.hasOwnProperty(x)) (this.aa+=arguments[0]),arr.push(function() { return x; })/*no semicolon*/
 
 null; // previous semicolon-less for statement's range ends just before 'n' in 'null'
 

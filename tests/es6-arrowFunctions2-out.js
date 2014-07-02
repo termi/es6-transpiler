@@ -1,4 +1,4 @@
-var SLICE$0 = Array.prototype.slice;function ITER$0(v,f){var $Symbol_iterator=typeof Symbol!=='undefined'&&Symbol.iterator||'@@iterator';if(v){if(Array.isArray(v))return f?v.slice():v;var i,r;if(typeof v==='object'&&typeof (f=v[$Symbol_iterator])==='function'){i=f.call(v);r=[];while((f=i['next']()),f['done']!==true)r.push(f['value']);return r;}}throw new Error(v+' is not iterable')};
+var SLICE$0 = Array.prototype.slice;var S_ITER$0 = typeof Symbol!=='undefined'&&Symbol.iterator||'@@iterator';function ITER$0(v,f){if(v){if(Array.isArray(v))return f?v.slice():v;var i,r;if(typeof v==='object'&&typeof (f=v[S_ITER$0])==='function'){i=f.call(v);r=[];}else if((v+'')==='[object Generator]'){i=v;r=[];};if(r) {while((f=i['next']()),f['done']!==true)r.push(f['value']);return r;}}throw new Error(v+' is not iterable')};
 {
 	var test11 = function(a) {var a = a.a;var rest = SLICE$0.call(arguments, 1);return [a, rest[0]]} 
 	console.log(test11({a: 1}, 2, 3, 4).join("|") === [1, 2].join("|"))
@@ -91,10 +91,10 @@ var SLICE$0 = Array.prototype.slice;function ITER$0(v,f){var $Symbol_iterator=ty
 		test: function(a) {var a = a.a;var rest = SLICE$0.call(arguments, 1);
 			var test = function(d)  {var a = d[0], b = d[1], c = d[2], d = d[3];return a + b +
 				c + d}
-			return a + test([].concat(ITER$0(rest), 5));//1 + 14
+			return a + test([ ].concat(ITER$0(rest), [5]));//1 + 14
 		}
 	}
-	console.log(obj.test.apply(obj, [{a: 1}].concat([2, 3, 4])) === 15)
+	console.log(obj.test.apply(obj, [{a: 1}, 2, 3, 4]) === 15)
 }
 
 {
@@ -103,7 +103,7 @@ var SLICE$0 = Array.prototype.slice;function ITER$0(v,f){var $Symbol_iterator=ty
 			return (
 				[a].concat(ITER$0((function(d)  {var a = d[0], b = d[1], c = d[2], d = d[3];return [a, b,
 					c]}
-				)([].concat(ITER$0(rest), 5))))
+				)([ ].concat(ITER$0(rest), [5]))))
 			)
 		}
 	}
@@ -115,7 +115,7 @@ var SLICE$0 = Array.prototype.slice;function ITER$0(v,f){var $Symbol_iterator=ty
 		test: function(a)  {var a = a.a;var rest = SLICE$0.call(arguments, 1);
 			return [a].concat(ITER$0((function(d)  {var a = d[0], b = d[1], c = d[2], d = d[3];return [a, b,
 					c]}
-				)([].concat(ITER$0(rest), 5))))
+				)([ ].concat(ITER$0(rest), [5]))))
 		}
 	}
 	console.log(obj$1.test({a: 1}, 2, 3, 4).join("|") === [1, 2, 3, 4].join("|"))

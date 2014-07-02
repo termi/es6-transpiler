@@ -1,4 +1,4 @@
-var SLICE$0 = Array.prototype.slice;var $D$0;
+var S_ITER$0 = typeof Symbol!=='undefined'&&Symbol.iterator||'@@iterator';function ITER$0(v,f){if(v){if(Array.isArray(v))return f?v.slice():v;var i,r;if(typeof v==='object'&&typeof (f=v[S_ITER$0])==='function'){i=f.call(v);r=[];}else if((v+'')==='[object Generator]'){i=v;r=[];};if(r) {while((f=i['next']()),f['done']!==true)r.push(f['value']);return r;}}throw new Error(v+' is not iterable')};var SLICE$0 = Array.prototype.slice;var $D$0;
 {
 	var test11 = [1, 2, 3];
 	var test12 = SLICE$0.call(test11, 0);
@@ -30,6 +30,12 @@ var SLICE$0 = Array.prototype.slice;var $D$0;
 	test42 = SLICE$0.call(test41, 0), test41;
 	test41.push(4);
 	console.log(test41.join("|") === "1|2|3|4", test42.join("|") === "1|2|3");
+
+	{
+		var test43 = [1, 2, 3];
+		var test44 = ITER$0(test43 );
+		console.log(test44.join("|") === "1|2|3");
+	}
 }
 
 {
