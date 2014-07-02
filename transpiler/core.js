@@ -457,6 +457,7 @@ let core = module.exports = {
 		this._injectGlobals(complementary, topScope);
 		this._injectGlobals(jshint_vars.reservedVars, topScope);
 		this._injectGlobals(jshint_vars.ecmaIdentifiers, topScope);
+		this._injectGlobals(jshint_vars.newEcmaIdentifiers, topScope);
 		if (environments) {
 			environments.forEach(function(env) {
 				if (!jshint_vars[env]) {
