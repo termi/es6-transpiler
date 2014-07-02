@@ -12,10 +12,12 @@ crap
 build/es5
 build/npm
 
+tests/todo
 tests/test.js
 tests/test-out.js
 test.js
 testout.js
 
+transpiler/todo
 transpiler/module
 transpiler/typeof.js
