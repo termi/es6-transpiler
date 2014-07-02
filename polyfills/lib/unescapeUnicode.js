@@ -6,7 +6,7 @@
  * '\u0456' (raw '\\u0456') -> 'i' and etc
  * @param escapedString
  */
-module.export = function unescapeUnicode(escapedString) {
+module.exports = function unescapeUnicode(escapedString) {
 	return escapedString.replace(/\\u(\w{4})/g, (found, charCode, offset, string) => {
 		let prev1 = string[offset - 1],  prev2 = string[offset - 2];
 		if ( prev1 === '\\' && prev2 !== '\\' ) {

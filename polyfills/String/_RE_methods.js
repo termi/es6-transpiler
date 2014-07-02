@@ -114,4 +114,4 @@ module.exports = function(global, RegExp, updateGlobalRegExpProperties) {
 
 		return result;
 	};
-}
+};
