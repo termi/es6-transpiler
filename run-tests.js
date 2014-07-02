@@ -40,7 +40,7 @@ if( commandVariables.file && typeof commandVariables.file === "string" ) {
 }
 else {
 	tests = fs.readdirSync(pathToTests).filter(function(filename) {
-		return !/-out\.js$/.test(filename) && !/-stderr$/.test(filename);
+		return !/-out\.js$/.test(filename) && /.js$/.test(filename) && !/-stderr$/.test(filename);
 	});
 }
 

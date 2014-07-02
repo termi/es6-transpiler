@@ -8,7 +8,7 @@ const es6transpiler = require('./../es6-transpiler')
 	, targetDir = path.join(__dirname, 'es5')
 	, srcDir = path.join(__dirname, '..')
 	, projectDit = path.join(__dirname, '..')
-	, devDependencies = Object.keys(_package["devDependencies"])
+//	, devDependencies = Object.keys(_package["devDependencies"])
 	, depsMap = {}
 ;
 
@@ -146,7 +146,6 @@ function loadNodeModuleContent(dep) {
 			if ( _package["name"] == dep ) {
 				let main = _package["main"];
 
-				console.log(" injecting ", main);
 				if ( main ) {
 					main = path.join(folder, main);
 
@@ -164,7 +163,6 @@ function loadNodeModuleContent(dep) {
 }
 
 function loadFileContent(dep, basePath) {
-	console.log(" injecting ", dep);
 	let content = "var module = {exports: {}};" + String(fs.readFileSync(path.join(basePath, dep))) + "\n;return module.exports";
 	return content;
 }
@@ -195,6 +193,8 @@ function inlineDeps(content, basePath, depsForFind) {
 				tail += ("\n;function " + funcName + "(){" + content + "};");
 
 				content = funcName + "()";
+
+				console.log(" injecting ", dep, '->', funcName);
 			}
 
 			return content ? content : found;

@@ -90,7 +90,6 @@ module.exports = {
 
 	, applyChanges: function(config, doNotReset) {
 		if( this.alter.hasChanges() ) {// has changes in classes replacement Step
-//			console.log(this.alter.printFragments())
 			this.src = this.alter.apply();
 
 			if( doNotReset !== true ) {
@@ -168,7 +167,7 @@ module.exports = {
 			throw new Error("Input not found " + config.filename);
 		}
 
-		this.alter = new StringAlter(this.src);
+		this.alter = new StringAlter(this.src, {policy: {/*eraseInErase: "error", */fromMoreThanTo: "disallow", unUniqueRemove: "error"}});
 
 		// output
 		const output = this.output = {errors: [], src: ""};

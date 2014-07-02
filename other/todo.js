@@ -5,6 +5,15 @@
 	let {y} = a;// runtime error
 }
 
+// Esprima#harmony: Error: Line 1: Invalid left-hand side in formals list
+function A({b:{a} = {}}){};
+
+// Powerfull array comprehantions
+var arr = [1]
+var arr1 = [2,3]
+var aa = [ for (i of arr) if(i==2) for (i1 of arr1) if(i1==2)i * i];
+
+
 // Forbidden destructuring
 {
       var test51 = [3, 2, 1];
