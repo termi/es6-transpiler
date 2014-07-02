@@ -294,6 +294,8 @@ var plugin = module.exports = {
 			if ( element ) {
 				lineBreaks = (this.alter.getRange(lineBreaksFrom, element.range[0]).match(/[\r\n]/g) || []).join("");
 
+				lineBreaks += (valueNode["$lineBreaks"] || "");
+
 				lineBreaksFrom = element.range[1];
 				lastElement = element;
 			}
