@@ -2,7 +2,7 @@
 /*es6-transpiler symbols:false, has-iterators:false, has-generators: false*/
 // call require: from RegExp polyfill
 
-module.exports = function(global, $RegExp, updateGlobalRegExpProperties) {
+module.exports = function(global, RegExp, updateGlobalRegExpProperties) {
 	let globalString_prototype = global["String"].prototype
 		, $string_replace = globalString_prototype.replace
 	;
@@ -11,7 +11,7 @@ module.exports = function(global, $RegExp, updateGlobalRegExpProperties) {
 		let result;
 		let patternIsRegExpWithStickyAndGlobalFlag = pattern
 			&& typeof pattern === 'object'
-			&& pattern instanceof $RegExp
+			&& pattern instanceof RegExp
 			&& pattern["sticky"]
 			&& pattern.global
 		;
@@ -92,7 +92,7 @@ module.exports = function(global, $RegExp, updateGlobalRegExpProperties) {
 	let $match = globalString_prototype.match;
 	globalString_prototype.match = function(pattern) {
 		let result;
-		let patternIsRegExpWithStickyFlag = pattern && typeof pattern === 'object' && pattern instanceof $RegExp && pattern["sticky"];
+		let patternIsRegExpWithStickyFlag = pattern && typeof pattern === 'object' && pattern instanceof RegExp && pattern["sticky"];
 
 		if( patternIsRegExpWithStickyFlag ) {
 			if( pattern.global ) {

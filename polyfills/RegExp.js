@@ -363,6 +363,39 @@ if( !regExp_flag_u_support || !regExp_flag_y_support ) {
 				return result;
 			};
 
+			require('./String/fromCodePoint.js');
+			let fromCodePoint = String["fromCodePoint"];
+			let charCodeToString = function(charCode) {
+				charCode = charCode.toString(16).toUpperCase();
+				var length = charCode.length;
+
+				return "\\u" + (new Array(5 - length)).join("0") + charCode;
+			};
+			let charCodesFromCodePoint = function(codePoint) {
+				if ( typeof codePoint != "number" ) {
+					codePoint = parseInt(codePoint, 16)
+				}
+
+				var codePointString = fromCodePoint(codePoint);
+				var length = codePointString.length;
+
+				return charCodeToString(codePointString.charCodeAt(0)) + (length > 1 ? charCodeToString(codePointString.charCodeAt(1)) : "");
+			};
+			let replaceES6CodePointEscape = function(found, group, offset, str) {
+				let sFount = 0, prevChar;
+
+				while( (prevChar = str[offset--]) === '\\' ) {
+					sFount++;
+				}
+
+				if ( sFount % 2 === 1 ) {//not escaped
+					return charCodesFromCodePoint(group);
+				}
+				else {
+					return "\\u{" + group + "}";
+				}
+			};
+
 			let findCodePoint_RE = new RegExp('\\[' +
 				'(?:' +
 					'(?:(?:\\\\u(\\w{4}))(?:\\\\u(\\w{4}))?)' +
@@ -382,7 +415,7 @@ if( !regExp_flag_u_support || !regExp_flag_y_support ) {
 				// TODO:: /foo\Sbar/u -> /foo(?:[\0-\uD7FF\uDC00-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF])bar/u
 				// TODO:: /foo[\s\S]bar/u -> /foo[\s]|(?:[\0-\uD7FF\uDC00-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF])bar/u
 
-				return $string_replace.call(pattern, findCodePoint_RE, unicodeRange);
+				return $string_replace.call($string_replace.call(pattern, /\\u\{(\w{1,6})\}/g, replaceES6CodePointEscape), findCodePoint_RE, unicodeRange);
 			};
 			if ( !convertUnicodeSequenceToES5Compatible_Map ) {
 				convertUnicodeSequenceToES5Compatible_Map = {};
