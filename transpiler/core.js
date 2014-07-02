@@ -748,7 +748,7 @@ let core = module.exports = {
 		if ( node.type === "Program" ) {
 			begin = 0;
 		}
-		else if( node.type === "ClassDeclaration" ) {
+		else if( node.type === "ClassDeclaration" || node.type === "ClassExpression" ) {
 			begin = hoistScopeNodeBody.range[0] + 1;
 		}
 		else if( isFunction(node) ) {

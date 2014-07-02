@@ -3,6 +3,10 @@
 const assert = require("assert");
 const core = require("./core");
 
+function isIdentifier(node) {
+	return node && node.type === "Identifier";
+}
+
 const $defineProperty = "Object.defineProperty";
 const objectMixinBody =
 		"function(t,s){"
@@ -92,7 +96,7 @@ const classesTranspiler = {
 				, nodeId = node.id
 			;
 
-			assert(nodeId ? nodeId.type === "Identifier" : isClassExpression);
+			assert(nodeId ? isIdentifier(nodeId) : isClassExpression);
 
 			const classBodyNodes = node.body.body
 				, currentClassName = nodeId ? nodeId.name : core.unique("constructor", true)
@@ -119,7 +123,7 @@ const classesTranspiler = {
 				objectMixinFunctionName = core.bubbledVariableDeclaration(node.$scope, "MIXIN", objectMixinBody.replace("${Object_defineProperty}", Object_defineProperty_name));
 
 				classStr += SUPER_NAME;
-				superClass = superClass.name;
+				superClass = isIdentifier(superClass) ? superClass.name : this.alter.get(superClass.range[0], superClass.range[1]);
 
 				insertAfterBodyBegin_string = objectMixinFunctionName + "(" + currentClassName + ", " + SUPER_NAME + ");";
 			}
@@ -223,7 +227,7 @@ const classesTranspiler = {
 		if( node.type === "CallExpression" ) {
 			let calleeNode = node.callee;
 
-			if( calleeNode && calleeNode.type === "Identifier" && calleeNode.name === "super" ) {
+			if( calleeNode && isIdentifier(calleeNode) && calleeNode.name === "super" ) {
 				this.unwrapSuperCall(node, calleeNode, true, null, true);
 			}
 		}
@@ -244,7 +248,7 @@ const classesTranspiler = {
 				}
 
 				let isLiteral = nodeKey.type == 'Literal';
-				assert(nodeKey.type == 'Identifier' || isLiteral);
+				assert(isIdentifier(nodeKey) || isLiteral);
 
 				let name;
 				if ( isLiteral ) {
@@ -293,7 +297,7 @@ const classesTranspiler = {
 
 			if( calleeNode && calleeNode.type === "MemberExpression" ) {
 				let objectNode = calleeNode.object;
-				if( objectNode && objectNode.type === "Identifier" && objectNode.name === "super" ) {
+				if( objectNode && isIdentifier(objectNode) && objectNode.name === "super" ) {
 					// text change 'super.method(<some>)' => 'super$0(<some>)' (if <some> contains SpreadElement) or 'super$0.call(this, <some>)'
 					this.unwrapSuperCall(node, objectNode, this.__currentClassMethodsStatic, calleeNode.property);
 				}
