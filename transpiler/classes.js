@@ -6,6 +6,9 @@ const core = require("./core");
 function isIdentifier(node) {
 	return node && node.type === "Identifier";
 }
+function isClass(node) {
+	return node && (node.type === "ClassDeclaration" || node.type === "ClassExpression")
+}
 
 const $defineProperty = "Object.defineProperty";
 const objectMixinBody =
@@ -158,6 +161,7 @@ const classesTranspiler = {
 				}
 
 				astQuery.traverse(classConstructor, this.replaceClassConstructorSuper);
+				astQuery.traverse(classConstructor, this.replaceClassMethodSuperInConstructor);
 
 				insertAfterBodyBegin_string = useStrictString + insertAfterBodyBegin_string;
 
@@ -231,7 +235,7 @@ const classesTranspiler = {
 				this.unwrapSuperCall(node, calleeNode, true, null, true);
 			}
 		}
-		else if( node.type === "ClassDeclaration" ) {
+		else if( isClass(node) ) {
 			return false;
 		}
 	}
@@ -303,7 +307,24 @@ const classesTranspiler = {
 				}
 			}
 		}
-		else if( node.type === "ClassDeclaration" ) {
+		else if( isClass(node) ) {
+			return false;
+		}
+	}
+
+	, replaceClassMethodSuperInConstructor: function replaceClassMethodSuperInConstructor(node) {
+		if( isIdentifier(node) && node.name === "super" ) {
+			let parent = node.$parent;
+			if ( parent.type === 'CallExpression' ) {
+				//'super(<some>)' case
+				return;
+			}
+			// TODO:: using letConts transpiler for renaming
+
+			// text change 'super.a(<some>)' => 'super$0.a(<some>)'
+			this.alter.replace(node.range[0], node.range[1], this.__currentSuperRefName);
+		}
+		else if( isClass(node) ) {
 			return false;
 		}
 	}
