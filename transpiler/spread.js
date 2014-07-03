@@ -138,7 +138,7 @@ var plugin = module.exports = {
 				this.alter.wrap(
 					node.callee.object.range[0]
 					, node.callee.object.range[1]
-					, "(" + tempVar + " = "
+					, (core.detectSemicolonNecessity(node) ? ";" : "") + "(" + tempVar + " = "
 					, ")"
 				);
 

@@ -13,6 +13,10 @@ function getline(node) {
 	return node.loc.start.line;
 }
 
+function getRange(node) {
+	return node && (node.groupRange || node.range);
+}
+
 function isConstLet(kind) {
 	return kind === "const" || kind === "let";
 }
@@ -24,7 +28,13 @@ function isVarConstLet(kind) {
 function isFunction(node) {
 	let type;
 	return node && (type = node.type)
-		&& type === "FunctionDeclaration" || type === "FunctionExpression" || type === "ArrowFunctionExpression";
+		&& (type === "FunctionDeclaration" || type === "FunctionExpression" || type === "ArrowFunctionExpression");
+}
+
+function isBlock(node) {
+	let type;
+	return node && (type = node.type)
+		&& (type === "BlockStatement" || type === "Program");
 }
 
 function isNonFunctionBlock(node) {
@@ -1295,6 +1305,29 @@ let core = module.exports = {
 			}, {});
 			return options[key]
 		}
+	}
+
+	, detectSemicolonNecessity: function(node) {
+		let prev, parent = node.$parent;
+
+		if ( parent.type === 'ExpressionStatement' ) {
+			node = parent;
+			parent = parent.$parent;
+		}
+
+		if ( isBlock(parent) && (prev = node.$previousElementSibling) ) {
+			let range = getRange(node)
+				, prevRange = getRange(prev)
+				, end = range[0]
+				, start = prevRange[1]
+			;
+			if ( start < end ) {
+				let string = this.alter.getRange(start, end);
+
+				return /[\r\n]/.test(string) && !/;/.test(string);
+			}
+		}
+		return false;
 	}
 };
 
