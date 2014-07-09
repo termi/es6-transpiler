@@ -4,6 +4,15 @@
 require("es5-shim");
 require("es6-shim");
 
+var MIXIN = function(t,s) {
+	for(var p in s) {
+		if(s.hasOwnProperty(p)) {
+			Object.defineProperty(t, p, Object.getOwnPropertyDescriptor(s,p));
+		}
+	}
+	return t;
+};
+
 const BUILD_VERSION = '%%BUILD_VERSION%%';
 
 const fs = require("fs");
@@ -43,6 +52,14 @@ let plugins = [
 	, require("./transpiler/RegExp")
 	, require("./transpiler/unicode")
 	, require("./transpiler/polyfills")
+];
+
+let extensions = [
+	{
+		check: 'classesExtras'// should be object {staticProperty: boolean, publicPropertyAndMethod: boolean}
+		, esprimaOption: 'classesExtras'
+		, lib: "./transpiler/extensions/classes"
+	}
 ];
 
 function consoleArgumentsToOptions(args, options) {
@@ -88,12 +105,12 @@ module.exports = {
 		}, this);
 	}
 
-	, applyChanges: function(config, doNotReset) {
+	, applyChanges: function(config, doNotReset, esprimaOptions) {
 		if( this.alter.hasChanges() ) {// has changes in classes replacement Step
 			this.src = this.alter.apply();
 
 			if( doNotReset !== true ) {
-				this.ast = esprima.parse(this.src, ESPRIMA_OPTIONS);
+				this.ast = esprima.parse(this.src, esprimaOptions);
 
 				error.reset();
 				core.reset();
@@ -127,6 +144,8 @@ module.exports = {
 		if ( config["fromConsole"] === true && Array.isArray(config["consoleArgs"]) ) {
 			consoleArgumentsToOptions(config["consoleArgs"], config);
 		}
+		//config.classesExtras = {staticProperty: true, publicPropertyAndMethod: true};
+		config.esprimaOptions = MIXIN({}, ESPRIMA_OPTIONS);
 
 		if( this.runned === true ) {
 			this.reset();
@@ -141,6 +160,16 @@ module.exports = {
 			"browser"
 			, "node"
 		];
+
+		// adding extensions to plugin list
+		extensions.forEach(function(extension) {
+			if ( config[extension.check] ) {
+				plugins.push(require(extension.lib));
+				if ( typeof extension.esprimaOption === 'string' ) {
+					config.esprimaOptions[extension.esprimaOption] = config[extension.esprimaOption];
+				}
+			}
+		});
 
 		// input
 		let isSourceInput = false;
@@ -161,7 +190,7 @@ module.exports = {
 		}
 
 		if( !this.ast && isSourceInput ) {
-			this.ast = esprima.parse(this.src, ESPRIMA_OPTIONS);
+			this.ast = esprima.parse(this.src, config.esprimaOptions);
 		}
 		else {
 			throw new Error("Input not found " + config.filename);
@@ -191,7 +220,7 @@ module.exports = {
 			// apply changes produced by varify and return the transformed src
 			//console.log(changes);var transformedSrc = "";try{ transformedSrc = alter(src, changes) } catch(e){ console.error(e+"") };
 
-			this.applyChanges(null, true);
+			this.applyChanges(null, true, config.esprimaOptions);
 			output.src = this.src;
 		}
 

@@ -115,6 +115,7 @@ const classesTranspiler = {
 				, objectMixinFunctionName
 			;
 
+			node["$ClassName"] = currentClassName;
 			this.__currentClassName = currentClassName;
 
 			let classStr = (isClassExpression ? "(" : "var " + currentClassName + " = ")

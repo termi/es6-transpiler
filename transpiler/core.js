@@ -249,12 +249,21 @@ let core = module.exports = {
 			}
 
 			node.body.body.forEach(function(method) {
-				assert(method.type === "MethodDefinition");//TODO:: static properties
+				// TODO:: refactor/redesign this function
+
+				let type = method.type;
+				let classesExtras = this.options.classesExtras || {};
+				let xSpecialNode =
+					type === "XStaticProperty" && classesExtras.staticProperty
+					|| (type === "XPublicProperty" || type === "XPublicMethodDefinition") && classesExtras.publicPropertyAndMethod
+				;
+
+				assert(type === "MethodDefinition" || xSpecialNode);//TODO:: static properties
 
 				//TODO:: class A { m(){} static m(){} m2{ m(); //where m referred? } }
 
 				// method.kind ca be 'get', 'set', ''
-				node.$scope.add(this.getKeyName(method.key), method.kind || "fun", method.value);
+				node.$scope.add(this.getKeyName(method.key), xSpecialNode ? "var" : (method.kind || "fun"), method.value);
 			}, this);
 
 		} else if (isFunction(node)) {
