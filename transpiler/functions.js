@@ -51,9 +51,26 @@ var plugin = module.exports = {
 			const fnBodyHasHiddenBrackets =
 				fnBodyIsNotABlockStatement && !fnBodyIsSequenceExpression && node.range[1] != functionBody.range[1];//(x) => (x+1), '(' and ')' in '(x+1)' is hidden brackets
 
-			const defaults = node.defaults;
 			const params = node.params;
 			const rest = node.rest;
+			let defaults = node.defaults;
+
+			// normalize defaults list
+			let firstNotNull = -1;
+			defaults.some(function(item, index) {
+				if( item != null ) {
+					firstNotNull = index;
+					return true;
+				}
+				return false;
+			});
+			if ( firstNotNull > 0 ) {
+				defaults.splice(0, firstNotNull);
+			}
+			else if ( firstNotNull < 0 ) {
+				defaults = [];
+			}
+
 			let paramsCount = params.length;
 			const initialParamsCount = paramsCount;
 			let fnBodyStart = core.__getNodeBegin(node)
