@@ -255,7 +255,7 @@ let core = module.exports = {
 				let classesExtras = this.options.classesExtras || {};
 				let xSpecialNode =
 					type === "XStaticProperty" && classesExtras.staticProperty
-					|| (type === "XPublicProperty" || type === "XPublicMethodDefinition") && classesExtras.publicPropertyAndMethod
+					|| type === "XPublicProperty" && classesExtras.publicProperty
 				;
 
 				assert(type === "MethodDefinition" || xSpecialNode);//TODO:: static properties

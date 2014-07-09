@@ -56,7 +56,7 @@ let plugins = [
 
 let extensions = [
 	{
-		check: 'classesExtras'// should be object {staticProperty: boolean, publicPropertyAndMethod: boolean}
+		check: 'classesExtras'// should be object {staticProperty: boolean, publicProperty: boolean}
 		, esprimaOption: 'classesExtras'
 		, lib: "./transpiler/extensions/classes"
 	}
@@ -144,7 +144,7 @@ module.exports = {
 		if ( config["fromConsole"] === true && Array.isArray(config["consoleArgs"]) ) {
 			consoleArgumentsToOptions(config["consoleArgs"], config);
 		}
-		//config.classesExtras = {staticProperty: true, publicPropertyAndMethod: true};
+//		config.classesExtras = {staticProperty: true, publicProperty: true};
 		config.esprimaOptions = MIXIN({}, ESPRIMA_OPTIONS);
 
 		if( this.runned === true ) {
