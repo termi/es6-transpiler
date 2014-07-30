@@ -1,4 +1,2 @@
-#!/usr/bin/env node --harmony
-var isParams = false;
-var args = process.argv.filter(function(arg) { return isParams ? false : !(isParams = ((arg + "").indexOf("--") !== -1)) });
-var res = require("./es6-transpiler").run({filename: args[2], outputToConsole: !args[3], outputFilename: args[3], errorsToConsole: true, fromConsole: true, consoleArgs: process.argv});
+#!/bin/sh
+exec node --harmony "$0.js" "$@"
