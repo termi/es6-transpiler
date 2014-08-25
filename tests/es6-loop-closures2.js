@@ -1,4 +1,4 @@
-"use strict";
+"use strict"
 var arr, res, loop, call = function(callback){ return callback()};
 
 // can be transformed (common WAT)

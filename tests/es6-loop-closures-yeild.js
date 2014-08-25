@@ -1,6 +1,7 @@
 "use strict";
 var arr, res, loop, call = function(callback){ return callback()};
 
+/*es6-transpiler generators:false*/
 // yield support
 arr = [];
 function *gen() {

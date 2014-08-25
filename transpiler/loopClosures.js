@@ -304,7 +304,9 @@ var plugin = module.exports = {
 					if ( !recipient ) {
 						recipient = loopNode[keys.nodeKey + key] = this.getPermamentName("value");
 
-						funcCallResult = ";var " + name + ", " + recipient + " = ";
+						beforeHead += ";var " + name + ";";
+
+						funcCallResult = ";var " + recipient + " = ";
 						if ( argTypeIsPrimitive ) {
 							result = "if(" + name + "===true){" + name + "=void 0;" + keys.exitPoint + " " + recipient + "}";
 						}
@@ -345,7 +347,10 @@ var plugin = module.exports = {
 				if ( !loopNode[keys.nodeKey] ) {
 					let hoistScopeNode = loopNode.$scope.closestHoistScope().node;
 
-					this.alter.insertAfter(core.__getNodeBegin(hoistScopeNode), ";var " + name + "=" + keys.varName + ";");
+					if ( !hoistScopeNode['$__has__' + name] ) {
+						hoistScopeNode['$__has__' + name] = true;
+						this.alter.insertAfter(core.__getNodeBegin(hoistScopeNode), ";var " + name + "=" + keys.varName + ";");
+					}
 				}
 
 				result = "";
@@ -380,7 +385,7 @@ var plugin = module.exports = {
 		}, this);
 
 		fragmentOption.afterTail = afterTail;
-		fragmentOption.beforeHead = beforeHead.replace(/;;/g, ";") + funcCallResult;
+		fragmentOption.beforeHead = (beforeHead + funcCallResult).replace(/;;/g, ";");
 
 		this.alter.insert(insertHeadPosition, "--head--", fragmentOption);
 		this.alter.insert(insertTailPosition, "--tail--", fragmentOption);
