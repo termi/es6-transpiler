@@ -37,6 +37,18 @@ function isBlock(node) {
 		&& (type === "BlockStatement" || type === "Program");
 }
 
+function isExpressionStatement(node) {
+	let type;
+	return node && (type = node.type)
+		&& (type === "ExpressionStatement");
+}
+
+function isLiteral(node) {
+	let type;
+	return node && (type = node.type)
+		&& (type === "Literal");
+}
+
 function isNonFunctionBlock(node) {
 	return node && node.type === "BlockStatement" && !isFunction(node.$parent);
 }
@@ -765,16 +777,60 @@ let core = module.exports = {
 		let begin;
 		let hoistScopeNodeBody = node.body;
 
+		let findUseStrictBlock = function(node) {
+			if ( isExpressionStatement(node.body[0])
+				&& isLiteral(node.body[0].expression)
+				&& node.body[0].expression.value === 'use strict'
+				) {
+				return node.body[0];
+			}
+		};
+
 		if ( node.type === "Program" ) {
-			begin = 0;
+			const useStrictBlock = findUseStrictBlock(node);
+
+			if ( useStrictBlock ) {
+				const blockEnd = useStrictBlock.range[1];
+				begin = useStrictBlock.expression.range[1];
+
+				if ( !useStrictBlock.$new_semi ) {
+					if ( !this.alter.getRange(begin, blockEnd).contains(';') ) {
+						useStrictBlock.$new_semi = true;
+						this.alter.insertBefore(begin, ';', {extend: true});
+					}
+					else {
+						begin = blockEnd;
+					}
+				}
+			}
+			else {
+				begin = 0;
+			}
 		}
 		else if( node.type === "ClassDeclaration" || node.type === "ClassExpression" ) {
 			begin = hoistScopeNodeBody.range[0] + 1;
 		}
 		else if( isFunction(node) ) {
 			const isNakedFunction = node.expression === true;
+			const useStrictBlock = !isNakedFunction && isBlock(node.body) && findUseStrictBlock(node.body);
 
-			begin = hoistScopeNodeBody.range[0] + (isNakedFunction ? 0 : 1);
+			if ( useStrictBlock ) {
+				const blockEnd = useStrictBlock.range[1];
+				begin = useStrictBlock.expression.range[1];
+
+				if ( !useStrictBlock.$new_semi ) {
+					if ( !this.alter.getRange(begin, blockEnd).contains(';') ) {
+						useStrictBlock.$new_semi = true;
+						this.alter.insertBefore(begin, ';', {extend: true});
+					}
+					else {
+						begin = blockEnd;
+					}
+				}
+			}
+			else {
+				begin = hoistScopeNodeBody.range[0] + (isNakedFunction ? 0 : 1);
+			}
 		}
 		else if( node.type === "ComprehensionExpression" ) {
 			begin = node.range[0] + 1;
@@ -1008,7 +1064,7 @@ let core = module.exports = {
 	, __isBubbledVariableDeclaration: function(variableName, variableInitValue) {
 		let bubbledVariable = this.bubbledVariables[variableName];
 
-		if( bubbledVariable && bubbledVariable.value === variableInitValue ) {
+		if( bubbledVariable && bubbledVariable.testValue === variableInitValue ) {
 			return bubbledVariable;
 		}
 		return false;
@@ -1025,13 +1081,15 @@ let core = module.exports = {
 		}
 		else {
 			let name = core.unique(variableName, true);
+			let testValue = variableInitValue;
 
 			if( variableNamePlaceholder ) {
-				variableInitValue = variableInitValue.replace(new RegExp(variableNamePlaceholder, "g"), name);
+				variableInitValue = variableInitValue.replace(new RegExp(variableNamePlaceholder.replace(/([\$\^\&\[\]\(\)\-])/g, '\\$1'), "g"), name);
 			}
 
 			bubbledVariable = {
 				name: name
+				, testValue: testValue
 				, value: variableInitValue
 				, isFunction: isFunction
 				, scope: scope

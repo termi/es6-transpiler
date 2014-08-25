@@ -4,19 +4,11 @@
 
 const assert = require("assert");
 const error = require("./../lib/error");
+const tmpl = require("./../lib/tmpl");
 const core = require("./core");
 const unicode = require("./unicode");
 
-function generateUUID() {
-	var d = new Date().getTime();
-	return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-		var r = (d + Math.random()*16)%16 | 0;
-		d = Math.floor(d/16);
-		return (c=='x' ? r : (r&0x7|0x8)).toString(16);
-	});
-};
-
-let UUID = generateUUID();
+let UUID = tmpl.generateUUID();
 
 var plugin = module.exports = {
 	reset: function() {
@@ -141,7 +133,7 @@ var plugin = module.exports = {
 			let quasiString, variableNamePlaceholder;
 			if( !quasiRawString ) {
 				while ( quasiCookedString.contains(UUID) ) {// paranoiac mode: on
-					UUID = generateUUID();
+					UUID = tmpl.generateUUID();
 				}
 				variableNamePlaceholder = UUID;
 				quasiString = "[" + quasiCookedString + "];" + variableNamePlaceholder + " = " + _Object_freeze + "(" + _Object_defineProperties + "(" + variableNamePlaceholder + ", {\"raw\": {\"value\": " + variableNamePlaceholder + "}}))";
