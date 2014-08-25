@@ -183,7 +183,7 @@ Example of `options` object:
 
     {
     	//described above:
-    	//"filename" or "scr": "string"
+    	//"filename" or "src": "string"
     	//outputToConsole: false
     	//outputFilename: true
 
