@@ -23,12 +23,14 @@ function isFunction(node) {
 		&& type === "FunctionDeclaration" || type === "FunctionExpression" || type === "ArrowFunctionExpression";
 }
 
-const SymbolIteratorBody = "typeof Symbol!=='undefined'&&Symbol.iterator||'@@iterator'";
+const SymbolIteratorBody = "typeof Symbol!=='undefined'&&Symbol&&Symbol.iterator||'@@iterator'";
+const SymbolPolyfillMarkBody = "typeof Symbol!=='undefined'&&Symbol&&Symbol[\"__setObjectSetter__\"]";
 const callIteratorBody =
 	"(v,f){" +
 		"if(v){" +
 			"if(Array.isArray(v))return f?v.slice():v;" +
 			"var i,r;"+
+			"if(${Symbol_mark})${Symbol_mark}(v);" +
 			"if(typeof v==='object'&&typeof (f=v[${Symbol_iterator}])==='function'){" +
 				"i=f.call(v);r=[];" +
 			"}" +
@@ -36,6 +38,7 @@ const callIteratorBody =
 				"i=v;" +
 				"r=[];" +
 			"};" +
+			"if(${Symbol_mark})${Symbol_mark}(void 0);" +
 			"if(r) {" +
 				"while((f=i['next']()),f['done']!==true)r.push(f['value']);" +
 				"return r;" +
@@ -175,11 +178,6 @@ var plugin = module.exports = {
 			, getRange(args[0])[0]
 			, expressionInside + (needFirstSquareBracket ? "[" : "")
 		);
-//		if ( !((argsLength === 1 && !isArrayExpression(args[0].argument)) ) ) {
-//			console.log(argsLength, isArrayExpression(args[0].argument), args[0].argument, needFirstSquareBracket);
-//			process.exit(0)
-//		}
-
 
 		this.replaceSpreads(node, args, true);
 	}
@@ -224,7 +222,14 @@ var plugin = module.exports = {
 
 		function getCallIteratorFunctionName() {
 			let Symbol_iterator = core.bubbledVariableDeclaration(node.$scope, "S_ITER", SymbolIteratorBody);
-			return core.bubbledVariableDeclaration(node.$scope, "ITER", callIteratorBody.replace("${Symbol_iterator}", Symbol_iterator), true);
+			let Symbol_mark = core.bubbledVariableDeclaration(node.$scope, "S_MARK", SymbolPolyfillMarkBody);
+			return core.bubbledVariableDeclaration(node.$scope
+				, "ITER"
+				, callIteratorBody
+					.replace("${Symbol_iterator}", Symbol_iterator)
+					.replace(/\$\{Symbol_mark\}/g, Symbol_mark)
+				, true
+			);
 		}
 
 		let nonSpreadElementStart = -1;
@@ -259,8 +264,6 @@ var plugin = module.exports = {
 		function removeFirstSquareBracket() {
 			if ( firstElemIsSpreadFlag >= 0 ) {
 				if( !concatOpen ) {
-//					let _isArrayExpression = isArrayExpression(node);// for "NewExpression" and "CallExpression", node is not a SpreadElement
-//					let from = _isArrayExpression ? node.range[0] : firstElemIsSpreadFlag;
 					let from = firstElemIsSpreadFlag;
 
 					that.alter.remove(from, from + 1);
@@ -396,9 +399,6 @@ var plugin = module.exports = {
 						if( !theOnlyOne && (concatOpen || callIteratorCloseStr) ) {
 							this.alter.insert(argumentRange[1], callIteratorCloseStr);
 						}
-//						else{
-//							this.alter.remove(node.range[0], node.range[0] + 1);
-//						}
 					}
 					else {
 						const lastNotNullElementIndex = getLastNotNullElementIndex(elements, i);

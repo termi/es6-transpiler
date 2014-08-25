@@ -47,6 +47,7 @@ let plugins = [
 	, require("./transpiler/destructuring")
 	, require("./transpiler/quasiLiterals")
 	, require("./transpiler/arrayComprehension")
+	, require("./transpiler/generatorComprehension")
 	, require("./transpiler/forOf")
 	, require("./transpiler/optimiser")
 	, require("./transpiler/RegExp")

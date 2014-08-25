@@ -30,6 +30,10 @@ var plugin = module.exports = {
 	}
 
 	, '::ComprehensionExpression': function(node) {
+		if ( node.xGenerator === true ) {
+			return;
+		}
+
 		const blocks = node.blocks
 			, body = node.body
 			, filter = node.filter
@@ -59,7 +63,7 @@ var plugin = module.exports = {
 
 				beforeBodyString += (
 					replacementObj.before
-					+ "for(" + replacementObj.loop + ")"
+					+ "for(;" + replacementObj.check + ";)"
 					+ "{" + replacementObj.inner
 				);
 
