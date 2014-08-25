@@ -1,12 +1,12 @@
-var SLICE$0 = Array.prototype.slice;var S_ITER$0 = typeof Symbol!=='undefined'&&Symbol.iterator||'@@iterator';function ITER$0(v,f){if(v){if(Array.isArray(v))return f?v.slice():v;var i,r;if(typeof v==='object'&&typeof (f=v[S_ITER$0])==='function'){i=f.call(v);r=[];}else if((v+'')==='[object Generator]'){i=v;r=[];};if(r) {while((f=i['next']()),f['done']!==true)r.push(f['value']);return r;}}throw new Error(v+' is not iterable')};var $D$0;var $freeze$0 = Object.freeze;var $defProps$0 = Object.defineProperties;var $TS$0 = $freeze$0($defProps$0(["\nstring", "string", "string\n"], {"raw": {"value": $freeze$0(["\nstring", "string", "string\\n"])}}));function GET_ITER$0(v){if(v){if(Array.isArray(v))return 0;var f;if(typeof v==='object'&&typeof (f=v[S_ITER$0])==='function')return f.call(v);if((v+'')==='[object Generator]')return v;}throw new Error(v+' is not iterable')};
+var SLICE$0 = Array.prototype.slice;var S_ITER$0 = typeof Symbol!=='undefined'&&Symbol&&Symbol.iterator||'@@iterator';var S_MARK$0 = typeof Symbol!=='undefined'&&Symbol&&Symbol["__setObjectSetter__"];function ITER$0(v,f){if(v){if(Array.isArray(v))return f?v.slice():v;var i,r;if(S_MARK$0)S_MARK$0(v);if(typeof v==='object'&&typeof (f=v[S_ITER$0])==='function'){i=f.call(v);r=[];}else if((v+'')==='[object Generator]'){i=v;r=[];};if(S_MARK$0)S_MARK$0(void 0);if(r) {while((f=i['next']()),f['done']!==true)r.push(f['value']);return r;}}throw new Error(v+' is not iterable')};var $D$0;var $freeze$0 = Object.freeze;var $defProps$0 = Object.defineProperties;var $TS$0 = $freeze$0($defProps$0(["\nstring", "string", "string\n"], {"raw": {"value": $freeze$0(["\nstring", "string", "string\\n"])}}));function GET_ITER$0(v){if(v){if(Array.isArray(v))return 0;var f;if(S_MARK$0)S_MARK$0(v);if(typeof v==='object'&&typeof (f=v[S_ITER$0])==='function'){if(S_MARK$0)S_MARK$0(void 0);return f.call(v);}if(S_MARK$0)S_MARK$0(void 0);if((v+'')==='[object Generator]')return v;}throw new Error(v+' is not iterable')};
 var arr = [1, 2, 3, 4, 5, 6], obj = { arr: arr, method: function(){ return ("value") } };
 
 {// array comprehentions
-	var str = ("" + ((function(){var $D$1;var $D$2;var $D$3;var $result$0 = [], i;$D$1 = GET_ITER$0(arr);$D$3 = $D$1 === 0;$D$2 = ($D$3 ? arr.length : void 0);for(; $D$3 ? ($D$1 < $D$2) : !($D$2 = $D$1["next"]())["done"]; ){i = ($D$3 ? arr[$D$1++] : $D$2["value"]);{$result$0.push(i + 1)}};;return $result$0})().join(("|"))));
+	var str = ("" + ((function(){var $D$1;var $D$2;var $D$3;var $result$0 = [], i;$D$1 = GET_ITER$0(arr);$D$3 = $D$1 === 0;$D$2 = ($D$3 ? arr.length : void 0);for(;$D$3 ? ($D$1 < $D$2) : !($D$2 = $D$1["next"]())["done"];){i = ($D$3 ? arr[$D$1++] : $D$2["value"]);{$result$0.push(i + 1)}};return $result$0})().join(("|"))));
 	console.log(str === [2, 3, 4, 5, 6, 7].join("|"));
-
+	
 	{
-		var str$0 = (("<<{" + ((function(){var $D$4;var $D$5;var $D$6;var $result$1 = [], i;$D$4 = GET_ITER$0(arr);$D$6 = $D$4 === 0;$D$5 = ($D$6 ? arr.length : void 0);for(; $D$6 ? ($D$4 < $D$5) : !($D$5 = $D$4["next"]())["done"]; ){i = ($D$6 ? arr[$D$4++] : $D$5["value"]);{$result$1.push(i + 1)}};;return $result$1})().join(("|")))) + "}>>");
+		var str$0 = (("<<{" + ((function(){var $D$4;var $D$5;var $D$6;var $result$1 = [], i;$D$4 = GET_ITER$0(arr);$D$6 = $D$4 === 0;$D$5 = ($D$6 ? arr.length : void 0);for(;$D$6 ? ($D$4 < $D$5) : !($D$5 = $D$4["next"]())["done"];){i = ($D$6 ? arr[$D$4++] : $D$5["value"]);{$result$1.push(i + 1)}};return $result$1})().join(("|")))) + "}>>");
 		console.log(str$0 === "<<{" + [2, 3, 4, 5, 6, 7].join("|") + "}>>");
 	}
 }
@@ -61,10 +61,10 @@ var arr = [1, 2, 3, 4, 5, 6], obj = { arr: arr, method: function(){ return ("val
 		var str$6 = ("" + ((function(){ return arr.join(("1")) })()));
 		console.log(str$6 === arr.join(("1")));
 	}
-
+	
 	{// rest & spread
 		var str$7 = ("" + (((function(){var rest = SLICE$0.call(arguments, 0); return rest.join(("2")) })).apply(null, ITER$0(arr))));
-		console.log(str$7 === arr.join(("2")));
+		console.log(str$7 === arr.join(("2")));	
 	}
 }
 
