@@ -274,6 +274,9 @@ let core = module.exports = {
 
 			node.body.body.forEach(function(method) {
 				// TODO:: refactor/redesign this function
+				if( method.computed ) {
+					return;
+				}
 
 				let type = method.type;
 				let classesExtras = this.options.classesExtras || {};
@@ -287,7 +290,11 @@ let core = module.exports = {
 				//TODO:: class A { m(){} static m(){} m2{ m(); //where m referred? } }
 
 				// method.kind ca be 'get', 'set', ''
-				node.$scope.add(this.getKeyName(method.key), xSpecialNode ? "var" : (method.kind || "fun"), method.value);
+				let name = this.getKeyName(method.key);
+				if ( !node.$scope.hasOwn(name) ) {
+					node.$scope.add(name, xSpecialNode ? "var" : (method.kind || "fun"), method.value);
+				}
+
 			}, this);
 
 		} else if (isFunction(node)) {
