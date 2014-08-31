@@ -1,17 +1,17 @@
-var DP$0 = Object.defineProperty;
+var DP$0 = Object.defineProperty;var MIXIN$0 = function(t,s){for(var p in s){if(s.hasOwnProperty(p)){DP$0(t,p,Object.getOwnPropertyDescriptor(s,p));}}return t};
 var testCall = false;
-var Foo = (function(){"use strict";function Foo() {}DP$0(Foo, "prototype", {"configurable": false, "enumerable": false, "writable": false});
-	Foo.doIt = function(test) {
+var Foo = (function(){"use strict";function Foo() {}DP$0(Foo, "prototype", {"configurable": false, "enumerable": false, "writable": false});var $static$0={};
+	$static$0.doIt = function(test) {
 		if ( test ) {
 			testCall = true;
 		}
 		else {
 			this.test = 999;
 		}
-	}
-;return Foo;})();
+	};
+MIXIN$0(Foo,$static$0);$static$0=void 0;return Foo;})();
 
-var Base = (function(super$0){var MIXIN$0 = function(t,s){for(var p in s){if(s.hasOwnProperty(p)){DP$0(t,p,Object.getOwnPropertyDescriptor(s,p));}}return t};"use strict";MIXIN$0(Base, super$0);
+var Base = (function(super$0){"use strict";MIXIN$0(Base, super$0);
 	function Base() {
 		super$0.call(this);
 		super$0.constructor();//useless call
