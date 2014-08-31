@@ -326,7 +326,7 @@ var plugin = module.exports = {
 						"id": elementId,
 						"init": {
 							"type": "MemberExpression",
-							"computed": false,
+							"computed": element.computed,
 							"object": {
 								"type": "Identifier",
 								"name": valueIdentifierName

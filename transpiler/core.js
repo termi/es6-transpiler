@@ -49,6 +49,18 @@ function isLiteral(node) {
 		&& (type === "Literal");
 }
 
+function isIdentifier(node) {
+	let type;
+	return node && (type = node.type)
+		&& (type === "Identifier");
+}
+
+function isProperty(node) {
+	let type;
+	return node && (type = node.type)
+		&& (type === "Property");
+}
+
 function isNonFunctionBlock(node) {
 	return node && node.type === "BlockStatement" && !isFunction(node.$parent);
 }
@@ -69,7 +81,7 @@ function isReference(node) {
 		|| node.type === "Identifier"
 			&& !(parentType === "VariableDeclarator" && parent.id === node) // var|let|const $
 			&& !(parentType === "MemberExpression" && parent.computed === false && parent.property === node) // obj.$
-			&& !(parentType === "Property" && parent.key === node) // {$: ...}
+			&& !(parentType === "Property" && parent.key === node && parent.computed === false) // {$: ...} not the {[$]: ...}
 			&& !(parentType === "LabeledStatement" && parent.label === node) // $: ...
 			&& !(parentType === "CatchClause" && parent.param === node) // catch($)
 			&& !(isFunction(parent) && parent.id === node) // function $(..
@@ -643,18 +655,28 @@ let core = module.exports = {
 		return vars;
 	}
 
-	, PropertyToString: function PropertyToString(node) {
-		assert(node.type === "Literal" || node.type === "Identifier");
+	, PropertyToString: function(node) {
+		let isParentComputedProperty = node && isProperty(node.$parentNode) && node.$parentNode.computed;
 
-		var result;
-		if( node.type === "Literal" ) {
-			result = "[" + node.raw + "]";
-		}
-		else {
-			result = "." + node.name;
+		if ( isParentComputedProperty ) {
+			return "[" + this.alter.get(node.range[0], node.range[1]) + "]";
 		}
 
-		return result
+		let isPrimitive = isLiteral(node) || isIdentifier(node);
+
+		if ( isPrimitive ) {
+			var result;
+			if( node.type === "Literal" ) {
+				result = "[" + node.raw + "]";
+			}
+			else {
+				result = "." + node.name;
+			}
+
+			return result;
+		}
+
+		assert(false);
 	}
 
 	,
@@ -1343,7 +1365,6 @@ let core = module.exports = {
 				break;
 			}
 			else {
-//				console.log(from, to, options, parentScope.options)
 				computedOptions.unshift.apply(computedOptions, options.filter(function(record) {
 					--commentOptionsCount;
 
@@ -1395,6 +1416,24 @@ let core = module.exports = {
 			}
 		}
 		return false;
+	}
+
+	, __printNode: function(node) {
+		function hideSpecialProperties(node, deep) {
+			for ( var prop in node ) if ( node.hasOwnProperty(prop) ) {
+				if ( deep < 5 && node[prop] && typeof node[prop] === 'object' ) {
+					hideSpecialProperties(node, deep + 1);
+				}
+
+				if ( prop.charAt(0) === '$' ) {
+					Object.defineProperty(node, prop, {enumerable: false});
+				}
+			}
+		}
+
+		hideSpecialProperties(node, 0);
+
+		console.log(node);
 	}
 };
 
