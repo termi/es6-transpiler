@@ -24,6 +24,7 @@ Beta
 ## Supported
 
  * classes
+ * generator comprehensions
  * destructuring (with default values)
  * block binding (let / const)
    * loops: fresh lexical environment per iteration
@@ -33,7 +34,10 @@ Beta
  * for-of (with iterator protocol)
  * array comprehensions (with iterator protocol)
  * string templates (with tags support)
- * object literals (partial support see: [Not supported](#not-supported))
+ * object literals:
+   * methods
+   * shorthands
+   * computed properties
  * binary/octal numericLiteral
  * unicode code point escapes
  * RegExp:
@@ -47,10 +51,8 @@ Static scope analysis and transpilation of ES6 block scoped `const` and `let` va
 ## Not supported
 
  * modules
- * generators / generator comprehensions
+ * generators
  * symbols
- * object literals:
-   * computed properties
  * RegExp:
    * 'u' flag in runtime (via polyfill) for the newly generated patterns:
      1. \D, \W, '.' etc not supported

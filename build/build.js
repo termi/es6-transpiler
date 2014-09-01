@@ -90,6 +90,7 @@ function prepareFile(files, description, fullPath) {
 	, {file: 'lib/regjsparser', copyOnly: true}
 	, {file: 'lib/scope'}
 	, {file: 'lib/stats'}
+	, {file: 'lib/tmpl'}
 
 ].reduce(prepareFile, []).forEach(function(file) {
 	let srcFilename = file.src;
