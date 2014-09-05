@@ -120,6 +120,10 @@ var plugin = module.exports = {
 		const isSimpleMemberExpression = isMemberExpression && (calleeType === "Identifier" || calleeType === "ThisExpression");
 		const args = node["arguments"];
 		const argsLength = args.length;
+		const isSuper = isMemberExpression
+			? node.callee.object.$originalName === 'super' || node.callee.object.name === 'super'
+			: node.callee.$originalName === 'super' || node.callee.name === 'super'
+		;
 
 		assert(argsLength);
 
@@ -128,12 +132,19 @@ var plugin = module.exports = {
 		;
 
 		if( isMemberExpression ) {
-			if( isSimpleMemberExpression ) {
-				expressionInside =
-					".apply("
-					+ this.alter.get(node.callee.object.range[0], node.callee.object.range[1])
-					+ ", "
-				;
+			if( isSimpleMemberExpression || isSuper ) {
+				if ( isSuper ) {
+					expressionInside =
+						".apply(this, "
+					;
+				}
+				else {
+					expressionInside =
+						".apply("
+							+ this.alter.get(node.callee.object.range[0], node.callee.object.range[1])
+							+ ", "
+					;
+				}
 			}
 			else {
 				let tempVar = core.getScopeTempVar(node.callee.object, node.$scope);
@@ -151,9 +162,16 @@ var plugin = module.exports = {
 			}
 		}
 		else {
-			expressionInside =
-				".apply(null, "
-			;
+			if ( isSuper ) {
+				expressionInside =
+					".apply(this, "
+				;
+			}
+			else {
+				expressionInside =
+					".apply(null, "
+				;
+			}
 
 			if( node.callee.type === "FunctionExpression" ) {
 				expressionBefore = "(";
