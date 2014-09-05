@@ -1,33 +1,570 @@
-class Greeter {
-	static test(){ return "test" }
 
-	//static A = 123;
+// simple class
+(function() {
+	class A {}
 
-	constructor(message) {
-		this.greeting = message;
+	let pk = Object.keys(A.prototype);let sk = Object.keys(A);
+	let a = new A();
+
+	console.log(a.constructor == A, a instanceof A, pk.length === 0, sk.length === 0);
+})();
+
+// simple class with constructor
+(function() {
+	class A {
+		constructor(a) {
+			this.a = a;
+		}
 	}
 
-	greet() {
-		return "Hello 1, " + this.greeting;
+	let pk = Object.keys(A.prototype);let sk = Object.keys(A);
+	let a = new A('test');
+
+	console.log(a.constructor == A, a instanceof A, pk.length === 0, sk.length === 0);
+})();
+
+// simple class with method
+(function() {
+	class A {
+		a(a) {
+			return 'test'
+		}
 	}
-}
 
-class Greeter1 extends Greeter {
-	constructor(message) {
-		super(message);
-		this.greeting = message;
+	let pk = Object.keys(A.prototype);let sk = Object.keys(A);
+	let a = new A;
+
+	console.log(a.constructor == A, a instanceof A, pk.length === 1, sk.length === 0, a.a() === 'test');
+})();
+
+// simple class with static method
+(function() {
+	class A {
+		static a(a) {
+			return 'test'
+		}
 	}
-	greet() {
-		return super.greet() + "Hello 2, " + this.greeting;
+
+	let pk = Object.keys(A.prototype);let sk = Object.keys(A);
+	let a = new A;
+
+	console.log(a.constructor == A, a instanceof A, pk.length === 0, sk.length === 1, A.a() === 'test');
+})();
+
+// simple class with getter
+(function() {
+	class A {
+		get a() {
+			return 'test'
+		}
 	}
-}
 
-class A {
+	let pk = Object.keys(A.prototype);let sk = Object.keys(A);
+	let a = new A;
 
-}
+	console.log(a.constructor == A, a instanceof A, pk.length === 1, sk.length === 0, a.a === 'test');
+})();
 
-//console.log(Greeter.A === 123);
-//console.log(Greeter1.A === 123);
-console.log(Greeter1.test() === "test");
-console.log((new Greeter1("test | 3")).greet() === "Hello 1, test | 3Hello 2, test | 3");
-console.log(new A instanceof A);
+// simple class with setter
+(function() {
+	class A {
+		set a(a) {
+			this._a = a + '_' + 9;
+		}
+	}
+
+	let pk = Object.keys(A.prototype);let sk = Object.keys(A);
+	let a = new A;
+	a.a = 'test';
+
+	console.log(a.constructor == A, a instanceof A, pk.length === 1, sk.length === 0, a._a === 'test_9');
+})();
+
+// simple class with static getter
+(function() {
+	class A {
+		static get a() {
+			return 'test'
+		}
+	}
+
+	let pk = Object.keys(A.prototype);let sk = Object.keys(A);
+	let a = new A;
+
+	console.log(a.constructor == A, a instanceof A, pk.length === 0, sk.length === 1, A.a === 'test');
+})();
+
+// simple class with static setter
+(function() {
+	class A {
+		static set a(a) {
+			this._a = a + '_' + 9;
+		}
+	}
+
+	let pk = Object.keys(A.prototype);let sk = Object.keys(A);
+	let a = new A;
+	A.a = 'test';
+
+	console.log(a.constructor == A, a instanceof A, pk.length === 0, sk.length === 1, A._a === 'test_9');
+})();
+
+// simple class with getter and setter
+(function() {
+	class A {
+		get a() {
+			return this._a;
+		}
+
+		set a(a) {
+			this._a = a + '_' + 9;
+		}
+	}
+
+	let pk = Object.keys(A.prototype);let sk = Object.keys(A);
+	let a = new A;
+	a.a = 'test';
+
+	console.log(a.constructor == A, a instanceof A, pk.length === 1, sk.length === 0, a.a === 'test_9', a._a === 'test_9');
+})();
+
+// simple class with static getter and setter
+(function() {
+	class A {
+		static get a() {
+			return this._a;
+		}
+
+		static set a(a) {
+			this._a = a + '_' + 9;
+		}
+	}
+
+	let pk = Object.keys(A.prototype);let sk = Object.keys(A);
+	let a = new A;
+	A.a = 'test';
+
+	console.log(a.constructor == A, a instanceof A, pk.length === 0, sk.length === 1, A.a === 'test_9', A._a === 'test_9');
+})();
+
+// --------------------======================== LITERAL ========================--------------------
+
+// simple class with literal constructor
+(function() {
+	class A {
+		'constructor'(a) {
+			this.a = a;
+		}
+	}
+
+	let pk = Object.keys(A.prototype);let sk = Object.keys(A);
+	let a = new A('test');
+
+	console.log(a.constructor == A, a instanceof A, pk.length === 0, sk.length === 0, a.a === 'test');
+})();
+
+// simple class with literal method
+(function() {
+	class A {
+		'a'(a) {
+			return 'test'
+		}
+	}
+
+	let pk = Object.keys(A.prototype);let sk = Object.keys(A);
+	let a = new A;
+
+	console.log(a.constructor == A, a instanceof A, pk.length === 1, sk.length === 0, a['a']() === 'test');
+})();
+
+// simple class with literal static method
+(function() {
+	class A {
+		static 'a'(a) {
+			return 'test'
+		}
+	}
+
+	let pk = Object.keys(A.prototype);let sk = Object.keys(A);
+	let a = new A;
+
+	console.log(a.constructor == A, a instanceof A, pk.length === 0, sk.length === 1, A['a']() === 'test');
+})();
+
+// simple class with literal getter
+(function() {
+	class A {
+		get 'a'() {
+			return 'test'
+		}
+	}
+
+	let pk = Object.keys(A.prototype);let sk = Object.keys(A);
+	let a = new A;
+
+	console.log(a.constructor == A, a instanceof A, pk.length === 1, sk.length === 0, a['a'] === 'test');
+})();
+
+// simple class with literal setter
+(function() {
+	class A {
+		set 'a'(a) {
+			this._a = a + '_' + 9;
+		}
+	}
+
+	let pk = Object.keys(A.prototype);let sk = Object.keys(A);
+	let a = new A;
+	a['a'] = 'test';
+
+	console.log(a.constructor == A, a instanceof A, pk.length === 1, sk.length === 0, a._a === 'test_9');
+})();
+
+// simple class with literal static getter
+(function() {
+	class A {
+		static get 'a'() {
+			return 'test'
+		}
+	}
+
+	let pk = Object.keys(A.prototype);let sk = Object.keys(A);
+	let a = new A;
+
+	console.log(a.constructor == A, a instanceof A, pk.length === 0, sk.length === 1, A['a'] === 'test');
+})();
+
+// simple class with literal static setter
+(function() {
+	class A {
+		static set 'a'(a) {
+			this._a = a + '_' + 9;
+		}
+	}
+
+	let pk = Object.keys(A.prototype);let sk = Object.keys(A);
+	let a = new A;
+	A['a'] = 'test';
+
+	console.log(a.constructor == A, a instanceof A, pk.length === 0, sk.length === 1, A._a === 'test_9');
+})();
+
+// simple class with literal getter and setter
+(function() {
+	class A {
+		get 'a'() {
+			return this._a;
+		}
+
+		set 'a'(a) {
+			this._a = a + '_' + 9;
+		}
+	}
+
+	let pk = Object.keys(A.prototype);let sk = Object.keys(A);
+	let a = new A;
+	a['a'] = 'test';
+
+	console.log(a.constructor == A, a instanceof A, pk.length === 1, sk.length === 0, a['a'] === 'test_9', a._a === 'test_9');
+})();
+
+// simple class with literal static getter and setter
+(function() {
+	class A {
+		static get 'a'() {
+			return this._a;
+		}
+
+		static set 'a'(a) {
+			this._a = a + '_' + 9;
+		}
+	}
+
+	let pk = Object.keys(A.prototype);let sk = Object.keys(A);
+	let a = new A;
+	A['a'] = 'test';
+
+	console.log(a.constructor == A, a instanceof A, pk.length === 0, sk.length === 1, A['a'] === 'test_9', A._a === 'test_9');
+})();
+
+// --------------------======================== SIMPLE COMPUTED ========================--------------------
+
+// TODO::
+//// simple class with simple computed constructor
+//(function() {
+//	class A {
+//		['constructor'](a) {
+//			this.a = a;
+//		}
+//	}
+//
+//	let a = new A('test');
+//
+//	console.log(a.constructor == A, a instanceof A, pk.length === 0, sk.length === 0, a.a === 'test');
+//})();
+
+// simple class with simple computed method
+(function() {
+	class A {
+		['a'](a) {
+			return 'test'
+		}
+	}
+
+	let pk = Object.keys(A.prototype);let sk = Object.keys(A);
+	let a = new A;
+
+	console.log(a.constructor == A, a instanceof A, pk.length === 1, sk.length === 0, a['a']() === 'test');
+})();
+
+// simple class with simple computed static method
+(function() {
+	class A {
+		static ['a'](a) {
+			return 'test'
+		}
+	}
+
+	let pk = Object.keys(A.prototype);let sk = Object.keys(A);
+	let a = new A;
+
+	console.log(a.constructor == A, a instanceof A, pk.length === 0, sk.length === 1, A['a']() === 'test');
+})();
+
+// simple class with simple computed getter
+(function() {
+	class A {
+		get ['a']() {
+			return 'test'
+		}
+	}
+
+	let pk = Object.keys(A.prototype);let sk = Object.keys(A);
+	let a = new A;
+
+	console.log(a.constructor == A, a instanceof A, pk.length === 1, sk.length === 0, a['a'] === 'test');
+})();
+
+// simple class with simple computed setter
+(function() {
+	class A {
+		set ['a'](a) {
+			this._a = a + '_' + 9;
+		}
+	}
+
+	let pk = Object.keys(A.prototype);let sk = Object.keys(A);
+	let a = new A;
+	a['a'] = 'test';
+
+	console.log(a.constructor == A, a instanceof A, pk.length === 1, sk.length === 0, a._a === 'test_9');
+})();
+
+// simple class with simple computed static getter
+(function() {
+	class A {
+		static get ['a']() {
+			return 'test'
+		}
+	}
+
+	let pk = Object.keys(A.prototype);let sk = Object.keys(A);
+	let a = new A;
+
+	console.log(a.constructor == A, a instanceof A, pk.length === 0, sk.length === 1, A['a'] === 'test');
+})();
+
+// simple class with simple computed static setter
+(function() {
+	class A {
+		static set ['a'](a) {
+			this._a = a + '_' + 9;
+		}
+	}
+
+	let pk = Object.keys(A.prototype);let sk = Object.keys(A);
+	let a = new A;
+	A['a'] = 'test';
+
+	console.log(a.constructor == A, a instanceof A, pk.length === 0, sk.length === 1, A._a === 'test_9');
+})();
+
+// simple class with simple computed getter and setter
+(function() {
+	class A {
+		get ['a']() {
+			return this._a;
+		}
+
+		set ['a'](a) {
+			this._a = a + '_' + 9;
+		}
+	}
+
+	let pk = Object.keys(A.prototype);let sk = Object.keys(A);
+	let a = new A;
+	a['a'] = 'test';
+
+	console.log(a.constructor == A, a instanceof A, pk.length === 1, sk.length === 0, a['a'] === 'test_9', a._a === 'test_9');
+})();
+
+// simple class with simple computed static getter and setter
+(function() {
+	class A {
+		static get ['a']() {
+			return this._a;
+		}
+
+		static set ['a'](a) {
+			this._a = a + '_' + 9;
+		}
+	}
+
+	let pk = Object.keys(A.prototype);let sk = Object.keys(A);
+	let a = new A;
+	A['a'] = 'test';
+
+	console.log(a.constructor == A, a instanceof A, pk.length === 0, sk.length === 1, A['a'] === 'test_9', A._a === 'test_9');
+})();
+
+// --------------------======================== COMPUTED ========================--------------------
+
+let postfix = 'd' + Math.random(), constructorPostfix = 'ctor';
+
+// TODO::
+//// simple class with computed constructor
+//(function() {
+//	class A {
+//		['constru' + constructorPostfix](a) {
+//			this.a = a;
+//		}
+//	}
+//
+//	let a = new A('test');
+//
+//	console.log(a.constructor == A, a instanceof A, pk.length === 0, sk.length === 0, a.a === 'test');
+//})();
+
+// simple class with computed method
+(function() {
+	class A {
+		['a' + postfix](a) {
+			return 'test'
+		}
+	}
+
+	let pk = Object.keys(A.prototype);let sk = Object.keys(A);
+	let a = new A;
+
+	console.log(a.constructor == A, a instanceof A, pk.length === 1, sk.length === 0, a['a' + postfix]() === 'test');
+})();
+
+// simple class with computed static method
+(function() {
+	class A {
+		static ['a' + postfix](a) {
+			return 'test'
+		}
+	}
+
+	let pk = Object.keys(A.prototype);let sk = Object.keys(A);
+	let a = new A;
+
+	console.log(a.constructor == A, a instanceof A, pk.length === 0, sk.length === 1, A['a' + postfix]() === 'test');
+})();
+
+// simple class with computed getter
+(function() {
+	class A {
+		get ['a' + postfix]() {
+			return 'test'
+		}
+	}
+
+	let pk = Object.keys(A.prototype);let sk = Object.keys(A);
+	let a = new A;
+
+	console.log(a.constructor == A, a instanceof A, pk.length === 1, sk.length === 0, a['a' + postfix] === 'test');
+})();
+
+// simple class with computed setter
+(function() {
+	class A {
+		set ['a' + postfix](a) {
+			this._a = a + '_' + 9;
+		}
+	}
+
+	let pk = Object.keys(A.prototype);let sk = Object.keys(A);
+	let a = new A;
+	a['a' + postfix] = 'test';
+
+	console.log(a.constructor == A, a instanceof A, pk.length === 1, sk.length === 0, a._a === 'test_9');
+})();
+
+// simple class with computed static getter
+(function() {
+	class A {
+		static get ['a' + postfix]() {
+			return 'test'
+		}
+	}
+
+	let pk = Object.keys(A.prototype);let sk = Object.keys(A);
+	let a = new A;
+
+	console.log(a.constructor == A, a instanceof A, pk.length === 0, sk.length === 1, A['a' + postfix] === 'test');
+})();
+
+// simple class with computed static setter
+(function() {
+	class A {
+		static set ['a' + postfix](a) {
+			this._a = a + '_' + 9;
+		}
+	}
+
+	let pk = Object.keys(A.prototype);let sk = Object.keys(A);
+	let a = new A;
+	A['a' + postfix] = 'test';
+
+	console.log(a.constructor == A, a instanceof A, pk.length === 0, sk.length === 1, A._a === 'test_9');
+})();
+
+// simple class with computed getter and setter
+(function() {
+	class A {
+		get ['a' + postfix]() {
+			return this._a;
+		}
+
+		set ['a' + postfix](a) {
+			this._a = a + '_' + 9;
+		}
+	}
+
+	let pk = Object.keys(A.prototype);let sk = Object.keys(A);
+	let a = new A;
+	a['a' + postfix] = 'test';
+
+	console.log(a.constructor == A, a instanceof A, pk.length === 1, sk.length === 0, a['a' + postfix] === 'test_9', a._a === 'test_9');
+})();
+
+// simple class with computed static getter and setter
+(function() {
+	class A {
+		static get ['a' + postfix]() {
+			return this._a;
+		}
+
+		static set ['a' + postfix](a) {
+			this._a = a + '_' + 9;
+		}
+	}
+
+	let pk = Object.keys(A.prototype);let sk = Object.keys(A);
+	let a = new A;
+	A['a' + postfix] = 'test';
+
+	console.log(a.constructor == A, a instanceof A, pk.length === 0, sk.length === 1, A['a' + postfix] === 'test_9', A._a === 'test_9');
+})();

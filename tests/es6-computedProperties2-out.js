@@ -1,4 +1,4 @@
-var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P$0 = Object.getOwnPropertyDescriptors||function(o){var d=Object.create(null);for(var p in o)if(o.hasOwnProperty(p)){d[p]={"value":o[p],"enumerable":true,"configurable":true,"writable":true};}return d;};var GOPDS_A$0 = function(o){var d=Object.create(null);for(var p in o)if(o.hasOwnProperty(p)){d[p]=o[p];}return d;};
+var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P$0 = function(o){var d=Object.create(null);for(var p in o)if(o.hasOwnProperty(p)){d[p]={"value":o[p],"enumerable":true,"configurable":true,"writable":true};}return d;};var GOPDS_A$0 = function(o){var d=Object.create(null);for(var p in o)if(o.hasOwnProperty(p)){d[p]=o[p];}return d;};
 var a = DP$0({},   'x',{"value": function   () { return 123 },"configurable":true,"enumerable":true,"writable":true} );
 console.log(a['x']() === 123);
 
