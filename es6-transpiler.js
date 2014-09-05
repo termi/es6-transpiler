@@ -74,6 +74,18 @@ function consoleArgumentsToOptions(args, options) {
 	return options;
 }
 
+function esprimaParse(src, esprimaOptions, fileName) {
+	let ast;
+	try {
+		ast = esprima.parse(src, esprimaOptions);
+	}
+	catch(e) {
+		e.message += ('\nfilename: ' + fileName);
+		throw e;
+	}
+	return ast;
+}
+
 module.exports = {
 	runned: false
 
@@ -106,12 +118,13 @@ module.exports = {
 		}, this);
 	}
 
-	, applyChanges: function(config, doNotReset, esprimaOptions) {
+	, applyChanges: function(config, doNotReset, esprimaOptions, fileName) {
 		if( this.alter.hasChanges() ) {// has changes in classes replacement Step
 			this.src = this.alter.apply();
 
 			if( doNotReset !== true ) {
-				this.ast = esprima.parse(this.src, esprimaOptions);
+
+				this.ast = esprimaParse(this.src, esprimaOptions, fileName);
 
 				error.reset();
 				core.reset();
@@ -191,7 +204,7 @@ module.exports = {
 		}
 
 		if( !this.ast && isSourceInput ) {
-			this.ast = esprima.parse(this.src, config.esprimaOptions);
+			this.ast = esprimaParse(this.src, config.esprimaOptions, config.filename);
 		}
 		else {
 			throw new Error("Input not found " + config.filename);
@@ -221,7 +234,7 @@ module.exports = {
 			// apply changes produced by varify and return the transformed src
 			//console.log(changes);var transformedSrc = "";try{ transformedSrc = alter(src, changes) } catch(e){ console.error(e+"") };
 
-			this.applyChanges(null, true, config.esprimaOptions);
+			this.applyChanges(null, true, config.esprimaOptions, config.filename);
 			output.src = this.src;
 		}
 

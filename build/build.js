@@ -26,27 +26,30 @@ let filesMap = {};
 function prepareFile(files, description, fullPath) {
 	let isFolder = !!description.folder;
 	let isFile = false;
-	let fileOrDir = description.file || description.folder;
+	let fileOrDir = description.file || description.folder || description.filename;
 
 	let extname = path.extname(fileOrDir);
+	let fullFileName = !!(description.filename || extname);
 	let fileName = fullPath === true ? fileOrDir : path.join(srcDir, fileOrDir);
 	let outputFileName = fullPath === true ? path.join(targetDir, path.relative(srcDir, fileOrDir)) : path.join(targetDir, fileOrDir);
 
-	if ( !isFolder && fs.existsSync(extname ? fileName : fileName + ".js") ) {
-		fileName = extname ? fileName : fileName + ".js";
-		outputFileName = extname ? outputFileName : outputFileName + ".js";
+	if ( !isFolder && fs.existsSync(fullFileName ? fileName : fileName + ".js") ) {
+		fileName = fullFileName ? fileName : fileName + ".js";
+		outputFileName = fullFileName ? outputFileName : outputFileName + ".js";
 		isFile = true;
 		extname = path.extname(fileName);
 	}
 
 	if ( isFile ) {
-		if ( extname === '.js' && filesMap[fileName] === void 0 ) {
+		let copyOnly = description.copyOnly || extname !== '.js';
+
+		if ( filesMap[fileName] === void 0 ) {
 			filesMap[fileName] = null;//each file only once. Example: core.js & core folder
 
 			files.push({
 				src: fileName
 				, dest: outputFileName
-				, copyOnly: description.copyOnly
+				, copyOnly: copyOnly
 				, version: description.version
 				, require: description.require
 			});
@@ -72,7 +75,13 @@ function prepareFile(files, description, fullPath) {
 [
 	{file: 'es6-transpiler', version: true}//, require: devDependencies}
 	, {file: 'options'}
-	, {file: 'run-tests'}
+
+	, {file: 'run-tests', copyOnly: true}//filename 'run-tests.js'
+	, {filename: 'run-tests.es6.js'}//filename 'run-tests.es6.js'
+	, {filename: 'run-tests', copyOnly: true}//filename 'run-tests'
+
+	, {file: 'es6toes5', copyOnly: true}//filename 'es6toes5.js'
+	, {filename: 'es6toes5', copyOnly: true}//filename 'es6toes5'
 
 	, {folder: 'transpiler', noRecursive: true}//, require: devDependencies}
 	, {folder: 'transpiler/extensions', noRecursive: true}
@@ -98,6 +107,8 @@ function prepareFile(files, description, fullPath) {
 	let outputFilename = file.dest;
 
 	if ( file.copyOnly === true ) {
+		console.log('copy ' + path.relative(projectDit, srcFilename) + '\t-> ' + path.relative(projectDit, outputFilename));
+
 		fs.writeFileSync(outputFilename, fs.readFileSync(srcFilename));
 	}
 	else {

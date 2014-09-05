@@ -1,3 +1,3 @@
-
+#!/bin/sh
 echo "running tests (in es5 mode i.e. without --harmony)"
-/usr/bin/env node es5/run-tests.js --path ../tests
+exec node --harmony es5/run-tests.es6.js --path ../tests

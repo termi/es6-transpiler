@@ -12,5 +12,5 @@ declare -a polyfills=($(find ../polyfills/* -type f))
 for i in ${polyfills[@]}
 do
   echo "building $i into es5/polyfills/$i"
-  node --harmony ../es6toes5 $i es5/polyfills/$i --features no-symbols,no-iterators,no-generators
+  node --harmony ../es6toes5.js $i es5/polyfills/$i --features no-symbols,no-iterators,no-generators
 done
