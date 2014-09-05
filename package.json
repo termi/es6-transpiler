@@ -1,6 +1,6 @@
 {
   "name": "es6-transpiler",
-  "version": "0.7.16",
+  "version": "0.7.16-1",
   "description": "es6 -> es5",
   "main": "./build/es5/es6-transpiler.js",
   "bin": "./build/es5/es6toes5",
@@ -9,7 +9,7 @@
     "url": "https://github.com/termi/es6-transpiler.git"
   },
   "dependencies": {
-    "es5-shim": "2.3.0",
+    "es5-shim": "~4.0.0",
     "es6-shim": "latest",
     "simple-fmt": "~0.1.0",
     "simple-is": "~0.2.0",
