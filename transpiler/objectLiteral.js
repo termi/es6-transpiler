@@ -20,9 +20,7 @@ function isLiteral(node) {
 		&& (type === "Literal");
 }
 
-const $defineProperty = "Object.defineProperty";
-const $defineProperties = "Object.defineProperties";
-const $GOPDS_P = "Object.getOwnPropertyDescriptors||function(o){" +
+const $GOPDS_P = "function(o){" +
 	"var d=Object.create(null);" +
 	"for(var p in o)if(o.hasOwnProperty(p)){" +
 		"d[p]={\"value\":o[p],\"enumerable\":true,\"configurable\":true,\"writable\":true};" +
@@ -50,6 +48,9 @@ var plugin = module.exports = {
 
 		this.alter = alter;
 		this.options = options;
+
+		core.registerVar('getPropertiesDef', {name: 'GOPDS_P', template: $GOPDS_P});
+		core.registerVar('getAccessorsDef', {name: 'GOPDS_A', template: $GOPDS_A});
 	}
 
 	, '::Property[method=true]': function(node) {
@@ -93,11 +94,6 @@ var plugin = module.exports = {
 		let endFragment = '}';
 		let computedReplacementStarted = false;
 
-		let Object_defineProperty_name;
-		let Object_defineProperties_name;
-		let $GOPDS_P_name;
-		let $GOPDS_A_name;
-
 		let objectOpened = '';
 
 		let _this = this;
@@ -140,22 +136,12 @@ var plugin = module.exports = {
 				if ( isComputed ) {
 					computedReplacementStarted = true;
 
-					if ( !Object_defineProperty_name ) {
-						Object_defineProperty_name = core.bubbledVariableDeclaration(node.$scope, "DP", $defineProperty);
-					}
-					beforeString = Object_defineProperty_name + '(' + beforeString;
+					beforeString = core.createVars(node, "defineProperty") + '(' + beforeString;
 				}
 				else {
-					if ( !Object_defineProperties_name ) {
-						Object_defineProperties_name = core.bubbledVariableDeclaration(node.$scope, "DPS", $defineProperties);
-					}
+					beforeString = core.createVars(node, "defineProperties") + '(' + beforeString;
 
-					beforeString = Object_defineProperties_name + '(' + beforeString;
-
-					if ( !$GOPDS_A_name ) {
-						$GOPDS_A_name = core.bubbledVariableDeclaration(node.$scope, "GOPDS_A", $GOPDS_A);
-					}
-					this.alter.insertBefore(property.range[0], $GOPDS_A_name + '({');
+					this.alter.insertBefore(property.range[0], core.createVars(node, "getAccessorsDef") + '({');
 				}
 
 				let propKey = property.key;
@@ -184,11 +170,7 @@ var plugin = module.exports = {
 			else if ( isComputed || (computedReplacementStarted && isLiteral(property.key)) ) {
 				computedReplacementStarted = true;
 
-				if ( !Object_defineProperty_name ) {
-					Object_defineProperty_name = core.bubbledVariableDeclaration(node.$scope, "DP", $defineProperty);
-				}
-
-				beforeString = Object_defineProperty_name + '(' + beforeString;
+				beforeString = core.createVars(node, "defineProperty") + '(' + beforeString;
 
 				let propKey = property.key;
 				if ( isComputed ) {
@@ -208,18 +190,11 @@ var plugin = module.exports = {
 				endFragment = ')';
 			}
 			else if ( computedReplacementStarted ) {
-				if ( !Object_defineProperties_name ) {
-					Object_defineProperties_name = core.bubbledVariableDeclaration(node.$scope, "DPS", $defineProperties);
-				}
-
-				beforeString = Object_defineProperties_name + '(' + beforeString;
+				beforeString = core.createVars(node, "defineProperties") + '(' + beforeString;
 
 				closeOpenTag(prevProperty);
 
-				if ( !$GOPDS_P_name ) {
-					$GOPDS_P_name = core.bubbledVariableDeclaration(node.$scope, "GOPDS_P", $GOPDS_P);
-				}
-				this.alter.insertBefore(property.range[0], $GOPDS_P_name + '({', {extend: true});
+				this.alter.insertBefore(property.range[0], core.createVars(node, "getPropertiesDef") + '({', {extend: true});
 
 				endFragment = '}))';
 
