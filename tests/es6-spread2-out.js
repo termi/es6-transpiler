@@ -30,3 +30,13 @@ testSequenceExpression3.apply(null, [(1, [, ]), /*1*/,/*2*/])
 		;
 	console.log(T.join("|") == [1, 1, 1].join("|"))
 }
+
+{//#43: spread and arrow
+	var arr$0 = [1, 2, 3];
+
+	var func = function(a, b, c) {
+		return [a, b, c];
+	}
+
+	var result = func.apply(null, [function()  {return true}].concat(ITER$0(arr$0) ));
+}

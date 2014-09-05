@@ -30,3 +30,13 @@ testSequenceExpression3( (1, [...([, ])]), ...([...([/*1*/,/*2*/]/*3*/)]))
 		;
 	console.log(T.join("|") == [1, 1, 1].join("|"))
 }
+
+{//#43: spread and arrow
+	let arr = [1, 2, 3];
+
+	let func = function(a, b, c) {
+		return [a, b, c];
+	}
+
+	let result = func( () => true, ...arr );
+}
