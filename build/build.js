@@ -77,6 +77,7 @@ function prepareFile(files, description, fullPath) {
 	, {folder: 'transpiler', noRecursive: true}//, require: devDependencies}
 	, {folder: 'transpiler/extensions', noRecursive: true}
 	, {file: 'transpiler/core/comments'}
+	, {file: 'transpiler/core/standardVars'}
 	, {folder: 'polyfills/test'}
 
 	, {file: 'polyfills/RegExp', require: true}
