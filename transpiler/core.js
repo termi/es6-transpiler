@@ -9,6 +9,18 @@ const Scope = require("./../lib/scope");
 const error = require("./../lib/error");
 const comments = require('./core/comments.js');
 
+function extend(target) {
+	for ( let i = 1, len = arguments.length ; i < len ; i++ ) {
+		let source = arguments[i];
+
+		for ( let key in source ) if ( source.hasOwnProperty(key) ) {
+			target[key] = source[key];
+		}
+	}
+
+	return target;
+}
+
 function getline(node) {
 	return node.loc.start.line;
 }
@@ -59,6 +71,12 @@ function isProperty(node) {
 	let type;
 	return node && (type = node.type)
 		&& (type === "Property");
+}
+
+function isMethodDefinition(node) {
+	let type;
+	return node && (type = node.type)
+		&& (type === "MethodDefinition");
 }
 
 function isNonFunctionBlock(node) {
@@ -115,7 +133,7 @@ function isArrayPattern(node) {
 let UUID_PREFIX = "uuid" + ((Math.random() * 1e6) | 0);
 let UUID = 1;
 
-let core = module.exports = {
+let core = module.exports = extend({}, require('./core/standardVars.js'), {
 	reset: function() {
 		this.allIdentifiers = stringset();
 
@@ -662,11 +680,18 @@ let core = module.exports = {
 		return vars;
 	}
 
-	, PropertyToString: function(node) {
-		let isParentComputedProperty = node && isProperty(node.$parentNode) && node.$parentNode.computed;
+	, PropertyToString: function(node, justName) {
+		let isParentComputedProperty = node
+			&& (isProperty(node.$parentNode) || isMethodDefinition(node.$parentNode))
+			&& node.$parentNode.computed
+		;
+
+		let _dot = justName ? '' : '.';
+		let _computedBefore = justName ? '' : '[';
+		let _computedAfter = justName ? '' : ']';
 
 		if ( isParentComputedProperty ) {
-			return "[" + this.alter.get(node.range[0], node.range[1]) + "]";
+			return _computedBefore + this.alter.get(node.range[0], node.range[1]) + _computedAfter;
 		}
 
 		let isPrimitive = isLiteral(node) || isIdentifier(node);
@@ -674,14 +699,15 @@ let core = module.exports = {
 		if ( isPrimitive ) {
 			var result;
 			if( node.type === "Literal" ) {
-				result = "[" + node.raw + "]";
+				result = _computedBefore + node.raw + _computedAfter;
 			}
 			else {
-				result = "." + node.name;
+				result = _dot + node.name;
 			}
 
 			return result;
 		}
+		core.__printNode(node)
 
 		assert(false);
 	}
@@ -1442,7 +1468,7 @@ let core = module.exports = {
 
 		console.log(node);
 	}
-};
+});
 
 for(let i in core) if( core.hasOwnProperty(i) && typeof core[i] === "function" ) {
 	core[i] = core[i].bind(core);

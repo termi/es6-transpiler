@@ -3,54 +3,66 @@
 const assert = require("assert");
 const core = require("./core");
 
-function isIdentifier(node) {
-	return node && node.type === "Identifier";
+function isIdentifier(node, name) {
+	return node
+		&& node.type === "Identifier"
+		&& (!name || node.name == name)
+	;
 }
+function isMemberExpression(node) {
+	return node && node.type === "MemberExpression";
+}
+
 function isClass(node) {
 	return node && (node.type === "ClassDeclaration" || node.type === "ClassExpression")
 }
 
-const $defineProperty = "Object.defineProperty";
-const objectMixinBody =
-		"function(t,s){"
-			+ "for(var p in s){"
-				+ "if(s.hasOwnProperty(p)){"
-					+ "${Object_defineProperty}(t,p,Object.getOwnPropertyDescriptor(s,p));"
-				+ "}"
-			+ "}"
-		+ "return t}"
+function isHoistFunction(node) {
+	let type;
+	return node && (type = node.type)
+		&& (type === "FunctionDeclaration" || type === "FunctionExpression");
+}
+
+function isLiteral(node) {
+	let type;
+	return node && (type = node.type)
+		&& (type === "Literal");
+}
+
+const GET_CNAMES = "function f(o){" +
+	"var r,u;for(var p in o)if((r=o[p])&&typeof r ==='object'&&(u=r[\"__unq\"])){" +
+		"${getCNames_names}[u]=p;" +
+		"delete r[\"__unq\"];" +
+	"}" +
+	"return o;" +
+"};";
+
+function literalToName(string) {
+	let firstChar = string.charAt(0), lastChar = string.charAt(string.length - 1);
+	let isLiteral = (firstChar === '\'' || firstChar === '\"')
+		&& (lastChar === '\'' || lastChar === '\"')
 	;
+
+	if ( isLiteral ) {
+		return string.substring(1, string.length - 1);
+	}
+	return string;
+}
 
 const classesTranspiler = {
 	reset: function() {
-		this.__currentClassMethodsStatic = null;
-		this.__currentClassName = null;
-		this.__superRefName = null;
-		this.__protoRefName = null;
-		this.__staticRefName = null;
-		this.__currentAccessors = null;
-		this.__currentStaticAccessors = null;
-		this.__currentFirstStaticAccessor = null;
-
-		this.__staticPropertiesCount = 0;
-		this.__protoPropertiesCount = 0;
-	}
-
-	, createNames: function(node) {
-		// We need only one unique name for the entire file
-
-		if( !this.__superRefName ) {
-			this.__superRefName = core.unique("super", true);
-		}
-		if( !this.__protoRefName ) {
-			this.__protoRefName = core.unique("$proto", true);
-		}
-		if( !this.__staticRefName ) {
-			this.__staticRefName = core.unique("$static", true);
-		}
-
-		this.__DP = core.bubbledVariableDeclaration(node.$scope, "DP", $defineProperty);
-		this.__MIXIN = core.bubbledVariableDeclaration(node.$scope, "MIXIN", objectMixinBody.replace("${Object_defineProperty}", this.__DP));
+		this.__statistic = {
+			staticCount: 0
+			, protoCount: 0
+			, flexibleNamesCount: 0
+		};
+		this.__current = {
+			method: null
+			, name: ''
+			, accessors: {}
+			, staticAccessors: {}
+			, firstStaticAccessors: null
+		};
 	}
 
 	, setup: function(alter, ast, options) {
@@ -59,35 +71,79 @@ const classesTranspiler = {
 			this.__isInit = true;
 		}
 
+		core.registerVar('super', {persistent: true});
+//		core.registerVar('super_prototype', {persistent: true});
+		core.registerVar('static', {persistent: true});
+		core.registerVar('proto', {persistent: true});
+		core.registerVar('getCNames_names', {name: 'CNAMES', template: '[]'});
+		core.registerVar('getCNames', {name: 'GET_CNAMES', template: GET_CNAMES, deps: ['getCNames_names']});
+
 		this.alter = alter;
 	}
 
+	, accessorsDefinition: function(node, accessors) {
+		let accessorsKeys = Object.keys(accessors);
+		let accessorsFlexibleName = false;
+
+		let result = {
+			objectWrapper: ''
+			, main: ''
+			, afterAll: ''
+		};
+
+		if ( accessorsKeys.length ) {
+			result.main = accessorsKeys.map(function(key) {
+				let accessor = accessors[key];
+				let raw = accessor.raw
+					, getter = accessor.get
+					, setter = accessor.set
+					, isFlexibleName = !!accessor.$nameForSuper
+					, uniqueId
+				;
+
+				if ( isFlexibleName ) {
+					accessorsFlexibleName = isFlexibleName;
+
+					uniqueId = ++this.__statistic.flexibleNamesCount;
+
+					let nameForSuper = accessor.$nameForSuper;
+
+					let namesVar = core.createVars(node, "getCNames_names");
+
+					result.afterAll += (nameForSuper + '=' + namesVar + '[' + uniqueId + '];delete ' + namesVar + '[' + uniqueId + '];');
+				}
+
+
+				return (raw || key)
+					+ ": {" + (getter ? "\"get\": " + getter + ", " : "") + (setter ? "\"set\": " + setter + ", " : "") + "\"configurable\":true,\"enumerable\":true"
+					+ (isFlexibleName ? ', "__unq": ' + uniqueId : '')
+					+ "}"
+			}, this).join(", ");
+
+			if ( accessorsFlexibleName ) {
+				result.objectWrapper = core.createVars(node, "getCNames");
+			}
+		}
+
+		return result;
+	}
+
 	, createPrototypeString: function(node, className, superName, accessors) {
-		const accessorsKeys = Object.keys(accessors);
-
-		const accessorsString = accessorsKeys.map(function(key) {
-			let accessor = accessors[key];
-			let raw = accessor.raw, getter = accessor.get, setter = accessor.set;
-			return (raw || key) + ": {" + (getter ? "\"get\": " + getter + ", " : "") + (setter ? "\"set\": " + setter + ", " : "") + "\"configurable\": true, \"enumerable\": true}"
-		} ).join(", ");
-
-		let Object_defineProperty_name = core.bubbledVariableDeclaration(node.$scope, "DP", $defineProperty);
-		const freezePrototypeString = Object_defineProperty_name + "(" + className + ", \"prototype\", {\"configurable\": false, \"enumerable\": false, \"writable\": false});";
+		const freezePrototypeString =
+			core.createVars(node, "defineProperty")
+				+ "(" + className + ",\"prototype\",{\"configurable\":false,\"enumerable\":false,\"writable\":false});";
 
 		if ( superName ) {
-			return className
-				+ ".prototype = Object.create(" + superName + ".prototype"
-				+ ", {"
-				+ "\"constructor\": {\"value\": " + className + ", \"configurable\": true, \"writable\": true}"
-				+ (accessorsString ? ", " + accessorsString : "")
-				+ " }"
-				+ ");"
+			let names = core.createVars(node, {setPrototypeOf: true/*, "super_prototype": true*/});
+
+			return "if(" + superName + "!==null)" + names.setPrototypeOf + "(" + className + "," + superName + ");"
+				+ className + ".prototype = "
+				+ this.createAccessorsDefinitionString(node, className, accessors, true, superName)
 				+ freezePrototypeString
 			;
 		}
-		else if ( accessorsString ) {
-			return "Object.defineProperties("
-				+ className	+ ".prototype, {" + accessorsString + "});"
+		else if ( Object.keys(accessors).length ) {
+			return this.createAccessorsDefinitionString(node, className + ".prototype", accessors)
 				+ freezePrototypeString
 			;
 		}
@@ -96,24 +152,41 @@ const classesTranspiler = {
 		}
 	}
 
-	, createStaticAccessorsDefinitionString: function(node, recipientStr, accessors) {
-		let accessorsKeys = Object.keys(accessors);
+	, createAccessorsDefinitionString: function(node, recipientStr, accessors, createMode, superName) {
+		const accessorsDefinition = this.accessorsDefinition(node, accessors);
 
-		if ( !accessorsKeys.length ) {
-			return "";
+		assert(!createMode || superName);
+
+		const accessorsString = accessorsDefinition.main;
+		if ( !accessorsString && !createMode ) {
+			return '';
 		}
+		const beforeObject = accessorsDefinition.objectWrapper ? accessorsDefinition.objectWrapper + '(' : '';
+		const afterObject = accessorsDefinition.objectWrapper ? ')' : '';
+		const afterAll = accessorsDefinition.afterAll ? accessorsDefinition.afterAll + ';' : '';
 
-		return ";Object.defineProperties(" + recipientStr + ", {" + accessorsKeys.map(function(key) {
-			let accessor = accessors[key];
-			let raw = accessor.raw, getter = accessor.get, setter = accessor.set;
-			return (raw || key) + ": {" + (getter ? "\"get\": " + getter + ", " : "") + (setter ? "\"set\": " + setter : "") + ", \"configurable\": true, \"enumerable\": true}"
-		} ).join(", ") + "});";
+		let funcName = core.createVars(node, createMode ? 'create' : 'defineProperties');
+
+		return funcName
+			+ "("
+			+ (createMode ? superName + "!==null?" + superName + ".prototype:null" : recipientStr)
+			+ ","
+			+ beforeObject
+			+ "{"
+				+ (createMode
+					? "\"constructor\":{\"value\":" + recipientStr + ",\"configurable\":true,\"writable\":true}"
+						+ (accessorsString ? ", " + accessorsString : "")
+					: accessorsString
+				)
+			+ "}"
+			+ afterObject
+			+ ");"
+			+ afterAll
+		;
 	}
 
 	, ':: ClassDeclaration, ClassExpression': function replaceClassBody(node, astQuery) {
 		{
-			this.createNames(node);
-
 			const isClassExpression = node.type === 'ClassExpression'
 				, nodeId = node.id
 			;
@@ -122,7 +195,6 @@ const classesTranspiler = {
 
 			const classBodyNodes = node.body.body
 				, currentClassName = nodeId ? nodeId.name : core.unique("constructor", true)
-				, SUPER_NAME = this.__superRefName
 				, useStrictString = node.strictMode ? "" : "\"use strict\";"
 			;
 
@@ -133,31 +205,39 @@ const classesTranspiler = {
 				, extendedClassConstructorPostfix
 			;
 
-			let objectMixinFunctionName = this.__MIXIN;
+			let names = core.createVars(node, {"super": !!superClass, __proto__support: !!superClass, MIXIN: true});
 
 			node["$ClassName"] = currentClassName;
-			this.__currentClassName = currentClassName;
+			this.__current.name = currentClassName;
 
 			let classStr = (isClassExpression ? "(" : "var " + currentClassName + " = ")
 				+ "(function("
 			;
 
 			if( superClass ) {
-				classStr += SUPER_NAME;
-				superClass = isIdentifier(superClass) ? superClass.name : this.alter.get(superClass.range[0], superClass.range[1]);
+				classStr += names.super;
 
-				insertAfterBodyBegin_string = objectMixinFunctionName + "(" + currentClassName + ", " + SUPER_NAME + ");";
+				insertAfterBodyBegin_string =
+					'if(!' + names.__proto__support + ')'
+						+ names.MIXIN + "(" + currentClassName + ", " + names.super + ");";
 			}
 
 			classStr += ")";
 
 			for( let i = 0 ; i < classBodyNodesCount && !classConstructor ; i++ ) {
 				classConstructor = classBodyNodes[i];
+
 				if( classConstructor.type !== "MethodDefinition" ) {
 					classConstructor = null;
 				}
-				else if( classConstructor.key.name !== "constructor" ) {
-					classConstructor = null;
+				else {
+					let nodeKey = classConstructor.key;
+					let _isLiteral = isLiteral(nodeKey);
+					let methodName = _isLiteral ? nodeKey.value : nodeKey.name;
+
+					if( methodName !== "constructor" ) {
+						classConstructor = null;
+					}
 				}
 			}
 
@@ -165,16 +245,17 @@ const classesTranspiler = {
 				this.alter.replace(node.body.range[0], node.body.range[0] + 1, '{' + useStrictString);
 			}
 
-			this.__currentAccessors = {};
-			this.__currentStaticAccessors = {};
+			this.__current.accessors = {};
+			this.__current.staticAccessors = {};
 			if( classBodyNodesCount ) {
 				for ( let i = 0 ; i < classBodyNodesCount ; i++ ) {
-					this.replaceClassMethods(classBodyNodes[i], astQuery);
+					this.replaceClassMethods(this.__current.method = classBodyNodes[i], astQuery);
+					this.__current.method = null;
 				}
 			}
 
-			extendedClassConstructorPostfix = this.createPrototypeString(node, currentClassName, superClass && SUPER_NAME, this.__currentAccessors);
-			let staticAccessorsDefinitionString = this.createStaticAccessorsDefinitionString(node, currentClassName, this.__currentStaticAccessors);
+			extendedClassConstructorPostfix = this.createPrototypeString(node, currentClassName, superClass && names.super, this.__current.accessors);
+			let staticAccessorsDefinitionString = this.createAccessorsDefinitionString(node, currentClassName, this.__current.staticAccessors);
 
 			if( classConstructor ) {
 				this.alter.replace(classConstructor.key.range[0], classConstructor.key.range[1], "function " + currentClassName);
@@ -182,23 +263,31 @@ const classesTranspiler = {
 					this.alter.insert(classConstructor.range[1], extendedClassConstructorPostfix);
 				}
 
-				astQuery.traverse(classConstructor, this.replaceClassConstructorSuper);
-				astQuery.traverse(classConstructor, this.replaceClassMethodSuperInConstructor);
+				this.__current.method = classConstructor.value;
+				astQuery.traverse(classConstructor.value.body, this.replaceClassConstructorSuper);
+				astQuery.traverse(classConstructor.value.body, this.replaceClassMethodSuperInConstructor);
+				this.__current.method = null;
 			}
 			else {
 				insertAfterBodyBegin_string =  "function " + currentClassName + "() {"
-					+ (superClass ? SUPER_NAME + ".apply(this, arguments)" : "")
+					+ (superClass ? names.super + ".apply(this, arguments)" : "")
 					+ "}" + (insertAfterBodyBegin_string || "") + (extendedClassConstructorPostfix || "");
 			}
 
 			let theEndString = '', tmpVars = [];
-			if ( this.__staticPropertiesCount ) {
-				theEndString += (objectMixinFunctionName + '(' + currentClassName + ',' + this.__staticRefName + ');')
-				tmpVars.push(this.__staticRefName);
+			if ( this.__statistic.staticCount ) {
+				let staticName = core.createVars(node, "static");
+
+				theEndString += (names.MIXIN + '(' + currentClassName + ',' + staticName + ');')
+
+				tmpVars.push(staticName);
 			}
-			if ( this.__protoPropertiesCount ) {
-				theEndString += (objectMixinFunctionName + '(' + currentClassName + '.prototype,' + this.__protoRefName + ');')
-				tmpVars.push(this.__protoRefName);
+			if ( this.__statistic.protoCount ) {
+				let protoName = core.createVars(node, "proto");
+
+				theEndString += (names.MIXIN + '(' + currentClassName + '.prototype,' + protoName + ');')
+
+				tmpVars.push(protoName);
 			}
 			if ( tmpVars.length ) {
 				insertAfterBodyBegin_string += ('var ' + tmpVars.join('={},') + '={};');
@@ -209,7 +298,7 @@ const classesTranspiler = {
 			this.alter.insertBefore(node.body.range[0] + 1, insertAfterBodyBegin_string);
 
 			if ( staticAccessorsDefinitionString ) {
-				this.alter.insertAfter(this.__currentFirstStaticAccessor.range[1], staticAccessorsDefinitionString);
+				this.alter.insertAfter(this.__current.firstStaticAccessors.range[1], ';' + staticAccessorsDefinitionString);
 			}
 
 			// replace class definition
@@ -218,28 +307,61 @@ const classesTranspiler = {
 
 			this.alter.insert(node.range[1] - 1, theEndString + ";return " + currentClassName + ";");
 
-			this.alter.insert(node.range[1],
-				")(" + (superClass || "") + ")"
-				+ (isClassExpression ? ")" : ";")//tail ')' or semicolon
-			);
+			if ( superClass ) {
+				superClass = isIdentifier(superClass) ? superClass.name : this.alter.get(superClass.range[0], superClass.range[1]);
 
-			this.__currentClassName = null;
-			this.__staticPropertiesCount = 0;
-			this.__protoPropertiesCount = 0;
+				this.alter.insert(node.range[1],
+					")(" + superClass + ")"
+						+ (isClassExpression ? ")" : ";")//tail ')' or semicolon
+				);
+			}
+			else {
+				this.alter.insert(node.range[1],
+					")()" + (isClassExpression ? ")" : ";")//tail ')' or semicolon
+				);
+			}
+
+			this.reset();
 		}
 	}
 
-	, unwrapSuperCall: function unwrapSuperCall(node, calleeNode, isStatic, property, isConstructor) {
-		let superRefName = this.__superRefName;
-		assert(superRefName);
+	, unwrapSuperCall: function unwrapSuperCall(node, calleeNode, rootMethod, isConstructor) {
+		assert(!calleeNode.$originalName);
 
-		let changeStr = superRefName + (isStatic ? "" : ".prototype");
+		var superName = core.createVars(node, "super");
+
+		let isStatic = rootMethod.static;
+		let isAccessor = rootMethod.kind === 'get' || rootMethod.kind === 'set';
+		let changeStr = superName + (isStatic || isConstructor ? "" : ".prototype");
 		let callArguments = node.arguments;
-		let hasSpreadElement = !isStatic && callArguments.some(function(node){ return node.type === "SpreadElement" });
+		let hasSpreadElement = callArguments.some(function(node){ return node.type === "SpreadElement" });
+
+		let name = '', access = '';
+		if ( !isConstructor ) {
+			if ( name = rootMethod.$nameForSuper ) {
+				access = '[' + name + ']';
+			}
+			else {
+				name = core.PropertyToString(rootMethod.key, true);
+			}
+		}
+
+		if ( isAccessor ) {
+			changeStr = core.createVars(node, 'getOwnPropertyDescriptor')
+				+ '(' + changeStr + ',' + name + ')[\"' + rootMethod.kind + '\"]'
+		}
+		else {
+			if ( !isConstructor && !access && (!hasSpreadElement || !rootMethod.$__hasName) ) {
+				access = core.PropertyToString(rootMethod.key);
+			}
+			changeStr += access;
+		}
+
+		calleeNode.$originalName = calleeNode.name;
+		calleeNode.name = superName;
 
 		let changesEnd;
-		if( (!isStatic || isConstructor) && !hasSpreadElement ) {
-			changeStr += (property ? "." + property.name : "");
+		if( !hasSpreadElement ) {
 
 			if( !callArguments.length ) {
 				changeStr += ".call(this)";
@@ -249,71 +371,121 @@ const classesTranspiler = {
 				changeStr += ".call(this, ";
 				changesEnd = callArguments[0].range[0];
 			}
+
+			// text change 'super$0.call(this, <some>)'
+			this.alter.replace(calleeNode.range[0], changesEnd, changeStr);
 		}
 		else {
-			changesEnd = calleeNode.range[1];
+			// text change 'super(<some>)' => 'super$0(<some>)'
+			this.alter.replace(calleeNode.range[0], calleeNode.range[1], changeStr);
 		}
-
-		// text change 'super(<some>)' => 'super$0(<some>)' (if <some> contains SpreadElement) or 'super$0.call(this, <some>)'
-		this.alter.replace(calleeNode.range[0], changesEnd, changeStr);
 	}
 	
 	, replaceClassConstructorSuper: function replaceClassConstructorSuper(node) {
 		if( node.type === "CallExpression" ) {
 			let calleeNode = node.callee;
 
-			if( calleeNode && isIdentifier(calleeNode) && calleeNode.name === "super" ) {
-				this.unwrapSuperCall(node, calleeNode, true, null, true);
+			if( calleeNode && isIdentifier(calleeNode) && calleeNode.name === 'super' ) {
+
+				this.unwrapSuperCall(node, calleeNode, this.__current.method, true);
 			}
 		}
-		else if( isClass(node) ) {
+		else if( isClass(node) || isHoistFunction(node) ) {
 			return false;
 		}
 	}
 	
 	, replaceClassMethods: function replaceClassMethods(node, astQuery) {
-		if( node.type === "MethodDefinition" && node.key.name !== "constructor" ) {
-			let isStatic = this.__currentClassMethodsStatic = node.static;
+		let nodeKey = node.key;
+		let _isLiteral = isLiteral(nodeKey);
+		let methodName = core.PropertyToString(nodeKey, true);
+
+		if( node.type === "MethodDefinition" && (_isLiteral ? nodeKey.value : nodeKey.name) !== "constructor" ) {
+			let isStatic = node.static;
 			let isComputed = node.computed;
 
-			let nodeKey = node.key;
 			let keyRange = isComputed ? nodeKey.bracesRange : nodeKey.range;
 
-			if( node.kind === "set" || node.kind === "get" ) {
-				if ( isComputed ) {
-					let targetName = isStatic === true ? this.__currentClassName : this.__currentClassName + '.prototype';
+			this.__namedSuperCount = 0;
+			this.__unNamedSuperCount = 0;
+			astQuery.traverse(node.value.body, function(child) {
+				if( child.type === "CallExpression" ) {
+					child = child.callee;
 
-					// get [<name>]() -> DP$0(<className>.prototype,<name>,
-					this.alter.replace(node.range[0], nodeKey.bracesRange[0] + 1, this.__DP + '(' + targetName + ',');
+					if( isMemberExpression(child) ) {
+						let objectNode = child.object;
+						if( isIdentifier(objectNode) && objectNode.name === 'super' ) {
+							this.__namedSuperCount++;
+
+							node.$hasSuperInside = true;
+						}
+					}
+					else if ( isIdentifier(child) && child.name === 'super' ) {
+						this.__unNamedSuperCount++;
+
+						node.$hasSuperInside = true;
+					}
+				}
+				else if( isClass(child) || isHoistFunction(child) ) {
+					return false;
+				}
+			}.bind(this));
+
+			let unNamedSuperCount = this.__unNamedSuperCount;
+
+			if( node.kind === 'set' || node.kind === 'get' ) {
+				if ( isComputed ) {
+					let targetName = isStatic === true ? this.__current.name : this.__current.name + '.prototype';
+
+					if ( unNamedSuperCount ) {
+						methodName = core.getScopeTempVar(node, node.$scope);
+						// get [<name>]() -> $D$0=(<name>]()
+						this.alter.replace(node.range[0], nodeKey.bracesRange[0] + 1, methodName + '=(');
+						// $D$0=(<name>]() -> $D$0=(<name>)+'';DP$0(<className>.prototype,$D$0,
+						this.alter.insert(
+							nodeKey.range[1]
+							, ')+\'\';' + core.createVars(node, 'defineProperty') + '(' + targetName + ',' + methodName
+						);
+					}
+					else {
+						// get [<name>]() -> DP$0(<className>.prototype,<name>,
+						this.alter.replace(
+							node.range[0]
+							, nodeKey.bracesRange[0] + 1
+							, core.createVars(node, 'defineProperty') + '(' + targetName + ','
+						);
+					}
 					this.alter.replace(nodeKey.range[1], nodeKey.bracesRange[1], ',{"' + node.kind + '":function');
 
 					let nodeValue = node.value;
 					this.alter.insertAfter(nodeValue.range[1], ',"configurable":true,"enumerable":true});');
 				}
-				else {// TODO:: make is easiest
-					if ( isStatic && !this.__currentFirstStaticAccessor ) {
-						this.__currentFirstStaticAccessor = node;
+				else {
+					if ( isStatic && !this.__current.firstStaticAccessors ) {
+						this.__current.firstStaticAccessors = node;
 					}
 
-					let isLiteral = nodeKey.type == 'Literal';
-					assert(isIdentifier(nodeKey) || isLiteral);
+					assert(isIdentifier(nodeKey) || _isLiteral);
 
-					let name;
-					if ( isLiteral ) {
-						name = nodeKey.value;
-					}
-					else {
-						name = nodeKey.name;
-					}
+					let key = literalToName(methodName);
 
 					let accessor = isStatic === true
-						? this.__currentStaticAccessors[name] || (this.__currentStaticAccessors[name] = {})
-						: this.__currentAccessors[name] || (this.__currentAccessors[name] = {})
+						? this.__current.staticAccessors[key] || (this.__current.staticAccessors[key] = {})
+						: this.__current.accessors[key] || (this.__current.accessors[key] = {})
 					;
-					let replacement = accessor[node.kind] = core.unique((isStatic ? "static_" : "") + name + "$" + node.kind, true);
+					accessor.node = node;
+					let replacement = accessor[node.kind] =
+						core.unique((isStatic ? "static_" : "") + key + "$" + node.kind, true)
+					;
 
-					if ( isLiteral ) {
+					if ( _isLiteral ) {
 						accessor.raw = nodeKey.raw;
+					}
+					else if ( node.$hasSuperInside ) {
+						if ( !accessor.$nameForSuper ) {
+							accessor.$nameForSuper = core.getScopeTempVar(node, node.$scope);
+						}
+						node.$nameForSuper = accessor.$nameForSuper;
 					}
 
 					this.alter.replace(node.range[0], nodeKey.range[1], "function " + replacement);
@@ -322,23 +494,42 @@ const classesTranspiler = {
 			}
 			else {
 				if ( isStatic ) {
-					this.__staticPropertiesCount++;
+					this.__statistic.staticCount++;
 				}
 				else {
-					this.__protoPropertiesCount++;
+					this.__statistic.protoCount++;
 				}
 
-				let targetName = isStatic === true ? this.__staticRefName : this.__protoRefName;
+				let targetName = core.createVars(node, isStatic === true ? 'static' : 'proto');
 
-				if ( isStatic ) {
-					// text change 'static method(<something>)' => '$static$0.method(<something>)'
-					// text change 'static [method](<something>)' => '$static$0[method](<something>)'
-					this.alter.replace(node.range[0], keyRange[0], targetName + (isComputed ? '' : '.'));
+				if ( unNamedSuperCount && isComputed ) {
+					methodName = core.getScopeTempVar(node, node.$scope);
+
+					// text change 'static ['method' + i++](<something>)' => '$D$0=('method' + i++) + '';$static$0[$D$0](<something>)'
+					// text change '['method' + i++](<something>)' => '$D$0='method' + i++;$proto$0[$D$0](<something>)'
+
+					// [<name>]() -> $D$0=<name>]() or [<name>]() -> $D$0=(<name>]()
+					this.alter.replace(node.range[0], nodeKey.bracesRange[0] + 1, methodName + '=(');
+					// $D$0=(<name>]() -> $D$0=(<name>)+'';$proto$0[$D$0]()
+					this.alter.insertBefore(nodeKey.range[1], ')+\'\';' + targetName + '[' + methodName);
 				}
 				else {
-					// text change 'method(<something>)' => '$proto$0.method(<something>)'
-					// text change '[method](<something>)' => '$proto$0[method](<something>)'
-					this.alter.insert(node.range[0], targetName + (isComputed ? '' : '.'));
+					let beforeName = _isLiteral && !isComputed ? '[' : (isComputed ? '' : '.');
+					let afterName = _isLiteral && !isComputed ? ']' : '';
+
+					if ( isStatic ) {
+						// text change 'static method(<something>)' => '$static$0.method(<something>)'
+						// text change 'static [method](<something>)' => '$static$0[method](<something>)'
+						this.alter.replace(node.range[0], keyRange[0], targetName + beforeName);
+					}
+					else {
+						// text change 'method(<something>)' => '$proto$0.method(<something>)'
+						// text change '[method](<something>)' => '$proto$0[method](<something>)'
+						this.alter.insert(node.range[0], targetName + beforeName);
+					}
+					if ( afterName ) {
+						this.alter.insert(keyRange[1], afterName);
+					}
 				}
 
 				// text change 'method(<something>)' => 'method = function(<something>)', '[method](<something>)' => '[method] = function(<something>)'
@@ -347,32 +538,50 @@ const classesTranspiler = {
 				this.alter.insertBefore(node.range[1], ';', {extend: true});
 			}
 
-			astQuery.traverse(node.value, this.replaceClassMethodSuper);
+			node.$nameForSuper = node.$nameForSuper/* || methodName*/;
+			astQuery.traverse(node.value.body, this.replaceClassMethodSuper);
 		}
-		this.__currentClassMethodsStatic = null;
 	}
 	
 	, replaceClassMethodSuper: function replaceClassMethodSuper(node) {
 		if( node.type === "CallExpression" ) {
-			assert(typeof this.__currentClassMethodsStatic === "boolean");
-
 			let calleeNode = node.callee;
 
-			if( calleeNode && calleeNode.type === "MemberExpression" ) {
+			if( isMemberExpression(calleeNode) ) {
 				let objectNode = calleeNode.object;
-				if( objectNode && isIdentifier(objectNode) && objectNode.name === "super" ) {
+				if( isIdentifier(objectNode, 'super') ) {
 					// text change 'super.method(<some>)' => 'super$0(<some>)' (if <some> contains SpreadElement) or 'super$0.call(this, <some>)'
-					this.unwrapSuperCall(node, objectNode, this.__currentClassMethodsStatic, calleeNode.property);
+
+					this.unwrapSuperCall(node, objectNode, {
+						key: calleeNode.property
+						, $__hasName: true
+						, static: this.__current.method.static
+						, computed: this.__current.method.computed
+					});
+
+					return false;
 				}
 			}
+			else if ( isIdentifier(calleeNode, 'super') ) {
+				// text change 'super(<some>)' => 'super$0[<superMethodName>](<some>)' (if <some> contains SpreadElement) or 'super$0[<superMethodName>].call(this, <some>)'
+				this.unwrapSuperCall(node, calleeNode, this.__current.method);
+			}
 		}
-		else if( isClass(node) ) {
+		else if( isIdentifier(node, 'super') ) {
+			if ( !node.$originalName ) {
+				node.$originalName = node.name;
+				node.name = core.createVars(node, "super");
+
+				this.alter.replace(node.range[0], node.range[1], node.name);
+			}
+		}
+		else if( isClass(node) || isHoistFunction(node) ) {
 			return false;
 		}
 	}
 
 	, replaceClassMethodSuperInConstructor: function replaceClassMethodSuperInConstructor(node) {
-		if( isIdentifier(node) && node.name === "super" ) {
+		if( isIdentifier(node, 'super') ) {
 			let parent = node.$parent;
 			if ( parent.type === 'CallExpression' ) {
 				//'super(<some>)' case
@@ -381,9 +590,9 @@ const classesTranspiler = {
 			// TODO:: using letConts transpiler for renaming
 
 			// text change 'super.a(<some>)' => 'super$0.a(<some>)'
-			this.alter.replace(node.range[0], node.range[1], this.__superRefName);
+			this.alter.replace(node.range[0], node.range[1], core.createVars(node, 'super'));
 		}
-		else if( isClass(node) ) {
+		else if( isClass(node) || isHoistFunction(node) ) {
 			return false;
 		}
 	}
