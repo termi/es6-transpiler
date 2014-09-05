@@ -166,7 +166,8 @@ var plugin = module.exports = {
 					}
 					// add { and }
 					this.alter.insertBefore(fnBodyStart, "{", {extend: true});
-					this.alter.insert(fnBodyEnd, "}", {extend: true});
+//					this.alter.insertBefore(fnBodyEnd, "}", {extend: true});
+					this.alter.insert(fnBodyEnd, "}");
 
 					if( fnBodyHasHiddenBrackets ) {
 						// => (1)   ->   {return 1}

@@ -62,7 +62,7 @@ function findSpreadArgument(node) {
 }
 
 function getRange(node) {
-	return node && (node.groupRange || node.range);
+	return node && (node.bracesRange || node.groupRange || node.range);
 }
 
 function getLastNotNullElementIndex(elements, index) {

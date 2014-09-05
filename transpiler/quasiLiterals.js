@@ -155,7 +155,7 @@ var plugin = module.exports = {
 		let start = quasiContainer.range[0], end = quasiContainer.range[1];
 
 		this.alter.insert(start, "(" + temporaryVarName);
-		this.alter.insertBefore(end, ")");
+		this.alter.insertBefore(end, ")", {extend: true});
 	}
 
 	, __replaceQuasiLiterals: function(quasiContainer) {
