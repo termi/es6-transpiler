@@ -39,25 +39,25 @@ if( commandVariables.file && typeof commandVariables.file === "string" ) {
 	]
 }
 else {
-	tests = fs.readdirSync(pathToTests).filter(function(filename) {
-		return !/-out\.js$/.test(filename) && /.js$/.test(filename) && !/-stderr$/.test(filename);
-	});
+	tests = fs.readdirSync(pathToTests).filter((filename) => (
+		!/-out\.js$/.test(filename) && /.js$/.test(filename) && !/-stderr$/.test(filename)
+	));
 }
 
 if( commandVariables.filter && typeof commandVariables.filter === "string" ) {
 	commandVariables.filter = commandVariables.filter.toLowerCase();
-	tests = tests.filter(function(filename) {
-		return filename.toLowerCase().indexOf(commandVariables.filter) !== -1;
-	})
+	tests = tests.filter((filename) => (
+		filename.toLowerCase().indexOf(commandVariables.filter) !== -1
+	))
 }
 
 function stringCompare(str1, str2, compareType, removeLines) {
-	str1 = (str1 + "")
+	str1 = `${str1}`
 		.replace(/((\r\n)|\r|\n)/g, "\n")// Windows/Unix, Unicode/ASCII and IDE line break
 		.replace(/\t/g, "    ")// IDE settings
 		.trim()
 	;
-	str2 = (str2 + "")
+	str2 = `${str2}`
 		.replace(/((\r\n)|\r|\n)/g, "\n")// Windows/Unix, Unicode/ASCII and IDE line break
 		.replace(/\t/g, "    ")// IDE settings
 		.trim()
@@ -76,7 +76,7 @@ function stringCompare(str1, str2, compareType, removeLines) {
 
 	// check ansidiff.words first due something wrong with ansidiff.lines method result
 	try {
-		ansidiff.words(str1, str2, function(obj) {
+		ansidiff.words(str1, str2, (obj) => {
 			if( obj.added || obj.removed ) {
 				throw new Error();//diff's exists
 			}
@@ -112,23 +112,15 @@ function stringCompare(str1, str2, compareType, removeLines) {
 }
 
 function colorRed(text) {
-	return (
-		'\x1b[31m'  // red
-		+ text
-		+ '\x1b[39m'
-	);
+	return /*red*/`\x1b[31m${text}\x1b[39m`;
 }
 
 function colorGreen(text) {
-	return (
-		'\x1b[32m'  // green
-		+ text
-		+ '\x1b[39m'
-	);
+	return /*green*/`\x1b[32m${text}\x1b[39m`;
 }
 
 function fail(file, type, diff1, diff2) {
-	console.log("FAILED test " + file + " TYPE " + type + " (" + colorRed("EXPECTED") + "/" + colorGreen("CURRENT") + ")");
+	console.log(`FAILED test ${file} TYPE ${type} (${ colorRed("EXPECTED") }/${ colorGreen("CURRENT") })`);
 	console.log(diff1, "\n", diff2 || "");
 	console.log("\n---------------------------\n");
 }
@@ -137,7 +129,8 @@ function removeCommentsFromErrorsList(str) {
 	return str.replace(/^#[ \t\v\S]+((\n)|(\r\n))/gm, '');
 }
 
-function test(file) {
+console.log('test', tests.length, 'files');
+for ( let file of tests ) {
 	let result;
 	let errors;
 
@@ -145,7 +138,7 @@ function test(file) {
 		let fileSource = String(fs.readFileSync(path.join(pathToTests, file)));
 
 		if ( fileSource.contains(SUSPENDED_STRING) ) {
-			return;
+			continue;
 		}
 
 		result = es6transpiler.run({src: fileSource, polyfillsSeparator: "\/* <[tests es6-transpiler test file EOF ]> *\/"});
@@ -182,9 +175,4 @@ function test(file) {
 		}
 	}
 }
-
-//tests = [tests[0], tests[1]];
-
-console.log('test', tests.length, 'files');
-tests.forEach(test);
 console.log(tests.length, 'all done');

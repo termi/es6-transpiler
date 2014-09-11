@@ -1,2 +1,2 @@
 #!/bin/sh
-exec node --harmony "$0.es6.js" "$@"
+exec node "run-tests.js" "$@"
