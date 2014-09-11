@@ -35,7 +35,22 @@ const objectMixinBody =	"function(t,s){"
 //'})(Object.setPrototypeOf,{})';
 const $setPrototypeOf = 'Object.setPrototypeOf||' +
 	'function(o,p){' +
-		'o[\"__proto__\"]=p;' +
+		'if(${__proto__support}){' +
+			'o[\"__proto__\"]=p;' +
+		'}' +
+		'else {' +
+			'${defineProperty}(o,\"__proto__\",{\"value\":p,\"configurable\":true,\"enumerable\":false,\"writable\":true});' +
+		'}' +
+		'return o' +
+	'}'
+;
+const $__proto__literal_support = "(function(o){return o[\"a\"]===o[\"__proto__\"][\"a\"]})({\"__proto__\":{\"a\":{}}})";
+const $fix__proto__ = 'function(o,f){' +
+		'if((f||!${__proto__literal_support})&&o.hasOwnProperty(\"__proto__\")){' +
+			'var p=o[\"__proto__\"];' +
+			'delete o[\"__proto__\"];' +
+			'${setPrototypeOf}(o,p);' +
+		'}' +
 		'return o' +
 	'}'
 ;
@@ -44,13 +59,23 @@ var standardVars = {
 	"defineProperty": {template: $defineProperty, name: "DP"}
 	, "defineProperties": {template: $defineProperties, name: "DPS"}
 	, "create": {template: $create, name: "OC"}
-	, "setPrototypeOf": {template: $setPrototypeOf, name: "SP"}
+	, "setPrototypeOf": {
+		template: $setPrototypeOf
+		, deps: ["defineProperty", "__proto__support"]
+		, name: "SP"
+	}
 	, "getOwnPropertyDescriptor": {template: $getOwnPropertyDescriptor, name: "GOPD"}
 	, "MIXIN": {
 		template: objectMixinBody
 		, deps: ["defineProperty", "getOwnPropertyDescriptor"]
 	}
 	, "__proto__support": {template: $__proto__support, name: "PRS"}
+	, "__proto__literal_support": {template: $__proto__literal_support, name: "PRLS"}
+	, "fix__proto__": {
+		template: $fix__proto__
+		, deps: ["__proto__literal_support", "setPrototypeOf"]
+		, name: "FIX_PROTO"
+	}
 };
 
 function isTheSameVarDescriptions(d1, d2) {

@@ -20,6 +20,18 @@ function isLiteral(node) {
 		&& (type === "Literal");
 }
 
+function is__proto__Property(node) {
+	if ( node && node.type === 'Property' && node.kind !== 'get' && node.kind !== 'set' ) {
+		let nodeKey = node.key;
+
+		if ( nodeKey ) {
+			return nodeKey.name === '__proto__' || nodeKey.value === '__proto__';
+		}
+	}
+
+	return false;
+}
+
 const $GOPDS_P = "function(o){" +
 	"var d=Object.create(null);" +
 	"for(var p in o)if(o.hasOwnProperty(p)){" +
@@ -74,6 +86,21 @@ var plugin = module.exports = {
 		}
 	}
 
+	, '::Identifier[name=__proto__], Literal[value=__proto__]': function(node) {// ':: Property:has(Identifier[name=__proto__], Literal[value=__proto__])'
+		var parent = node.$parent;
+		if( parent && parent.type === 'Property' ) {
+			parent = parent.$parent;
+
+			if ( !parent.$uncomputed ) {
+				parent.$uncomputed = true;
+
+				assert(parent.type === 'ObjectExpression', parent.type + ' shoud be "ObjectExpression" instead');
+
+				this.replaceComputedProperties(parent);
+			}
+		}
+	}
+
 	, '::Property[computed=true]': function(node) {//':: !:not(ObjectPattern,ArrayPattern) > Property[computed=true]'
 		var parent = node.$parent;
 		if( !isArrayPattern(parent) && !isObjectPattern(parent)//filter destructuring
@@ -81,7 +108,7 @@ var plugin = module.exports = {
 		) {
 			parent.$uncomputed = true;
 
-			assert(parent.type === 'ObjectExpression');
+			assert(parent.type === 'ObjectExpression', parent.type + ' shoud be "ObjectExpression" instead');
 
 			this.replaceComputedProperties(parent);
 		}
@@ -95,6 +122,7 @@ var plugin = module.exports = {
 		let computedReplacementStarted = false;
 
 		let objectOpened = '';
+		let has__proto__inside = false;
 
 		let _this = this;
 		function closeOpenTag(prevProperty) {
@@ -106,13 +134,26 @@ var plugin = module.exports = {
 			}
 		}
 
-
 		let property = null, prevProperty;
 		for ( let i = 0, len = properties.length ; i < len ; i++ ) {
 			prevProperty = property;
 			property = properties[i];
 
 			let isComputed = property.computed;
+
+			if ( !isComputed && is__proto__Property(property) ) {
+				has__proto__inside = true;
+
+				let propKey = property.key;
+				if ( !isLiteral(propKey) ) {
+					delete propKey.name;
+					propKey.value = '__proto__';
+					propKey.raw = '\'__proto__\'';
+					propKey.type = 'Literal';
+					this.alter.insert(propKey.range[0], '\'', {extend: true});
+					this.alter.insertBefore(propKey.range[1], '\'', {extend: true});
+				}
+			}
 
 			if ( property.kind === 'get' || property.kind === 'set' ) {
 				if ( property.$objectLiteral_pass ) {
@@ -146,7 +187,7 @@ var plugin = module.exports = {
 
 				let propKey = property.key;
 				this.alter.remove(property.range[0], propKey.range[0]);//remove 'set ' or 'get ', or 'set [' or 'get ['
-				if ( isComputed === true ) {
+				if ( isComputed ) {
 					this.alter.remove(propKey.bracesRange[1] - 1, propKey.bracesRange[1]);//remove ']'
 				}
 				this.alter.insertBefore(propKey.range[1], (isComputed ? ',' : ':') + '{"' + property.kind + '":function');
@@ -200,6 +241,14 @@ var plugin = module.exports = {
 
 				computedReplacementStarted = false;
 			}
+		}
+
+		if ( has__proto__inside ) {
+			let forceFix = !!beforeString;
+
+			endFragment = (forceFix ? (endFragment + ', true') : '') + ')';
+
+			beforeString = core.createVars(node, "fix__proto__") + '(' + beforeString;
 		}
 
 		if ( beforeString ) {
