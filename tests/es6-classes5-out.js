@@ -13,7 +13,7 @@ var A = (function(){"use strict";var static$0={},proto$0={};
 	};
 MIXIN$0(A,static$0);MIXIN$0(A.prototype,proto$0);static$0=proto$0=void 0;return A;})();
 
-var B = (function(super$0){"use strict";var SP$0 = Object.setPrototypeOf||function(o,p){o["__proto__"]=p;return o};var OC$0 = Object.create;if(!PRS$0)MIXIN$0(B, super$0);var proto$0={};
+var B = (function(super$0){"use strict";var SP$0 = Object.setPrototypeOf||function(o,p){if(PRS$0){o["__proto__"]=p;}else {DP$0(o,"__proto__",{"value":p,"configurable":true,"enumerable":false,"writable":true});}return o};var OC$0 = Object.create;if(!PRS$0)MIXIN$0(B, super$0);var proto$0={};
 	function B(message) {
 		super$0.call(this, message);
 		this.greeting = message;

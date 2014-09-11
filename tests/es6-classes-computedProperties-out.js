@@ -8,7 +8,7 @@ var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurabl
 	DP$0(A.prototype,a,{"set":function(x){ throw new Error('you can\'t set ' + a) },"configurable":true,"enumerable":true});
 MIXIN$0(A,static$0);MIXIN$0(A.prototype,proto$0);static$0=proto$0=void 0;return A;})();
 
-var B = (function(super$0){"use strict";var SP$0 = Object.setPrototypeOf||function(o,p){o["__proto__"]=p;return o};var OC$0 = Object.create;var DPS$0 = Object.defineProperties;function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}, c: {"get": c$get$0, "set": c$set$0, "configurable":true,"enumerable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});var static$0={},proto$0={};
+var B = (function(super$0){"use strict";var SP$0 = Object.setPrototypeOf||function(o,p){if(PRS$0){o["__proto__"]=p;}else {DP$0(o,"__proto__",{"value":p,"configurable":true,"enumerable":false,"writable":true});}return o};var OC$0 = Object.create;var DPS$0 = Object.defineProperties;function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}, c: {"get": c$get$0, "set": c$set$0, "configurable":true,"enumerable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});var static$0={},proto$0={};
 
 	proto$0[a] = function() {
 		return a;

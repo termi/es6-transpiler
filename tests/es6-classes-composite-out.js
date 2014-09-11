@@ -14,7 +14,7 @@ var moduleGreeter = {
 };
 
 var moduleGreeter1 = {
-	Greeter1: ((function(super$0){"use strict";var SP$0 = Object.setPrototypeOf||function(o,p){o["__proto__"]=p;return o};var OC$0 = Object.create;if(!PRS$0)MIXIN$0(constructor$1, super$0);var proto$0={};
+	Greeter1: ((function(super$0){"use strict";var SP$0 = Object.setPrototypeOf||function(o,p){if(PRS$0){o["__proto__"]=p;}else {DP$0(o,"__proto__",{"value":p,"configurable":true,"enumerable":false,"writable":true});}return o};var OC$0 = Object.create;if(!PRS$0)MIXIN$0(constructor$1, super$0);var proto$0={};
 		function constructor$1(message) {
 			super$0.call(this, message);
 			this.greeting = message;

@@ -1,4 +1,4 @@
-var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P$0 = Object.getOwnPropertyDescriptors||function(o){var d=Object.create(null);for(var p in o)if(o.hasOwnProperty(p)){d[p]={"value":o[p],"enumerable":true,"configurable":true,"writable":true};}return d;};/* <[tests es6-transpiler SUSPENDED test file ]> */
+var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P$0 = function(o){var d=Object.create(null);for(var p in o)if(o.hasOwnProperty(p)){d[p]={"value":o[p],"enumerable":true,"configurable":true,"writable":true};}return d;};
 {// simple
 	var obj = DP$0({},
 		("test"),{"value": ("test"),"configurable":true,"enumerable":true,"writable":true}

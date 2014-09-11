@@ -1,4 +1,4 @@
-/* <[tests es6-transpiler SUSPENDED test file ]> */
+
 {// simple
 	let obj = {
 		[`test`]: `test`

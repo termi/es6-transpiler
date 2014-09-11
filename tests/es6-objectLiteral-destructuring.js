@@ -22,18 +22,18 @@
 
 }
 
+{// computed properties & arrow function & string template
+	let A, B, C;
+	let A$0 = 13, B$0 = 23, C$0 = 33;
+	let prop = "B";
+
+	{
+		let [{["A"]: A, [prop]: B, [(()=>"C")()]: C, [`${"D"}`]: D}] = [{A: A$0, B: B$0, C: C$0, D: C$0 + 10}];
+		console.log(A === 13, B === 23, C === 33, D === 43)
+	}
+
+}
 // TODO::
-//{// computed properties & arrow function & string template
-//	let A, B, C;
-//	let A$0 = 13, B$0 = 23, C$0 = 33;
-//	let prop = "B";
-//
-//	{
-//		let [{["A"]: A, [prop]: B, [(()=>"C")()]: C, [`${"D"}`]: D}] = [{A: A$0, B: B$0, C: C$0, D: C$0 + 10}];
-//		console.log(A === 13, B === 23, C === 33, D === 43)
-//	}
-//
-//}
 //
 //{// computed properties & default values & arrow function & string template
 //	let A, B, C;
