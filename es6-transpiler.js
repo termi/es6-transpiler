@@ -187,12 +187,12 @@ module.exports = {
 
 		// input
 		let isSourceInput = false;
-		if( typeof config.filename === "string" ) {
-			this.src = String(fs.readFileSync(config.filename));
+		if( typeof config.src === "string" || typeof config.src === "object" ) {
+			this.src = String(config.src);
 			isSourceInput = true;
 		}
-		else if( typeof config.src === "string" || typeof config.src === "object" ) {
-			this.src = String(config.src);
+		else if( typeof config.filename === "string" ) {
+			this.src = String(fs.readFileSync(config.filename));
 			isSourceInput = true;
 		}
 		else if( typeof config.ast === "object" ) {
