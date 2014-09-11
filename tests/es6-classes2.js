@@ -128,7 +128,7 @@
 	}
 	class B extends A {
 		get a() {
-			return super(a);
+			return super();
 		}
 	}
 
@@ -202,7 +202,7 @@
 	}
 	class B extends A {
 		static get a() {
-			return super(a);
+			return super();
 		}
 	}
 
@@ -280,7 +280,7 @@
 	}
 	class B extends A {
 		get a() {
-			return super(a);
+			return super();
 		}
 
 		set a(a) {
@@ -330,7 +330,7 @@
 	}
 	class B extends A {
 		static get a() {
-			return super(a);
+			return super();
 		}
 
 		static set a(a) {
@@ -486,7 +486,7 @@
 	}
 	class B extends A {
 		get 'a'() {
-			return super(a);
+			return super();
 		}
 	}
 
@@ -561,7 +561,7 @@
 	}
 	class B extends A {
 		static get 'a'() {
-			return super(a);
+			return super();
 		}
 	}
 
@@ -639,7 +639,7 @@
 	}
 	class B extends A {
 		get 'a'() {
-			return super(a);
+			return super();
 		}
 
 		set 'a'(a) {
@@ -689,7 +689,7 @@
 	}
 	class B extends A {
 		static get 'a'() {
-			return super(a);
+			return super();
 		}
 
 		static set 'a'(a) {
@@ -728,15 +728,25 @@
 
 // --------------------======================== COMPUTED ========================--------------------
 
-let postfix = 'd' + Math.random();
+let postfix = {
+	counter: 0
+	, stringTag: 'd' + Math.random()
+	, toString(){ return ++this.counter + this.stringTag }
+	, reset(){ this.counter = 0 }
+};
 
 // parent class and child class: with computed method
 (function() {
+	postfix.reset();
+
 	class A {
 		['a' + postfix](a) {
 			return 'test'
 		}
 	}
+
+	postfix.reset();
+
 	class B extends A {
 		['a' + postfix](a) {
 			return super(a);
@@ -746,12 +756,16 @@ let postfix = 'd' + Math.random();
 	let pk1 = Object.keys(A.prototype);let sk1 = Object.keys(A);
 	let pk2 = Object.keys(B.prototype);let sk2 = Object.keys(B);
 	let b = new B;
+
+	postfix.reset();
 
 	console.log(b.constructor == B, b instanceof A, pk1.length === 1, pk2.length === 1, sk1.length === 0, sk2.length === 0, b instanceof B, b['a' + postfix]() === 'test');
 })();
 
 // parent class and child class: parent with computed method, child without computed method
 (function() {
+	postfix.reset();
+
 	class A {
 		['a' + postfix](a) {
 			return 'test'
@@ -763,16 +777,23 @@ let postfix = 'd' + Math.random();
 	let pk2 = Object.keys(B.prototype);let sk2 = Object.keys(B);
 	let b = new B;
 
+	postfix.reset();
+
 	console.log(b.constructor == B, b instanceof A, pk1.length === 1, pk2.length === 0, sk1.length === 0, sk2.length === 0, b instanceof B, b['a' + postfix]() === 'test');
 })();
 
 // parent class and child class: with computed static method
 (function() {
+	postfix.reset();
+
 	class A {
 		static ['a' + postfix](a) {
 			return 'test'
 		}
 	}
+
+	postfix.reset();
+
 	class B extends A {
 		static ['a' + postfix](a) {
 			return super(a);
@@ -783,11 +804,15 @@ let postfix = 'd' + Math.random();
 	let pk2 = Object.keys(B.prototype);let sk2 = Object.keys(B);
 	let b = new B;
 
-	console.log(b.constructor == B, b instanceof A, pk1.length === 0, pk2.length === 0, sk1.length === 1, sk2.length === 1, b instanceof B, A['a' + postfix]() === 'test', B['a' + postfix]() === 'test');
+	postfix.reset();
+
+	console.log(b.constructor == B, b instanceof A, pk1.length === 0, pk2.length === 0, sk1.length === 1, sk2.length === 1, b instanceof B, A['a' + postfix]() === 'test', B['a' + (postfix.reset(), postfix)]() === 'test');
 })();
 
 // parent class and child class: parent with computed static method, child without computed static method
 (function() {
+	postfix.reset();
+
 	class A {
 		static ['a' + postfix](a) {
 			return 'test'
@@ -799,16 +824,23 @@ let postfix = 'd' + Math.random();
 	let pk2 = Object.keys(B.prototype);let sk2 = Object.keys(B);
 	let b = new B;
 
-	console.log(b.constructor == B, b instanceof A, pk1.length === 0, pk2.length === 0, sk1.length === 1, sk2.length === 0, b instanceof B, A['a' + postfix]() === 'test', B['a' + postfix]() === 'test');
+	postfix.reset();
+
+	console.log(b.constructor == B, b instanceof A, pk1.length === 0, pk2.length === 0, sk1.length === 1, sk2.length === 0, b instanceof B, A['a' + postfix]() === 'test', B['a' + (postfix.reset(), postfix)]() === 'test');
 })();
 
 // parent class and child class: with computed getter
 (function() {
+	postfix.reset();
+
 	class A {
 		get ['a' + postfix]() {
 			return 'test'
 		}
 	}
+
+	postfix.reset();
+
 	class B extends A {
 		get ['a' + postfix]() {
 			return super();
@@ -819,11 +851,15 @@ let postfix = 'd' + Math.random();
 	let pk2 = Object.keys(B.prototype);let sk2 = Object.keys(B);
 	let b = new B;
 
+	postfix.reset();
+
 	console.log(b.constructor == B, b instanceof A, pk1.length === 1, pk2.length === 1, sk1.length === 0, sk2.length === 0, b instanceof B, b['a' + postfix] === 'test');
 })();
 
 // parent class and child class: parent with computed getter, child without computed getter
 (function() {
+	postfix.reset();
+
 	class A {
 		get ['a' + postfix]() {
 			return 'test'
@@ -834,6 +870,8 @@ let postfix = 'd' + Math.random();
 	let pk1 = Object.keys(A.prototype);let sk1 = Object.keys(A);
 	let pk2 = Object.keys(B.prototype);let sk2 = Object.keys(B);
 	let b = new B;
+
+	postfix.reset();
 
 	console.log(b.constructor == B, b instanceof A, pk1.length === 1, pk2.length === 0, sk1.length === 0, sk2.length === 0, b instanceof B, b['a' + postfix] === 'test');
 })();
@@ -841,11 +879,16 @@ let postfix = 'd' + Math.random();
 
 // parent class and child class: with computed setter
 (function() {
+	postfix.reset();
+
 	class A {
 		set ['a' + postfix](a) {
 			this._a = a + '_' + 9;
 		}
 	}
+
+	postfix.reset();
+
 	class B extends A {
 		set ['a' + postfix](a) {
 			super(a);
@@ -855,13 +898,20 @@ let postfix = 'd' + Math.random();
 	let pk1 = Object.keys(A.prototype);let sk1 = Object.keys(A);
 	let pk2 = Object.keys(B.prototype);let sk2 = Object.keys(B);
 	let b = new B;
+
+	postfix.reset();
+
 	b['a' + postfix] = 'test';
+
+	postfix.reset();
 
 	console.log(b.constructor == B, b instanceof A, pk1.length === 1, pk2.length === 1, sk1.length === 0, sk2.length === 0, b instanceof B, b._a === 'test_9');
 })();
 
 // parent class and child class: parent with computed setter, child without computed setter
 (function() {
+	postfix.reset();
+
 	class A {
 		set ['a' + postfix](a) {
 			this._a = a + '_' + 9;
@@ -872,18 +922,28 @@ let postfix = 'd' + Math.random();
 	let pk1 = Object.keys(A.prototype);let sk1 = Object.keys(A);
 	let pk2 = Object.keys(B.prototype);let sk2 = Object.keys(B);
 	let b = new B;
+
+	postfix.reset();
+
 	b['a' + postfix] = 'test';
+
+	postfix.reset();
 
 	console.log(b.constructor == B, b instanceof A, pk1.length === 1, pk2.length === 0, sk1.length === 0, sk2.length === 0, b instanceof B, b._a === 'test_9');
 })();
 
 // parent class and child class: with computed static getter
 (function() {
+	postfix.reset();
+
 	class A {
 		static get ['a' + postfix]() {
 			return 'test'
 		}
 	}
+
+	postfix.reset();
+
 	class B extends A {
 		static get ['a' + postfix]() {
 			return super();
@@ -894,11 +954,15 @@ let postfix = 'd' + Math.random();
 	let pk2 = Object.keys(B.prototype);let sk2 = Object.keys(B);
 	let b = new B;
 
-	console.log(b.constructor == B, b instanceof A, pk1.length === 0, pk2.length === 0, sk1.length === 1, sk2.length === 1, b instanceof B, A['a' + postfix] === 'test', B['a' + postfix] === 'test');
+	postfix.reset();
+
+	console.log(b.constructor == B, b instanceof A, pk1.length === 0, pk2.length === 0, sk1.length === 1, sk2.length === 1, b instanceof B, A['a' + postfix] === 'test', B['a' + (postfix.reset(), postfix)] === 'test');
 })();
 
 // parent class and child class: parent with computed static getter, child without computed static getter
 (function() {
+	postfix.reset();
+
 	class A {
 		static get ['a' + postfix]() {
 			return 'test'
@@ -910,16 +974,23 @@ let postfix = 'd' + Math.random();
 	let pk2 = Object.keys(B.prototype);let sk2 = Object.keys(B);
 	let b = new B;
 
-	console.log(b.constructor == B, b instanceof A, pk1.length === 0, pk2.length === 0, sk1.length === 1, sk2.length === 0, b instanceof B, A['a' + postfix] === 'test', B['a' + postfix] === 'test');
+	postfix.reset();
+
+	console.log(b.constructor == B, b instanceof A, pk1.length === 0, pk2.length === 0, sk1.length === 1, sk2.length === 0, b instanceof B, A['a' + postfix] === 'test', B['a' + (postfix.reset(), postfix)] === 'test');
 })();
 
 // parent class and child class: with computed static setter
 (function() {
+	postfix.reset();
+
 	class A {
 		static set ['a' + postfix](a) {
 			this._a = a + '_' + 9;
 		}
 	}
+
+	postfix.reset();
+
 	class B extends A {
 		static set ['a' + postfix](a) {
 			super(a);
@@ -929,13 +1000,20 @@ let postfix = 'd' + Math.random();
 	let pk1 = Object.keys(A.prototype);let sk1 = Object.keys(A);
 	let pk2 = Object.keys(B.prototype);let sk2 = Object.keys(B);
 	let b = new B;
+
+	postfix.reset();
+
 	B['a' + postfix] = 'test';
+
+	postfix.reset();
 
 	console.log(b.constructor == B, b instanceof A, pk1.length === 0, pk2.length === 0, sk1.length === 1, sk2.length === 1, b instanceof B, A._a === void 0, B._a === 'test_9');
 })();
 
 // parent class and child class: parent with computed static setter, child without computed static setter
 (function() {
+	postfix.reset();
+
 	class A {
 		static set ['a' + postfix](a) {
 			this._a = a + '_' + 9;
@@ -946,28 +1024,38 @@ let postfix = 'd' + Math.random();
 	let pk1 = Object.keys(A.prototype);let sk1 = Object.keys(A);
 	let pk2 = Object.keys(B.prototype);let sk2 = Object.keys(B);
 	let b = new B;
+
+	postfix.reset();
+
 	B['a' + postfix] = 'test';
+
+	postfix.reset();
 
 	console.log(b.constructor == B, b instanceof A, pk1.length === 0, pk2.length === 0, sk1.length === 1, sk2.length === 0, b instanceof B, A._a === void 0, B._a === 'test_9');
 })();
 
 // parent class and child class: with computed getter and setter
 (function() {
+	postfix.reset();
+
 	class A {
 		get ['a' + postfix]() {
 			return this._a;
 		}
 
-		set ['a' + postfix](a) {
+		set ['a' + (postfix.reset(), postfix)](a) {
 			this._a = a + '_' + 9;
 		}
 	}
+
+	postfix.reset();
+
 	class B extends A {
 		get ['a' + postfix]() {
 			return super();
 		}
 
-		set ['a' + postfix](a) {
+		set ['a' + (postfix.reset(), postfix)](a) {
 			super(a);
 		}
 	}
@@ -975,19 +1063,26 @@ let postfix = 'd' + Math.random();
 	let pk1 = Object.keys(A.prototype);let sk1 = Object.keys(A);
 	let pk2 = Object.keys(B.prototype);let sk2 = Object.keys(B);
 	let b = new B;
+
+	postfix.reset();
+
 	b['a' + postfix] = 'test';
+
+	postfix.reset();
 
 	console.log(b.constructor == B, b instanceof A, pk1.length === 1, pk2.length === 1, sk1.length === 0, sk2.length === 0, b instanceof B, b['a' + postfix] === 'test_9', b._a === 'test_9');
 })();
 
 // parent class and child class: parent with computed getter and setter, child without computed getter and setter
 (function() {
+	postfix.reset();
+
 	class A {
 		get ['a' + postfix]() {
 			return this._a;
 		}
 
-		set ['a' + postfix](a) {
+		set ['a' + (postfix.reset(), postfix)](a) {
 			this._a = a + '_' + 9;
 		}
 	}
@@ -996,28 +1091,38 @@ let postfix = 'd' + Math.random();
 	let pk1 = Object.keys(A.prototype);let sk1 = Object.keys(A);
 	let pk2 = Object.keys(B.prototype);let sk2 = Object.keys(B);
 	let b = new B;
+
+	postfix.reset();
+
 	b['a' + postfix] = 'test';
+
+	postfix.reset();
 
 	console.log(b.constructor == B, b instanceof A, pk1.length === 1, pk2.length === 0, sk1.length === 0, sk2.length === 0, b instanceof B, b['a' + postfix] === 'test_9', b._a === 'test_9');
 })();
 
 // parent class and child class: with computed static getter and setter
 (function() {
+	postfix.reset();
+
 	class A {
 		static get ['a' + postfix]() {
 			return this._a;
 		}
 
-		static set ['a' + postfix](a) {
+		static set ['a' + (postfix.reset(), postfix)](a) {
 			this._a = a + '_' + 9;
 		}
 	}
+
+	postfix.reset()
+
 	class B extends A {
 		static get ['a' + postfix]() {
 			return super();
 		}
 
-		static set ['a' + postfix](a) {
+		static set ['a' + (postfix.reset(), postfix)](a) {
 			super(a);
 		}
 	}
@@ -1025,19 +1130,26 @@ let postfix = 'd' + Math.random();
 	let pk1 = Object.keys(A.prototype);let sk1 = Object.keys(A);
 	let pk2 = Object.keys(B.prototype);let sk2 = Object.keys(B);
 	let b = new B;
+
+	postfix.reset();
+
 	B['a' + postfix] = 'test';
 
-	console.log(b.constructor == B, b instanceof A, pk1.length === 0, pk2.length === 0, sk1.length === 1, sk2.length === 1, b instanceof B, B['a' + postfix] === 'test_9', B._a === 'test_9', B['a' + postfix] === 'test_9');
+	postfix.reset();
+
+	console.log(b.constructor == B, b instanceof A, pk1.length === 0, pk2.length === 0, sk1.length === 1, sk2.length === 1, b instanceof B, B['a' + postfix] === 'test_9', B._a === 'test_9', B['a' + (postfix.reset(), postfix)] === 'test_9');
 })();
 
 // parent class and child class: with computed static getter and setter, child without computed static getter and setter
 (function() {
+	postfix.reset();
+
 	class A {
 		static get ['a' + postfix]() {
 			return this._a;
 		}
 
-		static set ['a' + postfix](a) {
+		static set ['a' + (postfix.reset(), postfix)](a) {
 			this._a = a + '_' + 9;
 		}
 	}
@@ -1046,7 +1158,12 @@ let postfix = 'd' + Math.random();
 	let pk1 = Object.keys(A.prototype);let sk1 = Object.keys(A);
 	let pk2 = Object.keys(B.prototype);let sk2 = Object.keys(B);
 	let b = new B;
+
+	postfix.reset();
+
 	B['a' + postfix] = 'test';
 
-	console.log(b.constructor == B, b instanceof A, pk1.length === 0, pk2.length === 0, sk1.length === 1, sk2.length === 0, b instanceof B, A['a' + postfix] === void 0, B._a === 'test_9', B['a' + postfix] === 'test_9');
+	postfix.reset();
+
+	console.log(b.constructor == B, b instanceof A, pk1.length === 0, pk2.length === 0, sk1.length === 1, sk2.length === 0, b instanceof B, A['a' + postfix] === void 0, B._a === 'test_9', B['a' + (postfix.reset(), postfix)] === 'test_9');
 })();

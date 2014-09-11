@@ -1,4 +1,4 @@
-var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var DP$0 = Object.defineProperty;var GOPD$0 = Object.getOwnPropertyDescriptor;var MIXIN$0 = function(t,s){for(var p in s){if(s.hasOwnProperty(p)){DP$0(t,p,GOPD$0(s,p));}}return t};var SP$0 = Object.setPrototypeOf||function(o,p){o["__proto__"]=p;return o};var OC$0 = Object.create;var DPS$0 = Object.defineProperties;var CNAMES$0 = [];var GET_CNAMES$0 = function f(o){var r,u;for(var p in o)if((r=o[p])&&typeof r ==='object'&&(u=r["__unq"])){CNAMES$0[u]=p;delete r["__unq"];}return o;};;
+var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var DP$0 = Object.defineProperty;var GOPD$0 = Object.getOwnPropertyDescriptor;var MIXIN$0 = function(t,s){for(var p in s){if(s.hasOwnProperty(p)){DP$0(t,p,GOPD$0(s,p));}}return t};var SP$0 = Object.setPrototypeOf||function(o,p){if(PRS$0){o["__proto__"]=p;}else {DP$0(o,"__proto__",{"value":p,"configurable":true,"enumerable":false,"writable":true});}return o};var OC$0 = Object.create;var DPS$0 = Object.defineProperties;var CNAMES$0 = [];var GET_CNAMES$0 = function f(o){var r,u;for(var p in o)if((r=o[p])&&typeof r ==='object'&&(u=r["__unq"])){CNAMES$0[u]=p;delete r["__unq"];}return o;};;
 // parent class and child class: without constructor
 (function() {
 	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});;return A;})();
@@ -17,12 +17,12 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 		function A(a) {
 			this.a = a;
 		}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		;return A;})();
+	;return A;})();
 	var B = (function(super$0){"use strict";if(!PRS$0)MIXIN$0(B, super$0);
 		function B(a) {
 			super$0.call(this, a);
 		}if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		;return B;})(A);
+	;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
 	var pk2 = Object.keys(B.prototype);var sk2 = Object.keys(B);
@@ -37,7 +37,7 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 		function A(a) {
 			this.a = a;
 		}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		;return A;})();
+	;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false}); ;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
@@ -53,12 +53,12 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 		proto$0.a = function(a) {
 			return 'test'
 		};
-		MIXIN$0(A.prototype,proto$0);proto$0=void 0;return A;})();
+	MIXIN$0(A.prototype,proto$0);proto$0=void 0;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});var proto$0={};
 		proto$0.a = function(a) {
 			return super$0.prototype.a.call(this, a);
 		};
-		MIXIN$0(B.prototype,proto$0);proto$0=void 0;return B;})(A);
+	MIXIN$0(B.prototype,proto$0);proto$0=void 0;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
 	var pk2 = Object.keys(B.prototype);var sk2 = Object.keys(B);
@@ -73,7 +73,7 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 		proto$0.a = function(a) {
 			return 'test'
 		};
-		MIXIN$0(A.prototype,proto$0);proto$0=void 0;return A;})();
+	MIXIN$0(A.prototype,proto$0);proto$0=void 0;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false}); ;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
@@ -89,12 +89,12 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 		static$0.a = function(a) {
 			return 'test'
 		};
-		MIXIN$0(A,static$0);static$0=void 0;return A;})();
+	MIXIN$0(A,static$0);static$0=void 0;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});var static$0={};
 		static$0.a = function(a) {
 			return super$0.a.call(this, a);
 		};
-		MIXIN$0(B,static$0);static$0=void 0;return B;})(A);
+	MIXIN$0(B,static$0);static$0=void 0;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
 	var pk2 = Object.keys(B.prototype);var sk2 = Object.keys(B);
@@ -109,7 +109,7 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 		static$0.a = function(a) {
 			return 'test'
 		};
-		MIXIN$0(A,static$0);static$0=void 0;return A;})();
+	MIXIN$0(A,static$0);static$0=void 0;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false}); ;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
@@ -125,12 +125,12 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 		function a$get$0() {
 			return 'test'
 		}
-		;return A;})();
+	;return A;})();
 	var B = (function(super$0){"use strict";var $D$0;function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,GET_CNAMES$0({"constructor":{"value":B,"configurable":true,"writable":true}, a: {"get": a$get$1, "configurable":true,"enumerable":true, "__unq": 1}}));$D$0=CNAMES$0[1];delete CNAMES$0[1];;DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
 		function a$get$1() {
-			return GOPD$0(super$0.prototype,$D$0)["get"].call(this, a);
+			return GOPD$0(super$0.prototype,$D$0)["get"].call(this);
 		}
-		;return B;})(A);
+	;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
 	var pk2 = Object.keys(B.prototype);var sk2 = Object.keys(B);
@@ -145,7 +145,7 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 		function a$get$2() {
 			return 'test'
 		}
-		;return A;})();
+	;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false}); ;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
@@ -161,12 +161,12 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 		function a$set$0(a) {
 			this._a = a + '_' + 9;
 		}
-		;return A;})();
+	;return A;})();
 	var B = (function(super$0){"use strict";var $D$1;function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,GET_CNAMES$0({"constructor":{"value":B,"configurable":true,"writable":true}, a: {"set": a$set$1, "configurable":true,"enumerable":true, "__unq": 1}}));$D$1=CNAMES$0[1];delete CNAMES$0[1];;DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
 		function a$set$1(a) {
 			GOPD$0(super$0.prototype,$D$1)["set"].call(this, a);
 		}
-		;return B;})(A);
+	;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
 	var pk2 = Object.keys(B.prototype);var sk2 = Object.keys(B);
@@ -182,7 +182,7 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 		function a$set$2(a) {
 			this._a = a + '_' + 9;
 		}
-		;return A;})();
+	;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false}); ;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
@@ -199,12 +199,12 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 		function static_a$get$0() {
 			return 'test'
 		};DPS$0(A,{a: {"get": static_a$get$0, "configurable":true,"enumerable":true}});
-		;return A;})();
+	;return A;})();
 	var B = (function(super$0){"use strict";var $D$2;function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
 		function static_a$get$1() {
-			return GOPD$0(super$0,$D$2)["get"].call(this, a);
+			return GOPD$0(super$0,$D$2)["get"].call(this);
 		};DPS$0(B,GET_CNAMES$0({a: {"get": static_a$get$1, "configurable":true,"enumerable":true, "__unq": 1}}));$D$2=CNAMES$0[1];delete CNAMES$0[1];;
-		;return B;})(A);
+	;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
 	var pk2 = Object.keys(B.prototype);var sk2 = Object.keys(B);
@@ -219,7 +219,7 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 		function static_a$get$2() {
 			return 'test'
 		};DPS$0(A,{a: {"get": static_a$get$2, "configurable":true,"enumerable":true}});
-		;return A;})();
+	;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false}); ;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
@@ -235,12 +235,12 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 		function static_a$set$0(a) {
 			this._a = a + '_' + 9;
 		};DPS$0(A,{a: {"set": static_a$set$0, "configurable":true,"enumerable":true}});
-		;return A;})();
+	;return A;})();
 	var B = (function(super$0){"use strict";var $D$3;function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
 		function static_a$set$1(a) {
 			GOPD$0(super$0,$D$3)["set"].call(this, a);
 		};DPS$0(B,GET_CNAMES$0({a: {"set": static_a$set$1, "configurable":true,"enumerable":true, "__unq": 1}}));$D$3=CNAMES$0[1];delete CNAMES$0[1];;
-		;return B;})(A);
+	;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
 	var pk2 = Object.keys(B.prototype);var sk2 = Object.keys(B);
@@ -256,7 +256,7 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 		function static_a$set$2(a) {
 			this._a = a + '_' + 9;
 		};DPS$0(A,{a: {"set": static_a$set$2, "configurable":true,"enumerable":true}});
-		;return A;})();
+	;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false}); ;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
@@ -277,16 +277,16 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 		function a$set$3(a) {
 			this._a = a + '_' + 9;
 		}
-		;return A;})();
+	;return A;})();
 	var B = (function(super$0){"use strict";var $D$4;function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,GET_CNAMES$0({"constructor":{"value":B,"configurable":true,"writable":true}, a: {"get": a$get$4, "set": a$set$4, "configurable":true,"enumerable":true, "__unq": 1}}));$D$4=CNAMES$0[1];delete CNAMES$0[1];;DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
 		function a$get$4() {
-			return GOPD$0(super$0.prototype,$D$4)["get"].call(this, a);
+			return GOPD$0(super$0.prototype,$D$4)["get"].call(this);
 		}
 
 		function a$set$4(a) {
 			GOPD$0(super$0.prototype,$D$4)["set"].call(this, a);
 		}
-		;return B;})(A);
+	;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
 	var pk2 = Object.keys(B.prototype);var sk2 = Object.keys(B);
@@ -306,7 +306,7 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 		function a$set$5(a) {
 			this._a = a + '_' + 9;
 		}
-		;return A;})();
+	;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false}); ;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
@@ -327,16 +327,16 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 		function static_a$set$3(a) {
 			this._a = a + '_' + 9;
 		}
-		;return A;})();
+	;return A;})();
 	var B = (function(super$0){"use strict";var $D$5;function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
 		function static_a$get$4() {
-			return GOPD$0(super$0,$D$5)["get"].call(this, a);
+			return GOPD$0(super$0,$D$5)["get"].call(this);
 		};DPS$0(B,GET_CNAMES$0({a: {"get": static_a$get$4, "set": static_a$set$4, "configurable":true,"enumerable":true, "__unq": 1}}));$D$5=CNAMES$0[1];delete CNAMES$0[1];;
 
 		function static_a$set$4(a) {
 			GOPD$0(super$0,$D$5)["set"].call(this, a);
 		}
-		;return B;})(A);
+	;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
 	var pk2 = Object.keys(B.prototype);var sk2 = Object.keys(B);
@@ -356,7 +356,7 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 		function static_a$set$5(a) {
 			this._a = a + '_' + 9;
 		}
-		;return A;})();
+	;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false}); ;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
@@ -375,12 +375,12 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 		function A(a) {
 			this.a = a;
 		}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		;return A;})();
+	;return A;})();
 	var B = (function(super$0){"use strict";if(!PRS$0)MIXIN$0(B, super$0);
 		function B(a) {
 			super$0.call(this, a);
 		}if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		;return B;})(A);
+	;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
 	var pk2 = Object.keys(B.prototype);var sk2 = Object.keys(B);
@@ -395,7 +395,7 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 		function A(a) {
 			this.a = a;
 		}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		;return A;})();
+	;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false}); ;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
@@ -411,12 +411,12 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 		proto$0['a'] = function(a) {
 			return 'test'
 		};
-		MIXIN$0(A.prototype,proto$0);proto$0=void 0;return A;})();
+	MIXIN$0(A.prototype,proto$0);proto$0=void 0;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});var proto$0={};
 		proto$0['a'] = function(a) {
 			return super$0.prototype['a'].call(this, a);
 		};
-		MIXIN$0(B.prototype,proto$0);proto$0=void 0;return B;})(A);
+	MIXIN$0(B.prototype,proto$0);proto$0=void 0;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
 	var pk2 = Object.keys(B.prototype);var sk2 = Object.keys(B);
@@ -431,7 +431,7 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 		proto$0['a'] = function(a) {
 			return 'test'
 		};
-		MIXIN$0(A.prototype,proto$0);proto$0=void 0;return A;})();
+	MIXIN$0(A.prototype,proto$0);proto$0=void 0;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false}); ;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
@@ -447,12 +447,12 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 		static$0['a'] = function(a) {
 			return 'test'
 		};
-		MIXIN$0(A,static$0);static$0=void 0;return A;})();
+	MIXIN$0(A,static$0);static$0=void 0;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});var static$0={};
 		static$0['a'] = function(a) {
 			return super$0['a'].call(this, a);
 		};
-		MIXIN$0(B,static$0);static$0=void 0;return B;})(A);
+	MIXIN$0(B,static$0);static$0=void 0;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
 	var pk2 = Object.keys(B.prototype);var sk2 = Object.keys(B);
@@ -467,7 +467,7 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 		static$0['a'] = function(a) {
 			return 'test'
 		};
-		MIXIN$0(A,static$0);static$0=void 0;return A;})();
+	MIXIN$0(A,static$0);static$0=void 0;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false}); ;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
@@ -483,12 +483,12 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 		function a$get$6() {
 			return 'test'
 		}
-		;return A;})();
+	;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}, 'a': {"get": a$get$7, "configurable":true,"enumerable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
 		function a$get$7() {
-			return GOPD$0(super$0.prototype,'a')["get"].call(this, a);
+			return GOPD$0(super$0.prototype,'a')["get"].call(this);
 		}
-		;return B;})(A);
+	;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
 	var pk2 = Object.keys(B.prototype);var sk2 = Object.keys(B);
@@ -503,7 +503,7 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 		function a$get$8() {
 			return 'test'
 		}
-		;return A;})();
+	;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false}); ;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
@@ -520,12 +520,12 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 		function a$set$6(a) {
 			this._a = a + '_' + 9;
 		}
-		;return A;})();
+	;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}, 'a': {"set": a$set$7, "configurable":true,"enumerable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
 		function a$set$7(a) {
 			GOPD$0(super$0.prototype,'a')["set"].call(this, a);
 		}
-		;return B;})(A);
+	;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
 	var pk2 = Object.keys(B.prototype);var sk2 = Object.keys(B);
@@ -541,7 +541,7 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 		function a$set$8(a) {
 			this._a = a + '_' + 9;
 		}
-		;return A;})();
+	;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false}); ;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
@@ -558,12 +558,12 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 		function static_a$get$6() {
 			return 'test'
 		};DPS$0(A,{'a': {"get": static_a$get$6, "configurable":true,"enumerable":true}});
-		;return A;})();
+	;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
 		function static_a$get$7() {
-			return GOPD$0(super$0,'a')["get"].call(this, a);
+			return GOPD$0(super$0,'a')["get"].call(this);
 		};DPS$0(B,{'a': {"get": static_a$get$7, "configurable":true,"enumerable":true}});
-		;return B;})(A);
+	;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
 	var pk2 = Object.keys(B.prototype);var sk2 = Object.keys(B);
@@ -578,7 +578,7 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 		function static_a$get$8() {
 			return 'test'
 		};DPS$0(A,{'a': {"get": static_a$get$8, "configurable":true,"enumerable":true}});
-		;return A;})();
+	;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false}); ;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
@@ -594,12 +594,12 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 		function static_a$set$6(a) {
 			this._a = a + '_' + 9;
 		};DPS$0(A,{'a': {"set": static_a$set$6, "configurable":true,"enumerable":true}});
-		;return A;})();
+	;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
 		function static_a$set$7(a) {
 			GOPD$0(super$0,'a')["set"].call(this, a);
 		};DPS$0(B,{'a': {"set": static_a$set$7, "configurable":true,"enumerable":true}});
-		;return B;})(A);
+	;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
 	var pk2 = Object.keys(B.prototype);var sk2 = Object.keys(B);
@@ -615,7 +615,7 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 		function static_a$set$8(a) {
 			this._a = a + '_' + 9;
 		};DPS$0(A,{'a': {"set": static_a$set$8, "configurable":true,"enumerable":true}});
-		;return A;})();
+	;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false}); ;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
@@ -636,16 +636,16 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 		function a$set$9(a) {
 			this._a = a + '_' + 9;
 		}
-		;return A;})();
+	;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}, 'a': {"get": a$get$10, "set": a$set$10, "configurable":true,"enumerable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
 		function a$get$10() {
-			return GOPD$0(super$0.prototype,'a')["get"].call(this, a);
+			return GOPD$0(super$0.prototype,'a')["get"].call(this);
 		}
 
 		function a$set$10(a) {
 			GOPD$0(super$0.prototype,'a')["set"].call(this, a);
 		}
-		;return B;})(A);
+	;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
 	var pk2 = Object.keys(B.prototype);var sk2 = Object.keys(B);
@@ -665,7 +665,7 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 		function a$set$11(a) {
 			this._a = a + '_' + 9;
 		}
-		;return A;})();
+	;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false}); ;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
@@ -686,16 +686,16 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 		function static_a$set$9(a) {
 			this._a = a + '_' + 9;
 		}
-		;return A;})();
+	;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
 		function static_a$get$10() {
-			return GOPD$0(super$0,'a')["get"].call(this, a);
+			return GOPD$0(super$0,'a')["get"].call(this);
 		};DPS$0(B,{'a': {"get": static_a$get$10, "set": static_a$set$10, "configurable":true,"enumerable":true}});
 
 		function static_a$set$10(a) {
 			GOPD$0(super$0,'a')["set"].call(this, a);
 		}
-		;return B;})(A);
+	;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
 	var pk2 = Object.keys(B.prototype);var sk2 = Object.keys(B);
@@ -715,7 +715,7 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 		function static_a$set$11(a) {
 			this._a = a + '_' + 9;
 		}
-		;return A;})();
+	;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false}); ;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
@@ -728,112 +728,150 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 
 // --------------------======================== COMPUTED ========================--------------------
 
-var postfix = 'd' + Math.random();
+var postfix = {
+	counter: 0
+	, stringTag: 'd' + Math.random()
+	, toString: function(){ return ++this.counter + this.stringTag }
+	, reset: function(){ this.counter = 0 }
+};
 
 // parent class and child class: with computed method
 (function() {
+	postfix.reset();
+
 	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});var proto$0={};
 		proto$0['a' + postfix] = function(a) {
 			return 'test'
 		};
-		MIXIN$0(A.prototype,proto$0);proto$0=void 0;return A;})();
+	MIXIN$0(A.prototype,proto$0);proto$0=void 0;return A;})();
+
+	postfix.reset();
+
 	var B = (function(super$0){"use strict";var $D$6;function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});var proto$0={};
 		$D$6=('a' + postfix)+'';proto$0[$D$6] = function(a) {
-			return super$0.prototype['a' + postfix].call(this, a);
+			return super$0.prototype[$D$6].call(this, a);
 		};
-		MIXIN$0(B.prototype,proto$0);proto$0=void 0;return B;})(A);
+	MIXIN$0(B.prototype,proto$0);proto$0=void 0;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
 	var pk2 = Object.keys(B.prototype);var sk2 = Object.keys(B);
 	var b = new B;
+
+	postfix.reset();
 
 	console.log(b.constructor == B, b instanceof A, pk1.length === 1, pk2.length === 1, sk1.length === 0, sk2.length === 0, b instanceof B, b['a' + postfix]() === 'test');
 })();
 
 // parent class and child class: parent with computed method, child without computed method
 (function() {
+	postfix.reset();
+
 	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});var proto$0={};
 		proto$0['a' + postfix] = function(a) {
 			return 'test'
 		};
-		MIXIN$0(A.prototype,proto$0);proto$0=void 0;return A;})();
+	MIXIN$0(A.prototype,proto$0);proto$0=void 0;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false}); ;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
 	var pk2 = Object.keys(B.prototype);var sk2 = Object.keys(B);
 	var b = new B;
+
+	postfix.reset();
 
 	console.log(b.constructor == B, b instanceof A, pk1.length === 1, pk2.length === 0, sk1.length === 0, sk2.length === 0, b instanceof B, b['a' + postfix]() === 'test');
 })();
 
 // parent class and child class: with computed static method
 (function() {
+	postfix.reset();
+
 	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});var static$0={};
 		static$0['a' + postfix] = function(a) {
 			return 'test'
 		};
-		MIXIN$0(A,static$0);static$0=void 0;return A;})();
+	MIXIN$0(A,static$0);static$0=void 0;return A;})();
+
+	postfix.reset();
+
 	var B = (function(super$0){"use strict";var $D$7;function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});var static$0={};
 		$D$7=('a' + postfix)+'';static$0[$D$7] = function(a) {
-			return super$0['a' + postfix].call(this, a);
+			return super$0[$D$7].call(this, a);
 		};
-		MIXIN$0(B,static$0);static$0=void 0;return B;})(A);
+	MIXIN$0(B,static$0);static$0=void 0;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
 	var pk2 = Object.keys(B.prototype);var sk2 = Object.keys(B);
 	var b = new B;
 
-	console.log(b.constructor == B, b instanceof A, pk1.length === 0, pk2.length === 0, sk1.length === 1, sk2.length === 1, b instanceof B, A['a' + postfix]() === 'test', B['a' + postfix]() === 'test');
+	postfix.reset();
+
+	console.log(b.constructor == B, b instanceof A, pk1.length === 0, pk2.length === 0, sk1.length === 1, sk2.length === 1, b instanceof B, A['a' + postfix]() === 'test', B['a' + (postfix.reset(), postfix)]() === 'test');
 })();
 
 // parent class and child class: parent with computed static method, child without computed static method
 (function() {
+	postfix.reset();
+
 	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});var static$0={};
 		static$0['a' + postfix] = function(a) {
 			return 'test'
 		};
-		MIXIN$0(A,static$0);static$0=void 0;return A;})();
+	MIXIN$0(A,static$0);static$0=void 0;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false}); ;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
 	var pk2 = Object.keys(B.prototype);var sk2 = Object.keys(B);
 	var b = new B;
 
-	console.log(b.constructor == B, b instanceof A, pk1.length === 0, pk2.length === 0, sk1.length === 1, sk2.length === 0, b instanceof B, A['a' + postfix]() === 'test', B['a' + postfix]() === 'test');
+	postfix.reset();
+
+	console.log(b.constructor == B, b instanceof A, pk1.length === 0, pk2.length === 0, sk1.length === 1, sk2.length === 0, b instanceof B, A['a' + postfix]() === 'test', B['a' + (postfix.reset(), postfix)]() === 'test');
 })();
 
 // parent class and child class: with computed getter
 (function() {
+	postfix.reset();
+
 	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
 		DP$0(A.prototype,'a' + postfix,{"get":function() {
 			return 'test'
 		},"configurable":true,"enumerable":true});
-		;return A;})();
+	;return A;})();
+
+	postfix.reset();
+
 	var B = (function(super$0){"use strict";var $D$8;function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
 		$D$8=('a' + postfix)+'';DP$0(B.prototype,$D$8,{"get":function() {
-			return GOPD$0(super$0.prototype,'a' + postfix)["get"].call(this);
+			return GOPD$0(super$0.prototype,$D$8)["get"].call(this);
 		},"configurable":true,"enumerable":true});
-		;return B;})(A);
+	;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
 	var pk2 = Object.keys(B.prototype);var sk2 = Object.keys(B);
 	var b = new B;
+
+	postfix.reset();
 
 	console.log(b.constructor == B, b instanceof A, pk1.length === 1, pk2.length === 1, sk1.length === 0, sk2.length === 0, b instanceof B, b['a' + postfix] === 'test');
 })();
 
 // parent class and child class: parent with computed getter, child without computed getter
 (function() {
+	postfix.reset();
+
 	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
 		DP$0(A.prototype,'a' + postfix,{"get":function() {
 			return 'test'
 		},"configurable":true,"enumerable":true});
-		;return A;})();
+	;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false}); ;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
 	var pk2 = Object.keys(B.prototype);var sk2 = Object.keys(B);
 	var b = new B;
+
+	postfix.reset();
 
 	console.log(b.constructor == B, b instanceof A, pk1.length === 1, pk2.length === 0, sk1.length === 0, sk2.length === 0, b instanceof B, b['a' + postfix] === 'test');
 })();
@@ -841,212 +879,291 @@ var postfix = 'd' + Math.random();
 
 // parent class and child class: with computed setter
 (function() {
+	postfix.reset();
+
 	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
 		DP$0(A.prototype,'a' + postfix,{"set":function(a) {
 			this._a = a + '_' + 9;
 		},"configurable":true,"enumerable":true});
-		;return A;})();
+	;return A;})();
+
+	postfix.reset();
+
 	var B = (function(super$0){"use strict";var $D$9;function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
 		$D$9=('a' + postfix)+'';DP$0(B.prototype,$D$9,{"set":function(a) {
-			GOPD$0(super$0.prototype,'a' + postfix)["set"].call(this, a);
+			GOPD$0(super$0.prototype,$D$9)["set"].call(this, a);
 		},"configurable":true,"enumerable":true});
-		;return B;})(A);
+	;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
 	var pk2 = Object.keys(B.prototype);var sk2 = Object.keys(B);
 	var b = new B;
+
+	postfix.reset();
+
 	b['a' + postfix] = 'test';
+
+	postfix.reset();
 
 	console.log(b.constructor == B, b instanceof A, pk1.length === 1, pk2.length === 1, sk1.length === 0, sk2.length === 0, b instanceof B, b._a === 'test_9');
 })();
 
 // parent class and child class: parent with computed setter, child without computed setter
 (function() {
+	postfix.reset();
+
 	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
 		DP$0(A.prototype,'a' + postfix,{"set":function(a) {
 			this._a = a + '_' + 9;
 		},"configurable":true,"enumerable":true});
-		;return A;})();
+	;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false}); ;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
 	var pk2 = Object.keys(B.prototype);var sk2 = Object.keys(B);
 	var b = new B;
+
+	postfix.reset();
+
 	b['a' + postfix] = 'test';
+
+	postfix.reset();
 
 	console.log(b.constructor == B, b instanceof A, pk1.length === 1, pk2.length === 0, sk1.length === 0, sk2.length === 0, b instanceof B, b._a === 'test_9');
 })();
 
 // parent class and child class: with computed static getter
 (function() {
+	postfix.reset();
+
 	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
 		DP$0(A,'a' + postfix,{"get":function() {
 			return 'test'
 		},"configurable":true,"enumerable":true});
-		;return A;})();
+	;return A;})();
+
+	postfix.reset();
+
 	var B = (function(super$0){"use strict";var $D$10;function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
 		$D$10=('a' + postfix)+'';DP$0(B,$D$10,{"get":function() {
-			return GOPD$0(super$0,'a' + postfix)["get"].call(this);
+			return GOPD$0(super$0,$D$10)["get"].call(this);
 		},"configurable":true,"enumerable":true});
-		;return B;})(A);
+	;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
 	var pk2 = Object.keys(B.prototype);var sk2 = Object.keys(B);
 	var b = new B;
 
-	console.log(b.constructor == B, b instanceof A, pk1.length === 0, pk2.length === 0, sk1.length === 1, sk2.length === 1, b instanceof B, A['a' + postfix] === 'test', B['a' + postfix] === 'test');
+	postfix.reset();
+
+	console.log(b.constructor == B, b instanceof A, pk1.length === 0, pk2.length === 0, sk1.length === 1, sk2.length === 1, b instanceof B, A['a' + postfix] === 'test', B['a' + (postfix.reset(), postfix)] === 'test');
 })();
 
 // parent class and child class: parent with computed static getter, child without computed static getter
 (function() {
+	postfix.reset();
+
 	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
 		DP$0(A,'a' + postfix,{"get":function() {
 			return 'test'
 		},"configurable":true,"enumerable":true});
-		;return A;})();
+	;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false}); ;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
 	var pk2 = Object.keys(B.prototype);var sk2 = Object.keys(B);
 	var b = new B;
 
-	console.log(b.constructor == B, b instanceof A, pk1.length === 0, pk2.length === 0, sk1.length === 1, sk2.length === 0, b instanceof B, A['a' + postfix] === 'test', B['a' + postfix] === 'test');
+	postfix.reset();
+
+	console.log(b.constructor == B, b instanceof A, pk1.length === 0, pk2.length === 0, sk1.length === 1, sk2.length === 0, b instanceof B, A['a' + postfix] === 'test', B['a' + (postfix.reset(), postfix)] === 'test');
 })();
 
 // parent class and child class: with computed static setter
 (function() {
+	postfix.reset();
+
 	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
 		DP$0(A,'a' + postfix,{"set":function(a) {
 			this._a = a + '_' + 9;
 		},"configurable":true,"enumerable":true});
-		;return A;})();
+	;return A;})();
+
+	postfix.reset();
+
 	var B = (function(super$0){"use strict";var $D$11;function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
 		$D$11=('a' + postfix)+'';DP$0(B,$D$11,{"set":function(a) {
-			GOPD$0(super$0,'a' + postfix)["set"].call(this, a);
+			GOPD$0(super$0,$D$11)["set"].call(this, a);
 		},"configurable":true,"enumerable":true});
-		;return B;})(A);
+	;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
 	var pk2 = Object.keys(B.prototype);var sk2 = Object.keys(B);
 	var b = new B;
+
+	postfix.reset();
+
 	B['a' + postfix] = 'test';
+
+	postfix.reset();
 
 	console.log(b.constructor == B, b instanceof A, pk1.length === 0, pk2.length === 0, sk1.length === 1, sk2.length === 1, b instanceof B, A._a === void 0, B._a === 'test_9');
 })();
 
 // parent class and child class: parent with computed static setter, child without computed static setter
 (function() {
+	postfix.reset();
+
 	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
 		DP$0(A,'a' + postfix,{"set":function(a) {
 			this._a = a + '_' + 9;
 		},"configurable":true,"enumerable":true});
-		;return A;})();
+	;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false}); ;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
 	var pk2 = Object.keys(B.prototype);var sk2 = Object.keys(B);
 	var b = new B;
+
+	postfix.reset();
+
 	B['a' + postfix] = 'test';
+
+	postfix.reset();
 
 	console.log(b.constructor == B, b instanceof A, pk1.length === 0, pk2.length === 0, sk1.length === 1, sk2.length === 0, b instanceof B, A._a === void 0, B._a === 'test_9');
 })();
 
 // parent class and child class: with computed getter and setter
 (function() {
+	postfix.reset();
+
 	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
 		DP$0(A.prototype,'a' + postfix,{"get":function() {
 			return this._a;
 		},"configurable":true,"enumerable":true});
 
-		DP$0(A.prototype,'a' + postfix,{"set":function(a) {
+		DP$0(A.prototype,'a' + (postfix.reset(), postfix),{"set":function(a) {
 			this._a = a + '_' + 9;
 		},"configurable":true,"enumerable":true});
-		;return A;})();
+	;return A;})();
+
+	postfix.reset();
+
 	var B = (function(super$0){"use strict";var $D$12;var $D$13;function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
 		$D$12=('a' + postfix)+'';DP$0(B.prototype,$D$12,{"get":function() {
-			return GOPD$0(super$0.prototype,'a' + postfix)["get"].call(this);
+			return GOPD$0(super$0.prototype,$D$12)["get"].call(this);
 		},"configurable":true,"enumerable":true});
 
-		$D$13=('a' + postfix)+'';DP$0(B.prototype,$D$13,{"set":function(a) {
-			GOPD$0(super$0.prototype,'a' + postfix)["set"].call(this, a);
+		$D$13=('a' + (postfix.reset(), postfix))+'';DP$0(B.prototype,$D$13,{"set":function(a) {
+			GOPD$0(super$0.prototype,$D$13)["set"].call(this, a);
 		},"configurable":true,"enumerable":true});
-		;return B;})(A);
+	;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
 	var pk2 = Object.keys(B.prototype);var sk2 = Object.keys(B);
 	var b = new B;
+
+	postfix.reset();
+
 	b['a' + postfix] = 'test';
+
+	postfix.reset();
 
 	console.log(b.constructor == B, b instanceof A, pk1.length === 1, pk2.length === 1, sk1.length === 0, sk2.length === 0, b instanceof B, b['a' + postfix] === 'test_9', b._a === 'test_9');
 })();
 
 // parent class and child class: parent with computed getter and setter, child without computed getter and setter
 (function() {
+	postfix.reset();
+
 	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
 		DP$0(A.prototype,'a' + postfix,{"get":function() {
 			return this._a;
 		},"configurable":true,"enumerable":true});
 
-		DP$0(A.prototype,'a' + postfix,{"set":function(a) {
+		DP$0(A.prototype,'a' + (postfix.reset(), postfix),{"set":function(a) {
 			this._a = a + '_' + 9;
 		},"configurable":true,"enumerable":true});
-		;return A;})();
+	;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false}); ;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
 	var pk2 = Object.keys(B.prototype);var sk2 = Object.keys(B);
 	var b = new B;
+
+	postfix.reset();
+
 	b['a' + postfix] = 'test';
+
+	postfix.reset();
 
 	console.log(b.constructor == B, b instanceof A, pk1.length === 1, pk2.length === 0, sk1.length === 0, sk2.length === 0, b instanceof B, b['a' + postfix] === 'test_9', b._a === 'test_9');
 })();
 
 // parent class and child class: with computed static getter and setter
 (function() {
+	postfix.reset();
+
 	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
 		DP$0(A,'a' + postfix,{"get":function() {
 			return this._a;
 		},"configurable":true,"enumerable":true});
 
-		DP$0(A,'a' + postfix,{"set":function(a) {
+		DP$0(A,'a' + (postfix.reset(), postfix),{"set":function(a) {
 			this._a = a + '_' + 9;
 		},"configurable":true,"enumerable":true});
-		;return A;})();
+	;return A;})();
+
+	postfix.reset()
+
 	var B = (function(super$0){"use strict";var $D$14;var $D$15;function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
 		$D$14=('a' + postfix)+'';DP$0(B,$D$14,{"get":function() {
-			return GOPD$0(super$0,'a' + postfix)["get"].call(this);
+			return GOPD$0(super$0,$D$14)["get"].call(this);
 		},"configurable":true,"enumerable":true});
 
-		$D$15=('a' + postfix)+'';DP$0(B,$D$15,{"set":function(a) {
-			GOPD$0(super$0,'a' + postfix)["set"].call(this, a);
+		$D$15=('a' + (postfix.reset(), postfix))+'';DP$0(B,$D$15,{"set":function(a) {
+			GOPD$0(super$0,$D$15)["set"].call(this, a);
 		},"configurable":true,"enumerable":true});
-		;return B;})(A);
+	;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
 	var pk2 = Object.keys(B.prototype);var sk2 = Object.keys(B);
 	var b = new B;
+
+	postfix.reset();
+
 	B['a' + postfix] = 'test';
 
-	console.log(b.constructor == B, b instanceof A, pk1.length === 0, pk2.length === 0, sk1.length === 1, sk2.length === 1, b instanceof B, B['a' + postfix] === 'test_9', B._a === 'test_9', B['a' + postfix] === 'test_9');
+	postfix.reset();
+
+	console.log(b.constructor == B, b instanceof A, pk1.length === 0, pk2.length === 0, sk1.length === 1, sk2.length === 1, b instanceof B, B['a' + postfix] === 'test_9', B._a === 'test_9', B['a' + (postfix.reset(), postfix)] === 'test_9');
 })();
 
 // parent class and child class: with computed static getter and setter, child without computed static getter and setter
 (function() {
+	postfix.reset();
+
 	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
 		DP$0(A,'a' + postfix,{"get":function() {
 			return this._a;
 		},"configurable":true,"enumerable":true});
 
-		DP$0(A,'a' + postfix,{"set":function(a) {
+		DP$0(A,'a' + (postfix.reset(), postfix),{"set":function(a) {
 			this._a = a + '_' + 9;
 		},"configurable":true,"enumerable":true});
-		;return A;})();
+	;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false}); ;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
 	var pk2 = Object.keys(B.prototype);var sk2 = Object.keys(B);
 	var b = new B;
+
+	postfix.reset();
+
 	B['a' + postfix] = 'test';
 
-	console.log(b.constructor == B, b instanceof A, pk1.length === 0, pk2.length === 0, sk1.length === 1, sk2.length === 0, b instanceof B, A['a' + postfix] === void 0, B._a === 'test_9', B['a' + postfix] === 'test_9');
+	postfix.reset();
+
+	console.log(b.constructor == B, b instanceof A, pk1.length === 0, pk2.length === 0, sk1.length === 1, sk2.length === 0, b instanceof B, A['a' + postfix] === void 0, B._a === 'test_9', B['a' + (postfix.reset(), postfix)] === 'test_9');
 })();

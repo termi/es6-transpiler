@@ -438,7 +438,7 @@ const classesTranspiler = {
 					let targetName = isStatic === true ? this.__current.name : this.__current.name + '.prototype';
 
 					if ( unNamedSuperCount ) {
-						methodName = core.getScopeTempVar(node, node.$scope);
+						node.$nameForSuper = methodName = core.getScopeTempVar(node, node.$scope);
 						// get [<name>]() -> $D$0=(<name>]()
 						this.alter.replace(node.range[0], nodeKey.bracesRange[0] + 1, methodName + '=(');
 						// $D$0=(<name>]() -> $D$0=(<name>)+'';DP$0(<className>.prototype,$D$0,
@@ -503,7 +503,7 @@ const classesTranspiler = {
 				let targetName = core.createVars(node, isStatic === true ? 'static' : 'proto');
 
 				if ( unNamedSuperCount && isComputed ) {
-					methodName = core.getScopeTempVar(node, node.$scope);
+					node.$nameForSuper = methodName = core.getScopeTempVar(node, node.$scope);
 
 					// text change 'static ['method' + i++](<something>)' => '$D$0=('method' + i++) + '';$static$0[$D$0](<something>)'
 					// text change '['method' + i++](<something>)' => '$D$0='method' + i++;$proto$0[$D$0](<something>)'
@@ -538,7 +538,6 @@ const classesTranspiler = {
 				this.alter.insertBefore(node.range[1], ';', {extend: true});
 			}
 
-			node.$nameForSuper = node.$nameForSuper/* || methodName*/;
 			astQuery.traverse(node.value.body, this.replaceClassMethodSuper);
 		}
 	}
