@@ -54,6 +54,39 @@ const $fix__proto__ = 'function(o,f){' +
 		'return o' +
 	'}'
 ;
+const $SymbolIteratorBody = "typeof Symbol!=='undefined'&&Symbol&&Symbol.iterator||'@@iterator'";
+const $SymbolToStringTagBody = "typeof Symbol!=='undefined'&&Symbol&&Symbol[\"toStringTag\"]||'@@toStringTag'";
+const $SymbolPolyfillMarkBody = "typeof Symbol!=='undefined'&&Symbol&&Symbol[\"__setObjectSetter__\"]";
+const $generatorConstructor =
+	"Function[\"__Generator__\"];if(!${__self__}){Function[\"__Generator__\"]=${__self__}=function Generator(){" +
+		"if(!(this instanceof ${__self__}))throw new TypeError('incompatible'+this);" +
+		"this[\"__next__\"]=arguments[0];" +
+		"this[\"__throw__\"]=arguments[1];" +
+	"};" +
+	"${__self__}.prototype={" +
+		"constructor:${__self__}," +
+		"\"next\":function(val){" +
+			"if(!(this instanceof ${__self__}))throw new TypeError('next method called on incompatible '+this);" +
+			"if(this[\"__next__\"]){" +
+				"try {" +
+					"return this[\"__next__\"](val);" +
+				"}catch(e){" +
+					"if(this[\"__throw__\"])return this[\"__throw__\"](e);" +
+					"else throw e;" +
+				"}" +
+			"}" +
+			"else return {\"value\":void 0,\"done\":true};}," +
+		"\"throw\":function(e){" +
+			"if(!(this instanceof ${__self__}))throw new TypeError('throw method called on incompatible '+this);" +
+			"if(this&&this[\"__throw__\"])return this[\"__throw__\"](e);else throw e" +
+		"}," +
+		"\"toString\":function(){return '[object Generator]'}" +
+	"};" +
+	"if(${Symbol_mark})${Symbol_mark}(${__self__}.prototype);" +
+	"${__self__}.prototype[${Symbol_toStringTag}]='Generator';" +
+	"${__self__}.prototype[${Symbol_iterator}]=function(){return this};" +
+	"if(${Symbol_mark})${Symbol_mark}(void 0);}"
+;
 
 var standardVars = {
 	"defineProperty": {template: $defineProperty, name: "DP"}
@@ -76,10 +109,19 @@ var standardVars = {
 		, deps: ["__proto__literal_support", "setPrototypeOf"]
 		, name: "FIX_PROTO"
 	}
+	, "Symbol_toStringTag": {template: $SymbolToStringTagBody, name: "S_STAG"}
+	, "Symbol_iterator": {template: $SymbolIteratorBody, name: "S_ITER"}
+	, "Symbol_mark": {template: $SymbolPolyfillMarkBody, name: "S_MARK"}
+	, "GeneratorConstructor": {
+		template: $generatorConstructor
+		, self: '__self__'
+		, deps: ["Symbol_toStringTag", "Symbol_iterator", "Symbol_mark"]
+		, name: "Generator"
+	}
 };
 
 function isTheSameVarDescriptions(d1, d2) {
-	return ['persistent', 'template', 'name', 'on', 'deps', 'isFunction'].every(function(name) {
+	return ['persistent', 'template', 'name', 'on', 'deps', 'isFunction', 'self'].every(function(name) {
 		let prop1 = d1[name], prop2 = d2[name];
 		let isArray1 = Array.isArray(prop1), isArray2 = Array.isArray(prop2);
 
@@ -122,6 +164,7 @@ module.exports = {
 			}
 			else if ( description.template ) {
 				let template = description.template || 'void 0';
+				let self = description.self;
 
 				if ( Array.isArray(description.deps) ) {
 					description.deps.forEach(function(dep) {
@@ -134,7 +177,13 @@ module.exports = {
 					}, this);
 				}
 
-				description.__newName = core.bubbledVariableDeclaration(node.$scope, description.name || name, template, description.isFunction);
+				description.__newName = core.bubbledVariableDeclaration(
+					node.$scope
+					, description.name || name
+					, template
+					, description.isFunction
+					, self && typeof self === 'string' ? ('${' + self + '}') : void 0
+				);
 			}
 
 			standardVars[name] = description;

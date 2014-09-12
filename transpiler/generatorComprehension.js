@@ -15,52 +15,10 @@ function isArrayPattern(node) {
 	return node && node.type == 'ArrayPattern';
 }
 
-//const functionGeneratorConstructor =
-//	"function FunctionGenerator(){};" +
-//	"${FunctionGenerator}._wrap=function(FunctionGenerator,func){func.__proto__=FunctionGenerator;if(func.constructor!==FunctionGenerator)func.constructor=FunctionGenerator;func.prototype=Object.create(this);}.bind(${FunctionGenerator}.prototype,${FunctionGenerator});" +
-//	"${FunctionGenerator}.prototype=Object.create(Function.prototype);" +
-//	"if(${FunctionGenerator}.name!=='GeneratorFunction')${FunctionGenerator}.name='GeneratorFunction';"
-//;
-//this._FunctionGenerator = core.bubbledVariableDeclaration(node.$scope, "FunctionGenerator", functionGeneratorConstructor, false, "${FunctionGenerator}");
-
-const SymbolIteratorBody = "typeof Symbol!=='undefined'&&Symbol&&Symbol.iterator||'@@iterator'";
-const SymbolToStringTagBody = "typeof Symbol!=='undefined'&&Symbol&&Symbol[\"toStringTag\"]||'@@toStringTag'";
-const SymbolPolyfillMarkBody = "typeof Symbol!=='undefined'&&Symbol&&Symbol[\"__setObjectSetter__\"]";
-const generatorConstructor =
-	"function Generator(){" +
-		"if(!(this instanceof ${Generator}))throw new TypeError('incompatible'+this);" +
-		"this[\"__next__\"]=arguments[0];" +
-		"this[\"__throw__\"]=arguments[1];" +
-	"};" +
-	"${Generator}.prototype={" +
-		"constructor:${Generator}," +
-		"\"next\":function(val){" +
-			"if(!(this instanceof ${Generator}))throw new TypeError('next method called on incompatible '+this);" +
-			"if(this[\"__next__\"]){" +
-				"try {" +
-					"return this[\"__next__\"](val);" +
-				"}catch(e){" +
-					"if(this[\"__throw__\"])return this[\"__throw__\"](e);" +
-					"else throw e;" +
-				"}" +
-			"}" +
-			"else return {\"value\":void 0,\"done\":true};}," +
-		"\"throw\":function(e){" +
-			"if(!(this instanceof ${Generator}))throw new TypeError('throw method called on incompatible '+this);" +
-			"if(this&&this[\"__throw__\"])return this[\"__throw__\"](e);else throw e" +
-		"}," +
-		"\"toString\":function(){return '[object Generator]'}" +
-	"};" +
-	"if(${Symbol_mark})${Symbol_mark}(${Generator}.prototype);" +
-	"${Generator}.prototype[${Symbol_toStringTag}]='Generator';" +
-	"${Generator}.prototype[${Symbol_iterator}]=function(){return this};" +
-	"if(${Symbol_mark})${Symbol_mark}(void 0)"
-;
-
 const generatorHEAD = tmpl.generate("var ${done}=false;");
 const generatorINIT_var = tmpl.generate("var ${init}=false;");
 const generatorINIT_init = tmpl.generate("if(${init}===false){${FOROF_INIT}${init}=true;}");
-const generatorSTATE_var = tmpl.generate("var ${state}=1,${next}=false;");
+const generatorSTATE_var = tmpl.generate("var ${state}=1,${continue}=false;");
 const generatorLOOP_BODY = tmpl.generate(
 	"if(${FOROF_CHECK}){" +
 		"${FOROF_VALUE};" +
@@ -68,7 +26,7 @@ const generatorLOOP_BODY = tmpl.generate(
 	"}" +
 	"else{${FOROF_RESET}${VALUE_RESET}${done}=true;${DONE_SET}}"
 );
-const generatorBODY = tmpl.generate("return new ${Generator}(function next(${throw_error},${throw}){" +
+const generatorBODY = tmpl.generate("return new ${Generator}(function ${next}(${throw_error},${throw}){" +
 	"if(${throw}===true){${done}=true;}" +
 	"if(${done}===false){" +
 		"${HEAD_INIT}" +
@@ -86,19 +44,11 @@ const generatorFILTER = tmpl.generate(
 const generatorNOFILTER = tmpl.generate("${RETURN}");
 const generatorRETURN = tmpl.generate("return {\"value\":${VALUE},\"done\":false};");
 const generatorDONE = tmpl.generate("return {\"value\":void 0,\"done\":true};");
-const generatorDONE_RESET = tmpl.generate("if(this&&this[\"__next__\"]===next){delete this[\"__next__\"];delete this[\"__throw__\"];};}");
+const generatorDONE_RESET = tmpl.generate("if(this&&this[\"__next__\"]===${next}){delete this[\"__next__\"];delete this[\"__throw__\"];};}");
 
 var plugin = module.exports = {
 	reset: function() {
 		this.__initNames = [];
-		this.__vars = {
-			"done": null
-			, "value": null
-			, "throw": null
-			, "throw_error": null
-			, "state": null
-			, "next": null
-		};
 	}
 
 	, setup: function(alter, ast, options) {
@@ -107,11 +57,18 @@ var plugin = module.exports = {
 			this.__isInit = true;
 		}
 
+		core.registerVar('done', {persistent: true});
+		core.registerVar('throw', {persistent: true});
+		core.registerVar('throw_error', {persistent: true});
+		core.registerVar('state', {persistent: true});
+		core.registerVar('next', {persistent: true});
+		core.registerVar('continue', {persistent: true});
+
 		this.alter = alter;
 		this.options = options;
 	}
 
-	, createVariables: function(initCount) {
+	, createInitVariables: function(initCount) {
 		// We need only one unique name for the entire file
 
 		initCount = initCount || 1;
@@ -125,10 +82,6 @@ var plugin = module.exports = {
 				i++;
 			}
 		}
-		Object.keys(this.__vars).reduce(function(vars, key) {
-			vars[key] = core.unique(key, true);
-			return vars;
-		}, this.__vars);
 	}
 
 	, '::ComprehensionExpression': function(node) {
@@ -136,26 +89,14 @@ var plugin = module.exports = {
 			return;
 		}
 
-		let Symbol_iterator = core.bubbledVariableDeclaration(node.$scope, "S_ITER", SymbolIteratorBody);
-		let Symbol_toStringTag = core.bubbledVariableDeclaration(node.$scope, "S_STAG", SymbolToStringTagBody);
-		let Symbol_mark = core.bubbledVariableDeclaration(node.$scope, "S_MARK", SymbolPolyfillMarkBody);
-		this._Generator = core.bubbledVariableDeclaration(
-			node.$scope
-			, "Generator"
-			, generatorConstructor
-				.replace(/\$\{Symbol_mark\}/g, Symbol_mark)
-				.replace('${Symbol_iterator}', Symbol_iterator)
-				.replace('${Symbol_toStringTag}', Symbol_toStringTag)
-			, false
-			, "${Generator}"
-		);
+		this._Generator = core.createVars(node, "GeneratorConstructor");
 
 		const blocks = node.blocks
 			, body = node.body
 			, filter = node.filter
 		;
 
-		this.createVariables(blocks.length);
+		this.createInitVariables(blocks.length);
 
 		let replacementString = blocks.length === 1
 			? !filter
@@ -215,7 +156,7 @@ var plugin = module.exports = {
 				, VALUE: this.alter.get(body.range[0], body.range[1])
 				, init: this.__initNames[0]
 				, Generator: this._Generator
-			}, this.__vars)
+			}, core.createVars(node, {done: true, "throw": true, throw_error: true, next: true}))
 		);
 
 		return (variableNames.length ? "var " + variableNames.join(",") : "") + ";"
@@ -255,7 +196,7 @@ var plugin = module.exports = {
 				, VALUE: this.alter.get(body.range[0], body.range[1])
 				, init: this.__initNames[0]
 				, Generator: this._Generator
-			}, this.__vars)
+			}, core.createVars(node, {done: true, "throw": true, throw_error: true, next: true}))
 		);
 
 		return (variableNames.length ? "var " + variableNames.join(",") : "") + ";"
@@ -267,14 +208,16 @@ var plugin = module.exports = {
 
 	, createGenerator: function(blocks, body, filter, node) {
 		const generatorSET_STATE = tmpl.generate("${state}=${NEXT_STATE};");
-		const generatorSWITCH_NEXT = tmpl.generate("${next}=${FOROF_CHECK};if(${next}){${FOROF_VALUE}${SET_STATE}}");
+		const generatorSWITCH_NEXT = tmpl.generate("${continue}=${FOROF_CHECK};if(${continue}){${FOROF_VALUE}${SET_STATE}}");
 		const generatorSWITCH_ELSE = tmpl.generate("else{${SET_STATE}${init_false}continue;};");
 
 		let loopBody = "";
 		let variableNames = [];
 		let resetVarsStr = "";
-		let headInitStr = tmpl.replace(generatorHEAD, this.__vars, {Generator: this._Generator});
 		let declarationsStr = '';
+
+		let vars = core.createVars(node, {state: true, "continue": true, done: true, "throw": true, throw_error: true, next: true});
+		let headInitStr = tmpl.replace(generatorHEAD, vars, {Generator: this._Generator});
 
 		for ( let i = 0, len = blocks.length ; i < len ; i++ ) {
 			let block = blocks[i];
@@ -298,7 +241,7 @@ var plugin = module.exports = {
 					, FOROF_VALUE: replacementObj.inner
 					, SET_STATE: isLast ? '' : generatorSET_STATE
 					, NEXT_STATE: i + 2
-				}, this.__vars)
+				}, vars)
 				+ tmpl.replace(!isFirst ? generatorSWITCH_ELSE : '', {
 					SET_STATE: generatorSET_STATE
 					, NEXT_STATE: i//prev state
@@ -310,13 +253,13 @@ var plugin = module.exports = {
 
 		let bodyStr = tmpl.replace(generatorSTATE_var + generatorBODY, {
 			HEAD_INIT: ''
-			, LOOP_START: tmpl.generate('while(true){${next}=false;switch(${state}){')
+			, LOOP_START: tmpl.generate('while(true){${continue}=false;switch(${state}){')
 			, LOOP_BODY: loopBody + '}'/*switch*/ + generatorLOOP_BODY
 			, LOOP_END: '}'/*while*/
 			, VALUE_RESET: (variableNames.length ? variableNames.join("=void 0;") + "=void 0;" : "") + ''
 			, DONE: generatorDONE
 			, DONE_RESET: resetVarsStr + generatorDONE_RESET
-			, FOROF_CHECK: this.__vars["next"]
+			, FOROF_CHECK: vars["continue"]
 			, FOROF_VALUE: ''
 			, FILTER_AND_RETURN: filter ? generatorFILTER : generatorNOFILTER
 			, RETURN: generatorRETURN
@@ -326,7 +269,7 @@ var plugin = module.exports = {
 			, FOROF_RESET: ''
 			, DONE_SET: 'break'
 			, Generator: this._Generator
-		}, this.__vars);
+		}, vars);
 
 		return (variableNames.length ? "var " + variableNames.join(",") : "") + ";"
 			+ declarationsStr
