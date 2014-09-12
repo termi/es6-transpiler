@@ -4,24 +4,8 @@ const assert = require("assert");
 const error = require("./../lib/error");
 const core = require("./core");
 
-
-
-function isObjectPattern(node) {
-	return node && node.type === 'ObjectPattern';
-}
-
-function isArrayPattern(node) {
-	return node && node.type === 'ArrayPattern';
-}
-
-function isLiteral(node) {
-	let type;
-	return node && (type = node.type)
-		&& (type === "Literal");
-}
-
 function is__proto__Property(node) {
-	if ( node && node.type === 'Property' && node.kind !== 'get' && node.kind !== 'set' ) {
+	if ( core.is.isProperty(node) && node.kind !== 'get' && node.kind !== 'set' ) {
 		let nodeKey = node.key;
 
 		if ( nodeKey ) {
@@ -73,7 +57,7 @@ var plugin = module.exports = {
 
 	, '::Property[shorthand=true]': function(node) {//':: :not(ObjectPattern,ArrayPattern) > Property[shorthand=true]'
 		var parent = node.$parent;
-		if( !isArrayPattern(parent) && !isObjectPattern(parent) ) {//filter destructuring
+		if ( !core.is.isArrayPattern(parent) && !core.is.isObjectPattern(parent) ) {//filter destructuring
 			const propertyKey = node.key;
 			const propertyValue = node.value;
 
@@ -103,7 +87,7 @@ var plugin = module.exports = {
 
 	, '::Property[computed=true]': function(node) {//':: !:not(ObjectPattern,ArrayPattern) > Property[computed=true]'
 		var parent = node.$parent;
-		if( !isArrayPattern(parent) && !isObjectPattern(parent)//filter destructuring
+		if ( !core.is.isArrayPattern(parent) && !core.is.isObjectPattern(parent)//filter destructuring
 			&& !parent.$uncomputed
 		) {
 			parent.$uncomputed = true;
@@ -145,7 +129,7 @@ var plugin = module.exports = {
 				has__proto__inside = true;
 
 				let propKey = property.key;
-				if ( !isLiteral(propKey) ) {
+				if ( !core.is.isLiteral(propKey) ) {
 					delete propKey.name;
 					propKey.value = '__proto__';
 					propKey.raw = '\'__proto__\'';
@@ -208,7 +192,7 @@ var plugin = module.exports = {
 
 				endFragment = isComputed ? ')' : '}))';
 			}
-			else if ( isComputed || (computedReplacementStarted && isLiteral(property.key)) ) {
+			else if ( isComputed || (computedReplacementStarted && core.is.isLiteral(property.key)) ) {
 				computedReplacementStarted = true;
 
 				beforeString = core.createVars(node, "defineProperty") + '(' + beforeString;

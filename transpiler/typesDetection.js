@@ -2,12 +2,7 @@
 "use strict";
 
 const assert = require("assert");
-
-function isFunction(node) {
-	let type;
-	return node && (type = node.type)
-		&& type === "FunctionDeclaration" || type === "FunctionExpression" || type === "ArrowFunctionExpression";
-}
+const core = require("./core");
 
 let TYPES = {
 	Undefined: 'undefined'
@@ -56,7 +51,7 @@ var plugin = module.exports = {
 	, ':: ReturnStatement': function(node) {
 		let hoistNode = node.$scope.closestHoistScope().node;
 		
-		assert(isFunction(hoistNode));
+		assert(core.is.isFunction(hoistNode));
 		
 		this.addReturnType(hoistNode.id, node.argument);
 	}
@@ -154,7 +149,7 @@ var plugin = module.exports = {
 		if ( type === 'CatchClause' ) {
 			return TYPES.Error;
 		}
-		if ( isFunction(valueNode) ) {
+		if ( core.is.isFunction(valueNode) ) {
 			return TYPES.Function;
 		}
 		{

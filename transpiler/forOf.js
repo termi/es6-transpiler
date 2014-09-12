@@ -5,45 +5,6 @@ const error = require("./../lib/error");
 const core = require("./core");
 const destructuring = require("./destructuring");
 
-
-
-function isObjectPattern(node) {
-	return node && node.type == 'ObjectPattern';
-}
-
-function isArrayPattern(node) {
-	return node && node.type == 'ArrayPattern';
-}
-
-function isFunction(node) {
-	let type;
-	return node && (type = node.type)
-		&& type === "FunctionDeclaration" || type === "FunctionExpression" || type === "ArrowFunctionExpression";
-}
-
-function isBlock(node) {
-	let type;
-	return node && (type = node.type)
-		&& (type === "BlockStatement");
-}
-
-function isIf(node) {
-	let type;
-	return node && (type = node.type)
-		&& (type === "IfStatement");
-}
-
-function isLoop(node) {
-	let type;
-	return node && ((type = node.type) === "ForStatement" || type === "ForInStatement" || type === "ForOfStatement" || type === "WhileStatement" || type === "DoWhileStatement");
-}
-
-function isEmptyBody(node) {
-	let bodyNode = node && node.body;
-
-	return bodyNode && !(!isBlock(bodyNode) || bodyNode.body.length);
-}
-
 var plugin = module.exports = {
 	reset: function() {
 
@@ -77,21 +38,21 @@ var plugin = module.exports = {
 
 		let previousBlockNode = node, parent = node.$parentNode;
 		while ( (previousBlockNode = previousBlockNode.$previousElementSibling) && previousBlockNode != parent ) {
-			if ( isFunction(previousBlockNode) || isLoop(previousBlockNode) || isIf(previousBlockNode) ) {
+			if ( core.is.isFunction(previousBlockNode) || core.is.isLoop(previousBlockNode) || core.is.isIf(previousBlockNode) ) {
 				break;
 			}
 		}
-		if ( isFunction(previousBlockNode) || isLoop(previousBlockNode) ) {
+		if ( core.is.isFunction(previousBlockNode) || core.is.isLoop(previousBlockNode) ) {
 			previousBlockNode = previousBlockNode.body;
 		}
-		else if ( isIf(previousBlockNode) ) {
+		else if ( core.is.isIf(previousBlockNode) ) {
 			previousBlockNode = previousBlockNode.consequent;
 		}
 		else {
 			previousBlockNode = void 0;
 		}
 
-		if ( previousBlockNode && !isBlock(previousBlockNode) && !previousBlockNode.$isBlock ) {
+		if ( previousBlockNode && !core.is.isBlock(previousBlockNode) && !previousBlockNode.$isBlock ) {
 			previousBlockNode.$isBlock = true;
 			this.alter.insertBefore(previousBlockNode.range[0], '{');
 			this.alter.insert(previousBlockNode.range[1], '}');
@@ -172,7 +133,7 @@ var plugin = module.exports = {
 		}
 
 		const variableId = isDeclaration ? declaration.id : variableBlock
-			, variableIdIsDestructuring = isObjectPattern(variableId) || isArrayPattern(variableId)
+			, variableIdIsDestructuring = core.is.isObjectPattern(variableId) || core.is.isArrayPattern(variableId)
 			, variableInit = node.right
 			, variableInitIsIdentifier = variableInit.type === "Identifier"
 
@@ -286,7 +247,7 @@ var plugin = module.exports = {
 		return {
 			before: beforeBeginString
 			, check: forOfString
-			, inner: innerString// + ',' + (isEmptyBody(node) ? 'null' : '')
+			, inner: innerString// + ',' + (core.is.isEmptyBody(node) ? 'null' : '')
 			, after: afterString ? ';' + afterString : ''
 			, remove: variableIdIsDestructuring ? variableBlock.range : void 0
 			, declarations: varsDeclaration

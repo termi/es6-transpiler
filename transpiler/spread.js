@@ -4,31 +4,12 @@ const assert = require("assert");
 const error = require("./../lib/error");
 const core = require("./core");
 
-
-function isSpreadElement(node) {
-	return node && node.type === 'SpreadElement';
-}
-
-function isArrayExpression(node) {
-	return node && node.type === 'ArrayExpression';
-}
-
-function isSequenceExpression(node) {
-	return node && node.type === 'SequenceExpression';
-}
-
-function isFunction(node) {
-	let type;
-	return node && (type = node.type)
-		&& type === "FunctionDeclaration" || type === "FunctionExpression" || type === "ArrowFunctionExpression";
-}
-
 function findSpreadArgument(node) {
 	let spreadIndex = -1;
 	let elements;
 	if( node && Array.isArray(elements = (node.elements || node["arguments"])) ) {
 		elements.forEach(function(arg, i) {
-			if( spreadIndex === -1 && isSpreadElement(arg) ) {
+			if( spreadIndex === -1 && core.is.isSpreadElement(arg) ) {
 				spreadIndex = i;
 			}
 		});
@@ -162,8 +143,8 @@ var plugin = module.exports = {
 		}
 
 		let needFirstSquareBracket = argsLength > 1
-			|| isArrayExpression(args[0].argument)
-				&& !isSpreadElement(args[0].argument.elements[0])
+			|| core.is.isArrayExpression(args[0].argument)
+				&& !core.is.isSpreadElement(args[0].argument.elements[0])
 		;
 
 		this.alter.replace(
@@ -194,7 +175,7 @@ var plugin = module.exports = {
 		this.alter.replace(// replace '(' from 'new test(...a)'
 			args.range[0]
 			, args.range[0] + 1
-			, ", [null" + (spreadIndex === 0 && !isArrayExpression(args[1]["argument"]) ? "" : ", ")
+			, ", [null" + (spreadIndex === 0 && !core.is.isArrayExpression(args[1]["argument"]) ? "" : ", ")
 		);
 
 		this.replaceSpreads(node, args, true);
@@ -269,7 +250,7 @@ var plugin = module.exports = {
 				, isLast = i === argsLength - 1
 				, isLastAndNull = isLast && element == null
 				, theOnlyOne = isLast && isFirst
-				, isSpreadEl = isSpreadElement(element)
+				, isSpreadEl = core.is.isSpreadElement(element)
 			;
 
 			prevConcatOpen = concatOpen;
@@ -302,9 +283,9 @@ var plugin = module.exports = {
 					, argumentRange = getRange(argument)
 				;
 
-				if( isArrayExpression(argument) ) {
+				if ( core.is.isArrayExpression(argument) ) {
 					removeFirstSquareBracket();
-					firstElemIsSpreadFlag = theOnlyOne && isSpreadElement(argument.elements[0]) ? argument.range[0] : -1;
+					firstElemIsSpreadFlag = theOnlyOne && core.is.isSpreadElement(argument.elements[0]) ? argument.range[0] : -1;
 					// link `spread_in_spread` 1
 					// cases: [...[...obj]] and [...[N, , ...obj]], [...([...obj])] and [...([N, , ...obj])]
 					this.alter.remove(elementRange[0], argument.range[0] + (firstElemIsSpreadFlag === -1 ? 1 : 0), {a: 1});// remove "...[" or "...(["
@@ -445,7 +426,7 @@ var plugin = module.exports = {
 		}
 
 		if ( elements.length == 1 && !concatOpen && callIteratorOpen ) {
-			if ( isArrayExpression(node) ) {// for "NewExpression" and "CallExpression", node is not a SpreadElement )
+			if ( core.is.isArrayExpression(node) ) {// for "NewExpression" and "CallExpression", node is not a SpreadElement )
 				this.alter.remove(node.range[0], node.range[0] + 1);
 			}
 		}
@@ -468,9 +449,9 @@ var plugin = module.exports = {
 	, __detectNeedToCloneSpreadVariable: function(variable, elements, startsFrom) {
 		startsFrom = +startsFrom + 1;
 
-		if( startsFrom >= elements.length )return false;
-		if( isSequenceExpression(variable) )return true;// need more work to deep analise SequenceExpression
-		if( variable.type !== "Identifier" )return false;
+		if ( startsFrom >= elements.length )return false;
+		if ( core.is.isSequenceExpression(variable) )return true;// need more work to deep analise SequenceExpression
+		if ( variable.type !== "Identifier" )return false;
 
 		elements = elements.slice(startsFrom);
 
@@ -486,7 +467,7 @@ var plugin = module.exports = {
 					&& parentType !== "SpreadElement"	// [...a, 0, ...a]
 				;
 			}
-			else if( isSpreadElement(element) || elementType === "UpdateExpression" || elementType === "UnaryExpression" ) {
+			else if ( core.is.isSpreadElement(element) || elementType === "UpdateExpression" || elementType === "UnaryExpression" ) {
 				return checkElement.call(this, variableName, element.argument, element.type);
 			}
 			else if( elementType === "BinaryExpression" ) {

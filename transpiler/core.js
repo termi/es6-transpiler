@@ -29,111 +29,10 @@ function getRange(node) {
 	return node && (node.groupRange || node.range);
 }
 
-function isConstLet(kind) {
-	return kind === "const" || kind === "let";
-}
-
-function isVarConstLet(kind) {
-	return kind === "var" || kind === "const" || kind === "let";
-}
-
-function isFunction(node) {
-	let type;
-	return node && (type = node.type)
-		&& (type === "FunctionDeclaration" || type === "FunctionExpression" || type === "ArrowFunctionExpression");
-}
-
-function isBlock(node) {
-	let type;
-	return node && (type = node.type)
-		&& (type === "BlockStatement" || type === "Program");
-}
-
-function isExpressionStatement(node) {
-	let type;
-	return node && (type = node.type)
-		&& (type === "ExpressionStatement");
-}
-
-function isLiteral(node) {
-	let type;
-	return node && (type = node.type)
-		&& (type === "Literal");
-}
-
-function isIdentifier(node) {
-	let type;
-	return node && (type = node.type)
-		&& (type === "Identifier");
-}
-
-function isProperty(node) {
-	let type;
-	return node && (type = node.type)
-		&& (type === "Property");
-}
-
-function isMethodDefinition(node) {
-	let type;
-	return node && (type = node.type)
-		&& (type === "MethodDefinition");
-}
-
-function isNonFunctionBlock(node) {
-	return node && node.type === "BlockStatement" && !isFunction(node.$parent);
-}
-
-function isForWithConstLet(node) {
-	return node && node.type === "ForStatement" && node.init && node.init.type === "VariableDeclaration" && isConstLet(node.init.kind);
-}
-
-function isForInOfWithConstLet(node) {
-	return node && (node.type === "ForInStatement" || node.type === "ForOfStatement") && node.left.type === "VariableDeclaration" && isConstLet(node.left.kind);
-}
-
-function isReference(node) {
-	const parent = node.$parent;
-	const parentType = parent && parent.type;
-
-	return node.$refToScope
-		|| node.type === "Identifier"
-			&& !(parentType === "VariableDeclarator" && parent.id === node) // var|let|const $
-			&& !(parentType === "MemberExpression" && parent.computed === false && parent.property === node) // obj.$
-			&& !(parentType === "Property" && parent.key === node && parent.computed === false) // {$: ...} not the {[$]: ...}
-			&& !(parentType === "LabeledStatement" && parent.label === node) // $: ...
-			&& !(parentType === "CatchClause" && parent.param === node) // catch($)
-			&& !(isFunction(parent) && parent.id === node) // function $(..
-			&& !(isFunction(parent) && parent.params.indexOf(node) !== -1) // function f($)..
-			&& node.$parentProp !== 'label'// for 'break label', 'continue label', etc cases
-			&& true
-	;
-}
-
-function isDeclaration(node) {
-	return node && (node.$variableDeclaration === true || node.$paramDefinition === true);
-}
-
-function isLvalue(node) {
-	return isReference(node) &&
-		(
-			(node.$parent.type === "AssignmentExpression" && node.$parent.left === node)
-			|| (node.$parent.type === "UpdateExpression" && node.$parent.argument === node)
-		)
-	;
-}
-
-function isObjectPattern(node) {
-	return node && node.type === 'ObjectPattern';
-}
-
-function isArrayPattern(node) {
-	return node && node.type === 'ArrayPattern';
-}
-
 let UUID_PREFIX = "uuid" + ((Math.random() * 1e6) | 0);
 let UUID = 1;
 
-let core = module.exports = extend({}, require('./core/standardVars.js'), {
+let core = module.exports = extend({}, require('./core/is.js'), require('./core/standardVars.js'), {
 	reset: function() {
 		this.allIdentifiers = stringset();
 
@@ -199,18 +98,19 @@ let core = module.exports = extend({}, require('./core/standardVars.js'), {
 
 		let newNotProgramScope;
 
+		let _this = this;
 		function addParamToScope(param) {
 			if ( param === null ) {
 				return;
 			}
 
-			if ( isObjectPattern(param) ) {
+			if ( _this.is.isObjectPattern(param) ) {
 				param.properties.forEach(addParamToScope);
 			}
 			else if ( param.type === "Property" ) {//from objectPattern
 				addParamToScope(param.value);
 			}
-			else if ( isArrayPattern(param) ) {
+			else if ( _this.is.isArrayPattern(param) ) {
 				param.elements.forEach(addParamToScope);
 			}
 			else {
@@ -221,7 +121,7 @@ let core = module.exports = extend({}, require('./core/standardVars.js'), {
 		}
 
 		function addVariableToScope(variable, kind, originalDeclarator, scope, initNode) {
-			if( isObjectPattern(variable) ) {
+			if( _this.is.isObjectPattern(variable) ) {
 				variable.properties.forEach(function(variable) {
 					addVariableToScope(variable, kind, originalDeclarator, scope);
 				});
@@ -229,7 +129,7 @@ let core = module.exports = extend({}, require('./core/standardVars.js'), {
 			else if( variable.type === "Property" ) {//from objectPattern
 				addVariableToScope(variable.value, kind, originalDeclarator, scope);
 			}
-			else if( isArrayPattern(variable) ) {
+			else if( _this.is.isArrayPattern(variable) ) {
 				variable.elements.forEach(function(variable) {
 					if( variable ) {
 						addVariableToScope(variable, kind, originalDeclarator, scope);
@@ -315,7 +215,7 @@ let core = module.exports = extend({}, require('./core/standardVars.js'), {
 
 			}, this);
 
-		} else if (isFunction(node)) {
+		} else if (this.is.isFunction(node)) {
 			// Function is a scope, with params in it
 			// There's no block-scope under it
 
@@ -356,7 +256,7 @@ let core = module.exports = extend({}, require('./core/standardVars.js'), {
 
 		} else if (node.type === "VariableDeclaration") {
 			// Variable declarations names goes in current scope
-			assert(isVarConstLet(node.kind));
+			assert(this.is.isVarConstLet(node));
 			node.declarations.forEach(function(declarator) {
 				assert(declarator.type === "VariableDeclarator");
 
@@ -367,7 +267,7 @@ let core = module.exports = extend({}, require('./core/standardVars.js'), {
 				addVariableToScope(declarator.id, node.kind, declarator, void 0, declarator.init);
 			}, this);
 
-		} else if (isForWithConstLet(node) || isForInOfWithConstLet(node)) {
+		} else if (this.is.isForWithConstLet(node) || this.is.isForInOfWithConstLet(node)) {
 			// For(In) loop with const|let declaration is a scope, with declaration in it
 			// There may be a block-scope under it
 			newNotProgramScope = node.$scope = new Scope({
@@ -376,7 +276,7 @@ let core = module.exports = extend({}, require('./core/standardVars.js'), {
 				parent: node.$parent.$scope
 			});
 
-		} else if (isNonFunctionBlock(node)) {
+		} else if (this.is.isNonFunctionBlock(node)) {
 			// A block node is a scope unless parent is a function
 			newNotProgramScope = node.$scope = new Scope({
 				kind: "block",
@@ -552,7 +452,7 @@ let core = module.exports = extend({}, require('./core/standardVars.js'), {
 	 * after 'createScopes'
 	 */
 	, setupReferences: function(node) {
-		if (isReference(node)) {
+		if (this.is.isReference(node)) {
 			this.allIdentifiers.add(node.name);
 
 			const scope = node.$scope.lookup(node.name);
@@ -560,7 +460,7 @@ let core = module.exports = extend({}, require('./core/standardVars.js'), {
 				error(getline(node), "reference to unknown global variable {0}", node.name);
 			}
 
-			if( !isDeclaration(node) ) {
+			if( !this.is.isDeclaration(node) ) {
 				if( scope ) {
 					scope.addRef(node);
 				}
@@ -574,7 +474,7 @@ let core = module.exports = extend({}, require('./core/standardVars.js'), {
 			let decl = scope.get(node.name);
 
 			// check const and let for referenced-before-declaration
-			if ( isConstLet(decl.kind) ) {
+			if ( this.is.isConstLet(decl) ) {
 				const allowedFromPos = scope.getFromPos(node.name);
 				const referencedAtPos = node.range[0];
 
@@ -606,7 +506,7 @@ let core = module.exports = extend({}, require('./core/standardVars.js'), {
 	}
 
 	, detectConstAssignment: function detectConstAssignment(node) {
-		if (isLvalue(node)) {
+		if (this.is.isLvalue(node)) {
 			const scope = node.$scope.lookup(node.name);
 			if (scope && scope.getKind(node.name) === "const") {
 				error(getline(node), "can't assign to const variable {0}", node.name);
@@ -617,18 +517,19 @@ let core = module.exports = extend({}, require('./core/standardVars.js'), {
 	, getNodeVariableNames: function(node) {
 		let vars = [];
 
+		var _this = this;
 		function addParam(param) {
 			if( param === null ){
 				return;
 			}
 
-			if( isObjectPattern(param) ) {
+			if( _this.is.isObjectPattern(param) ) {
 				param.properties.forEach(addParam);
 			}
 			else if( param.type === "Property" ) {//from objectPattern
 				addParam(param.value);
 			}
-			else if( isArrayPattern(param) ) {
+			else if( _this.is.isArrayPattern(param) ) {
 				param.elements.forEach(addParam);
 			}
 			else {
@@ -641,13 +542,13 @@ let core = module.exports = extend({}, require('./core/standardVars.js'), {
 				return;
 			}
 
-			if( isObjectPattern(variable) ) {
+			if( _this.is.isObjectPattern(variable) ) {
 				variable.properties.forEach(addVariable);
 			}
 			else if( variable.type === "Property" ) {//from objectPattern
 				addVariable(variable.value);
 			}
-			else if( isArrayPattern(variable) ) {
+			else if( _this.is.isArrayPattern(variable) ) {
 				variable.elements.forEach(addVariable);
 			}
 			else if( variable.type === "SpreadElement" ) {//from arrayPattern
@@ -658,7 +559,7 @@ let core = module.exports = extend({}, require('./core/standardVars.js'), {
 			}
 		}
 
-		if( isFunction(node) ) {
+		if( this.is.isFunction(node) ) {
 			node.params.forEach(addParam);
 
 			if( node.rest ) {
@@ -668,7 +569,7 @@ let core = module.exports = extend({}, require('./core/standardVars.js'), {
 		else if( node.type === "VariableDeclaration" ) {
 			node.declarations.forEach(function(declarator) {
 				addVariable(declarator.id);
-			}, this);
+			});
 		}
 		else if( node.type === "AssignmentExpression" ) {
 			addVariable(node.left)
@@ -682,7 +583,7 @@ let core = module.exports = extend({}, require('./core/standardVars.js'), {
 
 	, PropertyToString: function(node, justName) {
 		let isParentComputedProperty = node
-			&& (isProperty(node.$parentNode) || isMethodDefinition(node.$parentNode))
+			&& (this.is.isProperty(node.$parentNode) || this.is.isMethodDefinition(node.$parentNode))
 			&& node.$parentNode.computed
 		;
 
@@ -694,7 +595,7 @@ let core = module.exports = extend({}, require('./core/standardVars.js'), {
 			return _computedBefore + this.alter.get(node.range[0], node.range[1]) + _computedAfter;
 		}
 
-		let isPrimitive = isLiteral(node) || isIdentifier(node);
+		let isPrimitive = this.is.isLiteral(node) || this.is.isIdentifier(node);
 
 		if ( isPrimitive ) {
 			var result;
@@ -832,9 +733,10 @@ let core = module.exports = extend({}, require('./core/standardVars.js'), {
 		let begin;
 		let hoistScopeNodeBody = node.body;
 
+		let _this = this;
 		let findUseStrictBlock = function(node) {
-			if ( isExpressionStatement(node.body[0])
-				&& isLiteral(node.body[0].expression)
+			if ( _this.is.isExpressionStatement(node.body[0])
+				&& _this.is.isLiteral(node.body[0].expression)
 				&& node.body[0].expression.value === 'use strict'
 				) {
 				return node.body[0];
@@ -862,12 +764,12 @@ let core = module.exports = extend({}, require('./core/standardVars.js'), {
 				begin = 0;
 			}
 		}
-		else if( node.type === "ClassDeclaration" || node.type === "ClassExpression" ) {
+		else if( this.is.isClass(node) ) {
 			begin = hoistScopeNodeBody.range[0] + 1;
 		}
-		else if( isFunction(node) ) {
+		else if( this.is.isFunction(node) ) {
 			const isNakedFunction = node.expression === true;
-			const useStrictBlock = !isNakedFunction && isBlock(node.body) && findUseStrictBlock(node.body);
+			const useStrictBlock = !isNakedFunction && this.is.isBlock(node.body) && findUseStrictBlock(node.body);
 
 			if ( useStrictBlock ) {
 				const blockEnd = useStrictBlock.range[1];
@@ -899,7 +801,7 @@ let core = module.exports = extend({}, require('./core/standardVars.js'), {
 			}
 			begin = hoistScopeNodeBody.range[0];
 
-			if( isFunction(node) ) {
+			if( this.is.isFunction(node) ) {
 				begin++;
 			}
 		}
@@ -987,7 +889,7 @@ let core = module.exports = extend({}, require('./core/standardVars.js'), {
 				let $parent = usingNode.$parent;
 
 				if( $parent && $parent.type === 'BlockStatement' ) {
-					if( ($parent = $parent.$parent) && isFunction($parent) ) {
+					if( ($parent = $parent.$parent) && this.is.isFunction($parent) ) {
 						blockStatement = usingNode;
 						commaNeeded = true;
 						break;
@@ -1193,7 +1095,7 @@ let core = module.exports = extend({}, require('./core/standardVars.js'), {
 		declarations.forEach(function(variableDeclarator) {
 			let variableDeclaratorId = variableDeclarator.id;
 
-			if( isArrayPattern(variableDeclaratorId) || isObjectPattern(variableDeclaratorId) ) {
+			if( this.is.isArrayPattern(variableDeclaratorId) || this.is.isObjectPattern(variableDeclaratorId) ) {
 				this.traverseDestructuringVariables(variableDeclaratorId, function(Identifier) {
 					result.push(Identifier);
 				})
@@ -1207,23 +1109,23 @@ let core = module.exports = extend({}, require('./core/standardVars.js'), {
 	}
 
 	, traverseDestructuringVariables: function(definitionNode, traverse) {
-		assert(isObjectPattern(definitionNode) || isArrayPattern(definitionNode));
+		let isObjectPattern = this.is.isObjectPattern(definitionNode);
 
-		let _isObjectPattern = isObjectPattern(definitionNode)
-			, elementsList = _isObjectPattern ? definitionNode.properties : definitionNode.elements
-		;
+		assert(isObjectPattern || this.is.isArrayPattern(definitionNode));
+
+		let elementsList = isObjectPattern ? definitionNode.properties : definitionNode.elements;
 
 		for( let k = 0, len = elementsList.length ; k < len ; k++ ) {
-			let element = elementsList[k], elementId = _isObjectPattern ? element.value : element;
+			let element = elementsList[k], elementId = isObjectPattern ? element.value : element;
 			if (element) {
-				if( isObjectPattern(elementId) || isArrayPattern(elementId) ) {
+				if( this.is.isObjectPattern(elementId) || this.is.isArrayPattern(elementId) ) {
 					this.traverseDestructuringVariables(
-						_isObjectPattern ? element.value : element
+						isObjectPattern ? element.value : element
 						, traverse
 					);
 				}
 				else {
-					element = _isObjectPattern ? element.value : element;
+					element = isObjectPattern ? element.value : element;
 
 					const isSpreadElement = element.type === "SpreadElement";
 
@@ -1255,11 +1157,11 @@ let core = module.exports = extend({}, require('./core/standardVars.js'), {
 		if( parent ) {
 			if( parent.type === 'Property' ) {
 				parent = parent.$parent;
-				if( isObjectPattern(parent) ) {
+				if( this.is.isObjectPattern(parent) ) {
 					return parent;
 				}
 			}
-			else if( isArrayPattern(parent) ) {
+			else if( this.is.isArrayPattern(parent) ) {
 				return parent;
 			}
 		}
@@ -1281,7 +1183,7 @@ let core = module.exports = extend({}, require('./core/standardVars.js'), {
 		for(  ; k < len ; k++ ) {
 			declaration = declarations[k];
 
-			if( isObjectPattern(declaration) || isArrayPattern(declaration) ) {
+			if( this.is.isObjectPattern(declaration) || this.is.isArrayPattern(declaration) ) {
 				//let result; // TODO:: es6-traspiler error: line 1091: can't transform loop-closure due to use of return at line 1100. result is defined outside closure, inside loop
 				this.traverseDestructuringVariables(declaration, function(declaration) {
 					if( declaration === declaratorNode ) {
@@ -1314,7 +1216,7 @@ let core = module.exports = extend({}, require('./core/standardVars.js'), {
 			if( parent.type === 'Property' ) {
 
 			}
-			else if( isArrayPattern(parent) || isObjectPattern(parent) ) {
+			else if( this.is.isObjectPattern(parent) || this.is.isArrayPattern(parent) ) {
 
 			}
 			else {
@@ -1346,8 +1248,8 @@ let core = module.exports = extend({}, require('./core/standardVars.js'), {
 	}
 
 	, getKeyName: function(keyNode) {
-		let isLiteral = keyNode.type == 'Literal';
-		assert(keyNode.type == 'Identifier' || isLiteral);
+		let isLiteral = this.is.isLiteral(keyNode);
+		assert(isLiteral || this.is.isIdentifier(keyNode));
 
 		return isLiteral ? keyNode.value : keyNode.name;
 	}
@@ -1436,7 +1338,7 @@ let core = module.exports = extend({}, require('./core/standardVars.js'), {
 			parent = parent.$parent;
 		}
 
-		if ( isBlock(parent) && (prev = node.$previousElementSibling) ) {
+		if ( (this.is.isBlock(parent) || this.is.isProgram(parent)) && (prev = node.$previousElementSibling) ) {
 			let range = getRange(node)
 				, prevRange = getRange(prev)
 				, end = range[0]

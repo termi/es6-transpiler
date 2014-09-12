@@ -11,55 +11,6 @@ function getline(node) {
 	return node.loc.start.line;
 }
 
-function isObjectPattern(node) {
-	return node && node.type === 'ObjectPattern';
-}
-
-function isArrayPattern(node) {
-	return node && node.type === 'ArrayPattern';
-}
-
-function isConstLet(kind) {
-	return kind === "const" || kind === "let";
-}
-
-function isFunction(node) {
-	let type;
-	return node && (type = node.type)
-		&& type === "FunctionDeclaration" || type === "FunctionExpression" || type === "ArrowFunctionExpression";
-}
-
-function isForInOfWithConstLet(node) {
-	return node && (node.type === "ForInStatement" || node.type === "ForOfStatement") && node.left.type === "VariableDeclaration" && isConstLet(node.left.kind);
-}
-
-function isLoop(node) {
-	let type;
-	return node && ((type = node.type) === "ForStatement" || type === "ForInStatement" || type === "ForOfStatement" || type === "WhileStatement" || type === "DoWhileStatement");
-}
-
-function isReference(node) {
-	const parent = node.$parent;
-	const parentType = parent && parent.type;
-
-	return node.$refToScope
-		|| node.type === "Identifier"
-			&& !(parentType === "VariableDeclarator" && parent.id === node) // var|let|const $
-			&& !(parentType === "MemberExpression" && parent.computed === false && parent.property === node) // obj.$
-			&& !(parentType === "Property" && parent.key === node && parent.computed === false) // {$: ...} not the {[$]: ...}
-			&& !(parentType === "LabeledStatement" && parent.label === node) // $: ...
-			&& !(parentType === "CatchClause" && parent.param === node) // catch($)
-			&& !(isFunction(parent) && parent.id === node) // function $(..
-			&& !(isFunction(parent) && parent.params.indexOf(node) !== -1) // function f($)..
-			&& node.$parentProp !== 'label'// for 'break label', 'continue label', etc cases
-			&& true
-	;
-}
-
-function isDeclaration(node) {
-	return node && (node.$variableDeclaration === true || node.$paramDefinition === true);
-}
-
 let transformLoop_fragmentOption_functionHeadAndTail = {
 	applyChanges: true
 	, extend: true
@@ -129,20 +80,20 @@ var plugin = module.exports = {
 		// forbidden pattern:
 		// <any>* <loop> <non-fn>* <constlet-def> <any>* <fn> <any>* <constlet-ref>
 		var loopNode = null;
-		if( isReference(node)
+		if( core.is.isReference(node)
 			&& node.$refToScope
 			&& node.$refToScope !== node.$scope
-			&& isConstLet(node.$refToScope.getKind(node.name))
+			&& core.is.isConstLet({kind: node.$refToScope.getKind(node.name)})
 		) {
 			// traverse nodes up towards root from constlet-def
 			// if we hit a function (before a loop) - ok!
 			// if we hit a loop - maybe-ouch
 			// if we reach root - ok!
 			for (let n = node.$refToScope.node ; ; ) {
-				if (isFunction(n)) {
+				if (core.is.isFunction(n)) {
 					// we're ok (function-local)
 					return;
-				} else if (isLoop(n)) {
+				} else if (core.is.isLoop(n)) {
 					loopNode = n;
 					// maybe not ok (between loop and function)
 					break;
@@ -163,11 +114,11 @@ var plugin = module.exports = {
 				if (s === defScope) {
 					// we're ok
 					return;
-				} else if (isFunction(s.node)) {
+				} else if (core.is.isFunction(s.node)) {
 					// not ok (there's a function between the reference and definition)
 					// may be transformable via IIFE
 
-					if (!generateIIFE || !isLoop(loopNode)) {
+					if (!generateIIFE || !core.is.isLoop(loopNode)) {
 						return error(getline(node), "can't transform closure. {0} is defined outside closure, inside loop", node.name);
 					}
 
@@ -196,7 +147,7 @@ var plugin = module.exports = {
 
 		astQuery.traverse(body, function(n) {
 			// if we hit an inner function of the loop body, don't traverse further
-			if (isFunction(n)) {
+			if (core.is.isFunction(n)) {
 				return false;
 			}
 
@@ -236,7 +187,7 @@ var plugin = module.exports = {
 
 		let fragmentOption = Object.create(transformLoop_fragmentOption_functionHeadAndTail);
 		fragmentOption.variableDeclarationNode =
-			isForInOfWithConstLet(loopNode)
+			core.is.isForInOfWithConstLet(loopNode)
 			&& variableNode
 			&& core.declarationContainsDeclarator(loopNode.left, variableDeclarator)
 			&& variableDeclarationNode
@@ -358,7 +309,7 @@ var plugin = module.exports = {
 			}
 			else if (type === "VariableDeclaration" && special.kind === "var") {
 				beforeHead += (";var " + special.declarations.map(function(node) {
-					if ( isObjectPattern(node.id) || isArrayPattern(node.id) ) {
+					if ( core.is.isObjectPattern(node.id) || core.is.isArrayPattern(node.id) ) {
 						return core.getDestructuringVariablesName(node.id).join(", ");
 					}
 					else if ( node ) {
@@ -427,14 +378,14 @@ var plugin = module.exports = {
 		function setNewRefToScope(variableNode, i) {
 			variableNode.$refToScope = newScope;
 
-			if( isDeclaration(variableNode) ) {
+			if( core.is.isDeclaration(variableNode) ) {
 				let refs = variableNode.$scope.getRefs(variableNode.name) || [];
 				refs.forEach(setNewRefToScope);
 			}
 		}
 
 		let destructuringVariableDeclarationNode =
-			isForInOfWithConstLet(loopNode)
+			core.is.isForInOfWithConstLet(loopNode)
 			&& core.declarationContainsDeclarator(loopNode.left, variableDeclarator)
 			&& core.detectDestructuringParent(variableDeclarationNode)
 		;

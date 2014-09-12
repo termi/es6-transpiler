@@ -8,50 +8,16 @@ function getline(node) {
 	return node.loc.start.line;
 }
 
-function isVarConstLet(kind) {
-	return kind === "var" || kind === "const" || kind === "let";
-}
-
-function isObjectPattern(node) {
-	return node && node.type == 'ObjectPattern';
-}
-
-function isArrayPattern(node) {
-	return node && node.type == 'ArrayPattern';
-}
-
-function isForInOf(node) {
-	return node && (node.type === "ForInStatement" || node.type === "ForOfStatement");
-}
-
 function isEmptyDestructuring(node) {
-	if ( isObjectPattern(node) ) {
+	if ( core.is.isObjectPattern(node) ) {
 		return node.properties.length === 0;
 	}
-	if ( isArrayPattern(node) ) {
+	if ( core.is.isArrayPattern(node) ) {
 		return node.elements.length === 0
 			|| node.elements.every(function(node) { return node === null })
 		;
 	}
 	return false;
-}
-
-function isBodyStatement(node) {
-	let type = node && node.type;
-	return type === "BlockStatement"
-		|| type === "FunctionDeclaration"
-		|| type === "FunctionExpression"
-		|| type === "ArrowFunctionExpression"
-		|| type === "ForStatement"
-		|| type === "ForInStatement"
-		|| type === "ForOfStatement"
-		|| type === "WhileStatement"
-		|| type === "DoWhileStatement"
-	;
-}
-
-function isBinaryExpression(node) {
-	return node && node.type === "BinaryExpression";
 }
 
 var plugin = module.exports = {
@@ -77,10 +43,10 @@ var plugin = module.exports = {
 
 			if( parentNode.type === "VariableDeclarator" ) {
 				declarationNode = parentNode.$parent;
-				if( isForInOf(declarationNode.$parent) ) {
+				if ( core.is.isForInOf(declarationNode.$parent) ) {
 					//TODO::
 				}
-				else if( isVarConstLet(declarationNode.kind) ) {
+				else if ( core.is.isVarConstLet(declarationNode) ) {
 					this.__replaceDeclaration(parentNode, node);
 				}
 			}
@@ -124,9 +90,9 @@ var plugin = module.exports = {
 	}
 
 	, unwrapDestructuring: function unwrapDestructuring(kind, definitionNode, valueNode, newVariables, newDefinitions) {
-		let _isObjectPattern = isObjectPattern(definitionNode);
+		let isObjectPattern = core.is.isObjectPattern(definitionNode);
 
-		assert(_isObjectPattern || isArrayPattern(definitionNode));
+		assert(isObjectPattern || core.is.isArrayPattern(definitionNode));
 		if( !newVariables )newVariables = [];
 		assert(Array.isArray(newVariables));
 
@@ -180,7 +146,7 @@ var plugin = module.exports = {
 
 			if( definition["$assignmentExpressionResult"] === true ) {
 				let $parent = valueNode.$parent;
-				if( $parent && ($parent = $parent.$parent) && ($parent = $parent.$parent) && !isBodyStatement($parent) && !isBinaryExpression($parent) ) {
+				if( $parent && ($parent = $parent.$parent) && ($parent = $parent.$parent) && !core.is.isBodyStatement($parent) && !core.is.isBinaryExpression($parent) ) {
 					let isExpressionStatementWithoutBrackets = this.alter.getRange(valueNode.range[1], valueNode.$parent.$parent.range[1]) !== ')';
 
 					if( isExpressionStatementWithoutBrackets ) {
@@ -199,10 +165,10 @@ var plugin = module.exports = {
 		let isTemporaryVariable = false, valueIdentifierName, temporaryVariableIndexOrName, valueIdentifierDefinition;
 		let isTemporaryValueAssignment = false;
 
-		let _isObjectPattern = isObjectPattern(definitionNode)
-			, valueNode_isArrayPattern = isArrayPattern(valueNode)
-			, valueNode_isObjectPattern = isObjectPattern(valueNode)
-			, elementsList = _isObjectPattern ? definitionNode.properties : definitionNode.elements
+		let isObjectPattern = core.is.isObjectPattern(definitionNode)
+			, valueNode_isArrayPattern = core.is.isArrayPattern(valueNode)
+			, valueNode_isObjectPattern = core.is.isObjectPattern(valueNode)
+			, elementsList = isObjectPattern ? definitionNode.properties : definitionNode.elements
 			, localFreeVariables
 			, isLocalFreeVariable = type === 1
 		;
@@ -288,7 +254,7 @@ var plugin = module.exports = {
 
 		let lastElement;
 		for( let k = 0, len = elementsList.length, lineBreaksFrom = definitionNode.range[0] ; k < len ; k++ ) {
-			const element = elementsList[k], elementId = _isObjectPattern ? element.value : element;
+			const element = elementsList[k], elementId = isObjectPattern ? element.value : element;
 
 			let lineBreaks = "";
 			if ( element ) {
@@ -301,13 +267,13 @@ var plugin = module.exports = {
 			}
 
 			if ( element ) {
-				if( isObjectPattern(elementId) || isArrayPattern(elementId) ) {
+				if ( core.is.isObjectPattern(elementId) || core.is.isArrayPattern(elementId) ) {
 					this.__unwrapDestructuring(
 						1
-						, _isObjectPattern ? element.value : element
+						, isObjectPattern ? element.value : element
 						, {
 							type: "Identifier"
-							, name: valueIdentifierName + (_isObjectPattern ? core.PropertyToString(element.key) : ("[" + k + "]"))
+							, name: valueIdentifierName + (isObjectPattern ? core.PropertyToString(element.key) : ("[" + k + "]"))
 							, "$lineBreaks": lineBreaks
 						}
 						, newVariables
@@ -335,7 +301,7 @@ var plugin = module.exports = {
 					};
 					newDefinition.$scope = definitionNode.$scope;
 
-					if( _isObjectPattern ) {
+					if( isObjectPattern ) {
 						newDefinition["init"]["property"] = element.key;
 					}
 					else {

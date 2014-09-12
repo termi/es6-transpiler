@@ -9,19 +9,6 @@ function getline(node) {
 	return node.loc.start.line;
 }
 
-function isConstLet(kind) {
-	return kind === "const" || kind === "let";
-}
-
-function isObjectPattern(node) {
-	return node && node.type === 'ObjectPattern';
-}
-
-function isArrayPattern(node) {
-	return node && node.type === 'ArrayPattern';
-}
-
-
 let plugin = module.exports = {
 	reset: function() {
 
@@ -85,7 +72,7 @@ let plugin = module.exports = {
 		let hasLoopScopeBetween;
 
 		declarations.forEach(function renameDeclaration(declarator) {
-			var declaratorId = isObjectPattern(declarator) || isArrayPattern(declarator)
+			var declaratorId = core.is.isObjectPattern(declarator) || core.is.isArrayPattern(declarator)
 					? declarator
 					: declarator.type === "Property"
 						? declarator.value
@@ -96,7 +83,7 @@ let plugin = module.exports = {
 				declarator.type === "VariableDeclarator" || declarator.$type === "VariableDeclarator"
 			);
 
-			if( isObjectPattern(declaratorId) ) {
+			if ( core.is.isObjectPattern(declaratorId) ) {
 				for (let properties = declaratorId.properties, k = 0, l = properties.length ; k < l ; k++) {
 					const property = properties[k];
 					if (property) {
@@ -107,8 +94,8 @@ let plugin = module.exports = {
 				}
 				return;
 			}
-			else if (isArrayPattern(declaratorId)) {
-				for (let elements = declaratorId.elements, k = 0, l = elements.length ; k < l ; k++) {
+			else if ( core.is.isArrayPattern(declaratorId) ) {
+				for ( let elements = declaratorId.elements, k = 0, l = elements.length ; k < l ; k++ ) {
 					const element = elements[k];
 					if (element) {
 						element.$type = "VariableDeclarator";

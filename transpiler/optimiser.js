@@ -4,27 +4,6 @@ const assert = require("assert");
 const core = require("./core");
 const is = require("simple-is");
 
-function isFunction(node) {
-	let type;
-	return node && (type = node.type)
-		&& type === "FunctionDeclaration" || type === "FunctionExpression" || type === "ArrowFunctionExpression";
-}
-
-function isLoop(node) {
-	let type;
-	return node && (type = node.type)
-		&& type === "ForStatement" || type === "ForInStatement" || type === "ForOfStatement" || type === "WhileStatement" || type === "DoWhileStatement";
-}
-
-function isObjectPattern(node) {
-	return node && node.type === 'ObjectPattern';
-}
-
-function isArrayPattern(node) {
-	return node && node.type === 'ArrayPattern';
-}
-
-
 let plugin = module.exports = {
 	reset: function() {
 
@@ -97,14 +76,14 @@ let plugin = module.exports = {
 			scopeNode = scopeNode.$scope.closestHoistScope().node;
 		}
 
-		if( isLoop(scopeNode.$parent) && scopeNode.$parent.$iify === true ) {
+		if ( core.is.isLoop(scopeNode.$parent) && scopeNode.$parent.$iify === true ) {
 			// TODO:: allow reset variables inside IIFY (it's buggy now)
 			return;
 		}
 
-		const insertIndex = scopeNode.range[1] + (isLoop(scopeNode) ? 0 : (scopeNode.type === "Program" ? 0 : -1));
+		const insertIndex = scopeNode.range[1] + (core.is.isLoop(scopeNode) ? 0 : (scopeNode.type === "Program" ? 0 : -1));
 
-//		if( !isFunction(scopeNode) ) {
+//		if( !core.is.isFunction(scopeNode) ) {
 			if( !scopeNode.$voidsInsert ) {
 				scopeNode.$voidsInsert = {};
 			}

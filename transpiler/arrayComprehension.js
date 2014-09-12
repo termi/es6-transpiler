@@ -6,14 +6,6 @@ const core = require("./core");
 const forOf = require("./forOf");
 const destructuring = require("./destructuring");
 
-function isObjectPattern(node) {
-	return node && node.type == 'ObjectPattern';
-}
-
-function isArrayPattern(node) {
-	return node && node.type == 'ArrayPattern';
-}
-
 var plugin = module.exports = {
 	reset: function() {
 
@@ -51,7 +43,7 @@ var plugin = module.exports = {
 			if( variableBlock.type === "Identifier") {
 				variableNames.push(variableBlock.name);
 			}
-			else if(isObjectPattern(variableBlock) || isArrayPattern(variableBlock)) {
+			else if ( core.is.isObjectPattern(variableBlock) || core.is.isArrayPattern(variableBlock) ) {
 				// creating a 'var <variable_name>' is already in forOf
 			}
 			else {

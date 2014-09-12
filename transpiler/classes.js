@@ -3,32 +3,6 @@
 const assert = require("assert");
 const core = require("./core");
 
-function isIdentifier(node, name) {
-	return node
-		&& node.type === "Identifier"
-		&& (!name || node.name == name)
-	;
-}
-function isMemberExpression(node) {
-	return node && node.type === "MemberExpression";
-}
-
-function isClass(node) {
-	return node && (node.type === "ClassDeclaration" || node.type === "ClassExpression")
-}
-
-function isHoistFunction(node) {
-	let type;
-	return node && (type = node.type)
-		&& (type === "FunctionDeclaration" || type === "FunctionExpression");
-}
-
-function isLiteral(node) {
-	let type;
-	return node && (type = node.type)
-		&& (type === "Literal");
-}
-
 const GET_CNAMES = "function f(o){" +
 	"var r,u;for(var p in o)if((r=o[p])&&typeof r ==='object'&&(u=r[\"__unq\"])){" +
 		"${getCNames_names}[u]=p;" +
@@ -191,7 +165,7 @@ const classesTranspiler = {
 				, nodeId = node.id
 			;
 
-			assert(nodeId ? isIdentifier(nodeId) : isClassExpression);
+			assert(nodeId ? core.is.isIdentifier(nodeId) : isClassExpression);
 
 			const classBodyNodes = node.body.body
 				, currentClassName = nodeId ? nodeId.name : core.unique("constructor", true)
@@ -232,8 +206,8 @@ const classesTranspiler = {
 				}
 				else {
 					let nodeKey = classConstructor.key;
-					let _isLiteral = isLiteral(nodeKey);
-					let methodName = _isLiteral ? nodeKey.value : nodeKey.name;
+					let isLiteral = core.is.isLiteral(nodeKey);
+					let methodName = isLiteral ? nodeKey.value : nodeKey.name;
 
 					if( methodName !== "constructor" ) {
 						classConstructor = null;
@@ -308,7 +282,7 @@ const classesTranspiler = {
 			this.alter.insert(node.range[1] - 1, theEndString + ";return " + currentClassName + ";");
 
 			if ( superClass ) {
-				superClass = isIdentifier(superClass) ? superClass.name : this.alter.get(superClass.range[0], superClass.range[1]);
+				superClass = core.is.isIdentifier(superClass) ? superClass.name : this.alter.get(superClass.range[0], superClass.range[1]);
 
 				this.alter.insert(node.range[1],
 					")(" + superClass + ")"
@@ -385,22 +359,22 @@ const classesTranspiler = {
 		if( node.type === "CallExpression" ) {
 			let calleeNode = node.callee;
 
-			if( calleeNode && isIdentifier(calleeNode) && calleeNode.name === 'super' ) {
+			if( calleeNode && core.is.isIdentifier(calleeNode) && calleeNode.name === 'super' ) {
 
 				this.unwrapSuperCall(node, calleeNode, this.__current.method, true);
 			}
 		}
-		else if( isClass(node) || isHoistFunction(node) ) {
+		else if( core.is.isClass(node) || core.is.isHoistFunction(node) ) {
 			return false;
 		}
 	}
 	
 	, replaceClassMethods: function replaceClassMethods(node, astQuery) {
 		let nodeKey = node.key;
-		let _isLiteral = isLiteral(nodeKey);
+		let isLiteral = core.is.isLiteral(nodeKey);
 		let methodName = core.PropertyToString(nodeKey, true);
 
-		if( node.type === "MethodDefinition" && (_isLiteral ? nodeKey.value : nodeKey.name) !== "constructor" ) {
+		if( node.type === "MethodDefinition" && (isLiteral ? nodeKey.value : nodeKey.name) !== "constructor" ) {
 			let isStatic = node.static;
 			let isComputed = node.computed;
 
@@ -412,21 +386,21 @@ const classesTranspiler = {
 				if( child.type === "CallExpression" ) {
 					child = child.callee;
 
-					if( isMemberExpression(child) ) {
+					if ( core.is.isMemberExpression(child) ) {
 						let objectNode = child.object;
-						if( isIdentifier(objectNode) && objectNode.name === 'super' ) {
+						if( core.is.isIdentifier(objectNode) && objectNode.name === 'super' ) {
 							this.__namedSuperCount++;
 
 							node.$hasSuperInside = true;
 						}
 					}
-					else if ( isIdentifier(child) && child.name === 'super' ) {
+					else if ( core.is.isIdentifier(child) && child.name === 'super' ) {
 						this.__unNamedSuperCount++;
 
 						node.$hasSuperInside = true;
 					}
 				}
-				else if( isClass(child) || isHoistFunction(child) ) {
+				else if( core.is.isClass(child) || core.is.isHoistFunction(child) ) {
 					return false;
 				}
 			}.bind(this));
@@ -465,7 +439,7 @@ const classesTranspiler = {
 						this.__current.firstStaticAccessors = node;
 					}
 
-					assert(isIdentifier(nodeKey) || _isLiteral);
+					assert(core.is.isIdentifier(nodeKey) || isLiteral);
 
 					let key = literalToName(methodName);
 
@@ -478,7 +452,7 @@ const classesTranspiler = {
 						core.unique((isStatic ? "static_" : "") + key + "$" + node.kind, true)
 					;
 
-					if ( _isLiteral ) {
+					if ( isLiteral ) {
 						accessor.raw = nodeKey.raw;
 					}
 					else if ( node.$hasSuperInside ) {
@@ -514,8 +488,8 @@ const classesTranspiler = {
 					this.alter.insertBefore(nodeKey.range[1], ')+\'\';' + targetName + '[' + methodName);
 				}
 				else {
-					let beforeName = _isLiteral && !isComputed ? '[' : (isComputed ? '' : '.');
-					let afterName = _isLiteral && !isComputed ? ']' : '';
+					let beforeName = isLiteral && !isComputed ? '[' : (isComputed ? '' : '.');
+					let afterName = isLiteral && !isComputed ? ']' : '';
 
 					if ( isStatic ) {
 						// text change 'static method(<something>)' => '$static$0.method(<something>)'
@@ -546,9 +520,9 @@ const classesTranspiler = {
 		if( node.type === "CallExpression" ) {
 			let calleeNode = node.callee;
 
-			if( isMemberExpression(calleeNode) ) {
+			if ( core.is.isMemberExpression(calleeNode) ) {
 				let objectNode = calleeNode.object;
-				if( isIdentifier(objectNode, 'super') ) {
+				if ( core.is.isIdentifier(objectNode, 'super') ) {
 					// text change 'super.method(<some>)' => 'super$0(<some>)' (if <some> contains SpreadElement) or 'super$0.call(this, <some>)'
 
 					this.unwrapSuperCall(node, objectNode, {
@@ -561,12 +535,12 @@ const classesTranspiler = {
 					return false;
 				}
 			}
-			else if ( isIdentifier(calleeNode, 'super') ) {
+			else if ( core.is.isIdentifier(calleeNode, 'super') ) {
 				// text change 'super(<some>)' => 'super$0[<superMethodName>](<some>)' (if <some> contains SpreadElement) or 'super$0[<superMethodName>].call(this, <some>)'
 				this.unwrapSuperCall(node, calleeNode, this.__current.method);
 			}
 		}
-		else if( isIdentifier(node, 'super') ) {
+		else if ( core.is.isIdentifier(node, 'super') ) {
 			if ( !node.$originalName ) {
 				node.$originalName = node.name;
 				node.name = core.createVars(node, "super");
@@ -574,13 +548,13 @@ const classesTranspiler = {
 				this.alter.replace(node.range[0], node.range[1], node.name);
 			}
 		}
-		else if( isClass(node) || isHoistFunction(node) ) {
+		else if( core.is.isClass(node) || core.is.isHoistFunction(node) ) {
 			return false;
 		}
 	}
 
 	, replaceClassMethodSuperInConstructor: function replaceClassMethodSuperInConstructor(node) {
-		if( isIdentifier(node, 'super') ) {
+		if ( core.is.isIdentifier(node, 'super') ) {
 			let parent = node.$parent;
 			if ( parent.type === 'CallExpression' ) {
 				//'super(<some>)' case
@@ -591,7 +565,7 @@ const classesTranspiler = {
 			// text change 'super.a(<some>)' => 'super$0.a(<some>)'
 			this.alter.replace(node.range[0], node.range[1], core.createVars(node, 'super'));
 		}
-		else if( isClass(node) || isHoistFunction(node) ) {
+		else if( core.is.isClass(node) || core.is.isHoistFunction(node) ) {
 			return false;
 		}
 	}

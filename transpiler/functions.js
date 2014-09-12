@@ -5,24 +5,8 @@ const error = require("./../lib/error");
 const core = require("./core");
 const destructuring = require("./destructuring");
 
-
-
 function getline(node) {
 	return node.loc.start.line;
-}
-
-function isFunction(node) {
-	let type;
-	return node && (type = node.type)
-		&& type === "FunctionDeclaration" || type === "FunctionExpression" || type === "ArrowFunctionExpression";
-}
-
-function isObjectPattern(node) {
-	return node && node.type == 'ObjectPattern';
-}
-
-function isArrayPattern(node) {
-	return node && node.type == 'ArrayPattern';
 }
 
 var plugin = module.exports = {
@@ -196,12 +180,12 @@ var plugin = module.exports = {
 					const param = params[i];
 					const prevParam = params[i - 1];
 					const doesArgumentsInsideFunction = node.$scope.doesArgumentsUsing();
-					const _isObjectPattern = isObjectPattern(param);
-					const _isArrayPattern = !_isObjectPattern && isArrayPattern(param);
+					const isObjectPattern = core.is.isObjectPattern(param);
+					const isArrayPattern = !isObjectPattern && core.is.isArrayPattern(param);
 
-					if( _isObjectPattern || _isArrayPattern ) {
+					if( isObjectPattern || isArrayPattern ) {
 
-						let elements = (_isObjectPattern ? param.properties : param.elements)
+						let elements = (isObjectPattern ? param.properties : param.elements)
 							, elementsLength = elements.length
 							, element = elements[elementsLength - 1]
 						;
@@ -209,7 +193,7 @@ var plugin = module.exports = {
 							doesArgumentsInsideFunction
 								? {type: "Identifier", name: core.unique("$D", true)}
 								: element
-									? (_isObjectPattern ? element.value : element)
+									? (isObjectPattern ? element.value : element)
 									: {$raw: '', name: ''}// empty destructuring
 						;
 
@@ -232,7 +216,7 @@ var plugin = module.exports = {
 						// add
 						insertIntoBodyBegin += paramStr;
 
-						let paramReplacerName = (_isObjectPattern || _isArrayPattern) && !doesArgumentsInsideFunction
+						let paramReplacerName = (isObjectPattern || isArrayPattern) && !doesArgumentsInsideFunction
 							//assuming that in this case the last destructuring parameter would be the new parameter name
 							? newDeclarations[newDeclarations.length - 1].id.name
 							: functionParamReplacer.name
@@ -261,7 +245,7 @@ var plugin = module.exports = {
 					}
 
 					let defaultStr;
-					if( isObjectPattern(param) || isArrayPattern(param) ) {
+					if ( core.is.isObjectPattern(param) || core.is.isArrayPattern(param) ) {
 						defaultStr =
 							destructuring.unwrapDestructuring(
 								"var"
@@ -361,7 +345,7 @@ var plugin = module.exports = {
 		}
 
 		astQuery.traverse(node, function(childNode) {
-			if( isFunction(childNode) && childNode !== node ) {
+			if ( core.is.isFunction(childNode) && childNode !== node ) {
 				return false;
 			}
 

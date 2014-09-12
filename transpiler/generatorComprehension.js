@@ -7,14 +7,6 @@ const core = require("./core");
 const forOf = require("./forOf");
 const destructuring = require("./destructuring");
 
-function isObjectPattern(node) {
-	return node && node.type == 'ObjectPattern';
-}
-
-function isArrayPattern(node) {
-	return node && node.type == 'ArrayPattern';
-}
-
 const generatorHEAD = tmpl.generate("var ${done}=false;");
 const generatorINIT_var = tmpl.generate("var ${init}=false;");
 const generatorINIT_init = tmpl.generate("if(${init}===false){${FOROF_INIT}${init}=true;}");
@@ -287,7 +279,7 @@ var plugin = module.exports = {
 		if( variableBlock.type === "Identifier") {
 			variableNames.push(variableBlock.name);
 		}
-		else if(isObjectPattern(variableBlock) || isArrayPattern(variableBlock)) {
+		else if ( core.is.isObjectPattern(variableBlock) || core.is.isArrayPattern(variableBlock) ) {
 			// TODO:: replace forOf.createForOfReplacement().declarations with this implementation
 		}
 		else {
