@@ -57,6 +57,42 @@ const $fix__proto__ = 'function(o,f){' +
 const $SymbolIteratorBody = "typeof Symbol!=='undefined'&&Symbol&&Symbol.iterator||'@@iterator'";
 const $SymbolToStringTagBody = "typeof Symbol!=='undefined'&&Symbol&&Symbol[\"toStringTag\"]||'@@toStringTag'";
 const $SymbolPolyfillMarkBody = "typeof Symbol!=='undefined'&&Symbol&&Symbol[\"__setObjectSetter__\"]";
+const $getIteratorBody =
+	"(v){" +
+		"if(v){" +
+			"if(Array.isArray(v))return 0;" +
+			"var f;" +
+			"if(${Symbol_mark})${Symbol_mark}(v);" +
+			"if(typeof v==='object'&&typeof (f=v[${Symbol_iterator}])==='function'){if(${Symbol_mark})${Symbol_mark}(void 0);return f.call(v);}" +
+			"if(${Symbol_mark})${Symbol_mark}(void 0);" +
+			"if((v+'')==='[object Generator]')return v;" +
+		"}" +
+		"throw new Error(v+' is not iterable')"+
+	"};"
+;
+const $callIteratorBody =
+	"(v,f){" +
+		"if(v){" +
+			"if(Array.isArray(v))return f?v.slice():v;" +
+			"var i,r;"+
+			"if(${Symbol_mark})${Symbol_mark}(v);" +
+			"if(typeof v==='object'&&typeof (f=v[${Symbol_iterator}])==='function'){" +
+				"i=f.call(v);r=[];" +
+			"}" +
+			"else if((v+'')==='[object Generator]'){" +
+				"i=v;" +
+				"r=[];" +
+			"};" +
+			"if(${Symbol_mark})${Symbol_mark}(void 0);" +
+			"if(r) {" +
+				"while((f=i['next']()),f['done']!==true)r.push(f['value']);" +
+				"return r;" +
+			"}" +
+		"}" +
+		"throw new Error(v+' is not iterable')"+
+	"};"
+;
+
 const $generatorConstructor =
 	"Function[\"__Generator__\"];if(!${__self__}){Function[\"__Generator__\"]=${__self__}=function Generator(){" +
 		"if(!(this instanceof ${__self__}))throw new TypeError('incompatible'+this);" +
@@ -89,7 +125,8 @@ const $generatorConstructor =
 ;
 
 var standardVars = {
-	"defineProperty": {template: $defineProperty, name: "DP"}
+	"slice": {template: 'Array.prototype.slice', name: "SLICE"}
+	, "defineProperty": {template: $defineProperty, name: "DP"}
 	, "defineProperties": {template: $defineProperties, name: "DPS"}
 	, "create": {template: $create, name: "OC"}
 	, "setPrototypeOf": {
@@ -112,6 +149,18 @@ var standardVars = {
 	, "Symbol_toStringTag": {template: $SymbolToStringTagBody, name: "S_STAG"}
 	, "Symbol_iterator": {template: $SymbolIteratorBody, name: "S_ITER"}
 	, "Symbol_mark": {template: $SymbolPolyfillMarkBody, name: "S_MARK"}
+	, "getIterator": {
+		template: $getIteratorBody
+		, deps: ["Symbol_iterator", "Symbol_mark"]
+		, name: "GET_ITER"
+		, isFunction: true
+	}
+	, "callIterator": {
+		template: $callIteratorBody
+		, deps: ["Symbol_iterator", "Symbol_mark"]
+		, name: "ITER"
+		, isFunction: true
+	}
 	, "GeneratorConstructor": {
 		template: $generatorConstructor
 		, self: '__self__'

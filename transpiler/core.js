@@ -722,7 +722,7 @@ let core = module.exports = extend({}, require('./core/standardVars.js'), {
 	unwrapRestDeclaration: function(node, donor, fromIndex) {
 		assert(node.type === "Identifier");
 
-		const sliceFunctionName = this.bubbledVariableDeclaration(node.$scope, "SLICE", "Array.prototype.slice");
+		const sliceFunctionName = this.createVars(node, "slice");
 
 		return node.name + " = " + sliceFunctionName + ".call(" + donor + ", " + fromIndex + ")";
 	}

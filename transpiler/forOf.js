@@ -44,22 +44,6 @@ function isEmptyBody(node) {
 	return bodyNode && !(!isBlock(bodyNode) || bodyNode.body.length);
 }
 
-const SymbolIteratorBody = "typeof Symbol!=='undefined'&&Symbol&&Symbol.iterator||'@@iterator'";
-const SymbolPolyfillMarkBody = "typeof Symbol!=='undefined'&&Symbol&&Symbol[\"__setObjectSetter__\"]";
-const getIteratorBody =
-	"(v){" +
-		"if(v){" +
-			"if(Array.isArray(v))return 0;" +
-			"var f;" +
-			"if(${Symbol_mark})${Symbol_mark}(v);" +
-			"if(typeof v==='object'&&typeof (f=v[${Symbol_iterator}])==='function'){if(${Symbol_mark})${Symbol_mark}(void 0);return f.call(v);}" +
-			"if(${Symbol_mark})${Symbol_mark}(void 0);" +
-			"if((v+'')==='[object Generator]')return v;" +
-		"}" +
-		"throw new Error(v+' is not iterable')"+
-	"};"
-;
-
 var plugin = module.exports = {
 	reset: function() {
 
@@ -76,6 +60,10 @@ var plugin = module.exports = {
 	}
 
 	, ':: ForOfStatement': function replaceForOf(node) {
+		if ( node.$translated ) {
+			return;
+		}
+
 		const hasBlock = (node.body.type === "BlockStatement");
 
 		const nodeStartsFrom = node.body.range[0];
@@ -155,6 +143,8 @@ var plugin = module.exports = {
 	}
 
 	, createForOfReplacement: function(node, bodyNode, options) {
+		node.$translated = true;
+
 		options = options || {};
 
 		let scopeOptions = core.getScopeOptions(node.$scope, node);
@@ -164,16 +154,7 @@ var plugin = module.exports = {
 
 		let getIteratorFunctionName;
 		if ( needIteratorSupport ) {
-			let Symbol_iterator = core.bubbledVariableDeclaration(node.$scope, "S_ITER", SymbolIteratorBody);
-			let Symbol_mark = core.bubbledVariableDeclaration(node.$scope, "S_MARK", SymbolPolyfillMarkBody);
-			getIteratorFunctionName = core.bubbledVariableDeclaration(
-				node.$scope
-				, "GET_ITER"
-				, getIteratorBody
-					.replace("${Symbol_iterator}", Symbol_iterator)
-					.replace(/\$\{Symbol_mark\}/g, Symbol_mark)
-				, true
-			);
+			getIteratorFunctionName = core.createVars(node, 'getIterator');
 		}
 		else {
 			getIteratorFunctionName = "";

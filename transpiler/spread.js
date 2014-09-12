@@ -23,31 +23,6 @@ function isFunction(node) {
 		&& type === "FunctionDeclaration" || type === "FunctionExpression" || type === "ArrowFunctionExpression";
 }
 
-const SymbolIteratorBody = "typeof Symbol!=='undefined'&&Symbol&&Symbol.iterator||'@@iterator'";
-const SymbolPolyfillMarkBody = "typeof Symbol!=='undefined'&&Symbol&&Symbol[\"__setObjectSetter__\"]";
-const callIteratorBody =
-	"(v,f){" +
-		"if(v){" +
-			"if(Array.isArray(v))return f?v.slice():v;" +
-			"var i,r;"+
-			"if(${Symbol_mark})${Symbol_mark}(v);" +
-			"if(typeof v==='object'&&typeof (f=v[${Symbol_iterator}])==='function'){" +
-				"i=f.call(v);r=[];" +
-			"}" +
-			"else if((v+'')==='[object Generator]'){" +
-				"i=v;" +
-				"r=[];" +
-			"};" +
-			"if(${Symbol_mark})${Symbol_mark}(void 0);" +
-			"if(r) {" +
-				"while((f=i['next']()),f['done']!==true)r.push(f['value']);" +
-				"return r;" +
-			"}" +
-		"}" +
-		"throw new Error(v+' is not iterable')"+
-	"};"
-;
-
 function findSpreadArgument(node) {
 	let spreadIndex = -1;
 	let elements;
@@ -238,18 +213,6 @@ var plugin = module.exports = {
 	, replaceSpreads: function(node, elements, innerSpread) {
 		let self = this;
 
-		function getCallIteratorFunctionName() {
-			let Symbol_iterator = core.bubbledVariableDeclaration(node.$scope, "S_ITER", SymbolIteratorBody);
-			let Symbol_mark = core.bubbledVariableDeclaration(node.$scope, "S_MARK", SymbolPolyfillMarkBody);
-			return core.bubbledVariableDeclaration(node.$scope
-				, "ITER"
-				, callIteratorBody
-					.replace("${Symbol_iterator}", Symbol_iterator)
-					.replace(/\$\{Symbol_mark\}/g, Symbol_mark)
-				, true
-			);
-		}
-
 		let nonSpreadElementStart = -1;
 		function startNotSpreadElementsGroup(start) {
 			if( nonSpreadElementStart === -1 ) {
@@ -382,7 +345,7 @@ var plugin = module.exports = {
 				else {
 					endNotSpreadElementsGroup(i - 1);
 
-					if( !callIteratorFunctionName ) callIteratorFunctionName = getCallIteratorFunctionName();
+					if( !callIteratorFunctionName ) callIteratorFunctionName = core.createVars(node, 'callIterator');
 
 					const concatStr = concatOpen ? ", " :
 						theOnlyOne
