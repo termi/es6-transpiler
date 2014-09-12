@@ -121,13 +121,13 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 
 // parent class and child class: with getter
 (function() {
-	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{a: {"get": a$get$0, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function a$get$0() {
+	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{a: {"get": $a_get$0, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
+		function $a_get$0() {
 			return 'test'
 		}
 	;return A;})();
-	var B = (function(super$0){"use strict";var $D$0;function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,GET_CNAMES$0({"constructor":{"value":B,"configurable":true,"writable":true}, a: {"get": a$get$1, "configurable":true,"enumerable":true, "__unq": 1}}));$D$0=CNAMES$0[1];delete CNAMES$0[1];;DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function a$get$1() {
+	var B = (function(super$0){"use strict";var $D$0;function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,GET_CNAMES$0({"constructor":{"value":B,"configurable":true,"writable":true}, a: {"get": $a_get$1, "configurable":true,"enumerable":true, "__unq": 1}}));$D$0=CNAMES$0[1];delete CNAMES$0[1];;DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
+		function $a_get$1() {
 			return GOPD$0(super$0.prototype,$D$0)["get"].call(this);
 		}
 	;return B;})(A);
@@ -141,8 +141,8 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 
 // parent class and child class: parent with getter, child without getter
 (function() {
-	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{a: {"get": a$get$2, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function a$get$2() {
+	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{a: {"get": $a_get$2, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
+		function $a_get$2() {
 			return 'test'
 		}
 	;return A;})();
@@ -157,13 +157,13 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 
 // parent class and child class: with setter
 (function() {
-	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{a: {"set": a$set$0, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function a$set$0(a) {
+	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{a: {"set": $a_set$0, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
+		function $a_set$0(a) {
 			this._a = a + '_' + 9;
 		}
 	;return A;})();
-	var B = (function(super$0){"use strict";var $D$1;function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,GET_CNAMES$0({"constructor":{"value":B,"configurable":true,"writable":true}, a: {"set": a$set$1, "configurable":true,"enumerable":true, "__unq": 1}}));$D$1=CNAMES$0[1];delete CNAMES$0[1];;DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function a$set$1(a) {
+	var B = (function(super$0){"use strict";var $D$1;function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,GET_CNAMES$0({"constructor":{"value":B,"configurable":true,"writable":true}, a: {"set": $a_set$1, "configurable":true,"enumerable":true, "__unq": 1}}));$D$1=CNAMES$0[1];delete CNAMES$0[1];;DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
+		function $a_set$1(a) {
 			GOPD$0(super$0.prototype,$D$1)["set"].call(this, a);
 		}
 	;return B;})(A);
@@ -178,8 +178,8 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 
 // parent class and child class: parent with setter, child without setter
 (function() {
-	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{a: {"set": a$set$2, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function a$set$2(a) {
+	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{a: {"set": $a_set$2, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
+		function $a_set$2(a) {
 			this._a = a + '_' + 9;
 		}
 	;return A;})();
@@ -196,14 +196,14 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 // parent class and child class: with static getter
 (function() {
 	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function static_a$get$0() {
+		function $static_a_get$0() {
 			return 'test'
-		};DPS$0(A,{a: {"get": static_a$get$0, "configurable":true,"enumerable":true}});
+		};DPS$0(A,{a: {"get": $static_a_get$0, "configurable":true,"enumerable":true}});
 	;return A;})();
 	var B = (function(super$0){"use strict";var $D$2;function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function static_a$get$1() {
+		function $static_a_get$1() {
 			return GOPD$0(super$0,$D$2)["get"].call(this);
-		};DPS$0(B,GET_CNAMES$0({a: {"get": static_a$get$1, "configurable":true,"enumerable":true, "__unq": 1}}));$D$2=CNAMES$0[1];delete CNAMES$0[1];;
+		};DPS$0(B,GET_CNAMES$0({a: {"get": $static_a_get$1, "configurable":true,"enumerable":true, "__unq": 1}}));$D$2=CNAMES$0[1];delete CNAMES$0[1];;
 	;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
@@ -216,9 +216,9 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 // parent class and child class: parent with static getter, child without static getter
 (function() {
 	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function static_a$get$2() {
+		function $static_a_get$2() {
 			return 'test'
-		};DPS$0(A,{a: {"get": static_a$get$2, "configurable":true,"enumerable":true}});
+		};DPS$0(A,{a: {"get": $static_a_get$2, "configurable":true,"enumerable":true}});
 	;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false}); ;return B;})(A);
 
@@ -232,14 +232,14 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 // parent class and child class: with static setter
 (function() {
 	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function static_a$set$0(a) {
+		function $static_a_set$0(a) {
 			this._a = a + '_' + 9;
-		};DPS$0(A,{a: {"set": static_a$set$0, "configurable":true,"enumerable":true}});
+		};DPS$0(A,{a: {"set": $static_a_set$0, "configurable":true,"enumerable":true}});
 	;return A;})();
 	var B = (function(super$0){"use strict";var $D$3;function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function static_a$set$1(a) {
+		function $static_a_set$1(a) {
 			GOPD$0(super$0,$D$3)["set"].call(this, a);
-		};DPS$0(B,GET_CNAMES$0({a: {"set": static_a$set$1, "configurable":true,"enumerable":true, "__unq": 1}}));$D$3=CNAMES$0[1];delete CNAMES$0[1];;
+		};DPS$0(B,GET_CNAMES$0({a: {"set": $static_a_set$1, "configurable":true,"enumerable":true, "__unq": 1}}));$D$3=CNAMES$0[1];delete CNAMES$0[1];;
 	;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
@@ -253,9 +253,9 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 // parent class and child class: parent with static setter, child without static setter
 (function() {
 	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function static_a$set$2(a) {
+		function $static_a_set$2(a) {
 			this._a = a + '_' + 9;
-		};DPS$0(A,{a: {"set": static_a$set$2, "configurable":true,"enumerable":true}});
+		};DPS$0(A,{a: {"set": $static_a_set$2, "configurable":true,"enumerable":true}});
 	;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false}); ;return B;})(A);
 
@@ -269,21 +269,21 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 
 // parent class and child class: with getter and setter
 (function() {
-	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{a: {"get": a$get$3, "set": a$set$3, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function a$get$3() {
+	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{a: {"get": $a_get$3, "set": $a_set$3, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
+		function $a_get$3() {
 			return this._a;
 		}
 
-		function a$set$3(a) {
+		function $a_set$3(a) {
 			this._a = a + '_' + 9;
 		}
 	;return A;})();
-	var B = (function(super$0){"use strict";var $D$4;function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,GET_CNAMES$0({"constructor":{"value":B,"configurable":true,"writable":true}, a: {"get": a$get$4, "set": a$set$4, "configurable":true,"enumerable":true, "__unq": 1}}));$D$4=CNAMES$0[1];delete CNAMES$0[1];;DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function a$get$4() {
+	var B = (function(super$0){"use strict";var $D$4;function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,GET_CNAMES$0({"constructor":{"value":B,"configurable":true,"writable":true}, a: {"get": $a_get$4, "set": $a_set$4, "configurable":true,"enumerable":true, "__unq": 1}}));$D$4=CNAMES$0[1];delete CNAMES$0[1];;DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
+		function $a_get$4() {
 			return GOPD$0(super$0.prototype,$D$4)["get"].call(this);
 		}
 
-		function a$set$4(a) {
+		function $a_set$4(a) {
 			GOPD$0(super$0.prototype,$D$4)["set"].call(this, a);
 		}
 	;return B;})(A);
@@ -298,12 +298,12 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 
 // parent class and child class: parent with getter and setter, child without getter and setter
 (function() {
-	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{a: {"get": a$get$5, "set": a$set$5, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function a$get$5() {
+	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{a: {"get": $a_get$5, "set": $a_set$5, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
+		function $a_get$5() {
 			return this._a;
 		}
 
-		function a$set$5(a) {
+		function $a_set$5(a) {
 			this._a = a + '_' + 9;
 		}
 	;return A;})();
@@ -320,20 +320,20 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 // parent class and child class: with static getter and setter
 (function() {
 	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function static_a$get$3() {
+		function $static_a_get$3() {
 			return this._a;
-		};DPS$0(A,{a: {"get": static_a$get$3, "set": static_a$set$3, "configurable":true,"enumerable":true}});
+		};DPS$0(A,{a: {"get": $static_a_get$3, "set": $static_a_set$3, "configurable":true,"enumerable":true}});
 
-		function static_a$set$3(a) {
+		function $static_a_set$3(a) {
 			this._a = a + '_' + 9;
 		}
 	;return A;})();
 	var B = (function(super$0){"use strict";var $D$5;function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function static_a$get$4() {
+		function $static_a_get$4() {
 			return GOPD$0(super$0,$D$5)["get"].call(this);
-		};DPS$0(B,GET_CNAMES$0({a: {"get": static_a$get$4, "set": static_a$set$4, "configurable":true,"enumerable":true, "__unq": 1}}));$D$5=CNAMES$0[1];delete CNAMES$0[1];;
+		};DPS$0(B,GET_CNAMES$0({a: {"get": $static_a_get$4, "set": $static_a_set$4, "configurable":true,"enumerable":true, "__unq": 1}}));$D$5=CNAMES$0[1];delete CNAMES$0[1];;
 
-		function static_a$set$4(a) {
+		function $static_a_set$4(a) {
 			GOPD$0(super$0,$D$5)["set"].call(this, a);
 		}
 	;return B;})(A);
@@ -349,11 +349,11 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 // parent class and child class: with static getter and setter, child without static getter and setter
 (function() {
 	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function static_a$get$5() {
+		function $static_a_get$5() {
 			return this._a;
-		};DPS$0(A,{a: {"get": static_a$get$5, "set": static_a$set$5, "configurable":true,"enumerable":true}});
+		};DPS$0(A,{a: {"get": $static_a_get$5, "set": $static_a_set$5, "configurable":true,"enumerable":true}});
 
-		function static_a$set$5(a) {
+		function $static_a_set$5(a) {
 			this._a = a + '_' + 9;
 		}
 	;return A;})();
@@ -479,13 +479,13 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 
 // parent class and child class: with literal getter
 (function() {
-	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{'a': {"get": a$get$6, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function a$get$6() {
+	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{'a': {"get": $a_get$6, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
+		function $a_get$6() {
 			return 'test'
 		}
 	;return A;})();
-	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}, 'a': {"get": a$get$7, "configurable":true,"enumerable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function a$get$7() {
+	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}, 'a': {"get": $a_get$7, "configurable":true,"enumerable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
+		function $a_get$7() {
 			return GOPD$0(super$0.prototype,'a')["get"].call(this);
 		}
 	;return B;})(A);
@@ -499,8 +499,8 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 
 // parent class and child class: parent with literal getter, child without literal getter
 (function() {
-	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{'a': {"get": a$get$8, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function a$get$8() {
+	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{'a': {"get": $a_get$8, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
+		function $a_get$8() {
 			return 'test'
 		}
 	;return A;})();
@@ -516,13 +516,13 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 
 // parent class and child class: with literal setter
 (function() {
-	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{'a': {"set": a$set$6, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function a$set$6(a) {
+	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{'a': {"set": $a_set$6, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
+		function $a_set$6(a) {
 			this._a = a + '_' + 9;
 		}
 	;return A;})();
-	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}, 'a': {"set": a$set$7, "configurable":true,"enumerable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function a$set$7(a) {
+	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}, 'a': {"set": $a_set$7, "configurable":true,"enumerable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
+		function $a_set$7(a) {
 			GOPD$0(super$0.prototype,'a')["set"].call(this, a);
 		}
 	;return B;})(A);
@@ -537,8 +537,8 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 
 // parent class and child class: parent with literal setter, child without literal setter
 (function() {
-	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{'a': {"set": a$set$8, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function a$set$8(a) {
+	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{'a': {"set": $a_set$8, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
+		function $a_set$8(a) {
 			this._a = a + '_' + 9;
 		}
 	;return A;})();
@@ -555,14 +555,14 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 // parent class and child class: with literal static getter
 (function() {
 	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function static_a$get$6() {
+		function $static_a_get$6() {
 			return 'test'
-		};DPS$0(A,{'a': {"get": static_a$get$6, "configurable":true,"enumerable":true}});
+		};DPS$0(A,{'a': {"get": $static_a_get$6, "configurable":true,"enumerable":true}});
 	;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function static_a$get$7() {
+		function $static_a_get$7() {
 			return GOPD$0(super$0,'a')["get"].call(this);
-		};DPS$0(B,{'a': {"get": static_a$get$7, "configurable":true,"enumerable":true}});
+		};DPS$0(B,{'a': {"get": $static_a_get$7, "configurable":true,"enumerable":true}});
 	;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
@@ -575,9 +575,9 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 // parent class and child class: parent with literal static getter, child without literal static getter
 (function() {
 	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function static_a$get$8() {
+		function $static_a_get$8() {
 			return 'test'
-		};DPS$0(A,{'a': {"get": static_a$get$8, "configurable":true,"enumerable":true}});
+		};DPS$0(A,{'a': {"get": $static_a_get$8, "configurable":true,"enumerable":true}});
 	;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false}); ;return B;})(A);
 
@@ -591,14 +591,14 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 // parent class and child class: with literal static setter
 (function() {
 	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function static_a$set$6(a) {
+		function $static_a_set$6(a) {
 			this._a = a + '_' + 9;
-		};DPS$0(A,{'a': {"set": static_a$set$6, "configurable":true,"enumerable":true}});
+		};DPS$0(A,{'a': {"set": $static_a_set$6, "configurable":true,"enumerable":true}});
 	;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function static_a$set$7(a) {
+		function $static_a_set$7(a) {
 			GOPD$0(super$0,'a')["set"].call(this, a);
-		};DPS$0(B,{'a': {"set": static_a$set$7, "configurable":true,"enumerable":true}});
+		};DPS$0(B,{'a': {"set": $static_a_set$7, "configurable":true,"enumerable":true}});
 	;return B;})(A);
 
 	var pk1 = Object.keys(A.prototype);var sk1 = Object.keys(A);
@@ -612,9 +612,9 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 // parent class and child class: parent with literal static setter, child without literal static setter
 (function() {
 	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function static_a$set$8(a) {
+		function $static_a_set$8(a) {
 			this._a = a + '_' + 9;
-		};DPS$0(A,{'a': {"set": static_a$set$8, "configurable":true,"enumerable":true}});
+		};DPS$0(A,{'a': {"set": $static_a_set$8, "configurable":true,"enumerable":true}});
 	;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false}); ;return B;})(A);
 
@@ -628,21 +628,21 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 
 // parent class and child class: with literal getter and setter
 (function() {
-	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{'a': {"get": a$get$9, "set": a$set$9, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function a$get$9() {
+	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{'a': {"get": $a_get$9, "set": $a_set$9, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
+		function $a_get$9() {
 			return this._a;
 		}
 
-		function a$set$9(a) {
+		function $a_set$9(a) {
 			this._a = a + '_' + 9;
 		}
 	;return A;})();
-	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}, 'a': {"get": a$get$10, "set": a$set$10, "configurable":true,"enumerable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function a$get$10() {
+	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}, 'a': {"get": $a_get$10, "set": $a_set$10, "configurable":true,"enumerable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
+		function $a_get$10() {
 			return GOPD$0(super$0.prototype,'a')["get"].call(this);
 		}
 
-		function a$set$10(a) {
+		function $a_set$10(a) {
 			GOPD$0(super$0.prototype,'a')["set"].call(this, a);
 		}
 	;return B;})(A);
@@ -657,12 +657,12 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 
 // parent class and child class: parent with literal getter and setter, child without literal getter and setter
 (function() {
-	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{'a': {"get": a$get$11, "set": a$set$11, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function a$get$11() {
+	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{'a': {"get": $a_get$11, "set": $a_set$11, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
+		function $a_get$11() {
 			return this._a;
 		}
 
-		function a$set$11(a) {
+		function $a_set$11(a) {
 			this._a = a + '_' + 9;
 		}
 	;return A;})();
@@ -679,20 +679,20 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 // parent class and child class: with literal static getter and setter
 (function() {
 	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function static_a$get$9() {
+		function $static_a_get$9() {
 			return this._a;
-		};DPS$0(A,{'a': {"get": static_a$get$9, "set": static_a$set$9, "configurable":true,"enumerable":true}});
+		};DPS$0(A,{'a': {"get": $static_a_get$9, "set": $static_a_set$9, "configurable":true,"enumerable":true}});
 
-		function static_a$set$9(a) {
+		function $static_a_set$9(a) {
 			this._a = a + '_' + 9;
 		}
 	;return A;})();
 	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function static_a$get$10() {
+		function $static_a_get$10() {
 			return GOPD$0(super$0,'a')["get"].call(this);
-		};DPS$0(B,{'a': {"get": static_a$get$10, "set": static_a$set$10, "configurable":true,"enumerable":true}});
+		};DPS$0(B,{'a': {"get": $static_a_get$10, "set": $static_a_set$10, "configurable":true,"enumerable":true}});
 
-		function static_a$set$10(a) {
+		function $static_a_set$10(a) {
 			GOPD$0(super$0,'a')["set"].call(this, a);
 		}
 	;return B;})(A);
@@ -708,11 +708,11 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 // parent class and child class: with literal static getter and setter, child without literal static getter and setter
 (function() {
 	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function static_a$get$11() {
+		function $static_a_get$11() {
 			return this._a;
-		};DPS$0(A,{'a': {"get": static_a$get$11, "set": static_a$set$11, "configurable":true,"enumerable":true}});
+		};DPS$0(A,{'a': {"get": $static_a_get$11, "set": $static_a_set$11, "configurable":true,"enumerable":true}});
 
-		function static_a$set$11(a) {
+		function $static_a_set$11(a) {
 			this._a = a + '_' + 9;
 		}
 	;return A;})();

@@ -32,7 +32,7 @@ console.log( ((new Base).test === 999 && testCall) === true, (new Base).getParen
 
 // --------------------======================== SPREAD ========================--------------------
 
-var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{prop1: {"get": prop1$get$0, "set": prop1$set$0, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});var static$0={},proto$0={};
+var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{prop1: {"get": $prop1_get$0, "set": $prop1_set$0, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});var static$0={},proto$0={};
 	proto$0.a = function() {var rest = SLICE$0.call(arguments, 0);
 		return rest.reverse();
 	};
@@ -57,24 +57,24 @@ var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{prop1: {"get"
 		return ['static'].concat(ITER$0(rest)).reverse();
 	};
 
-	function prop1$get$0() {
+	function $prop1_get$0() {
 		return this.a.apply(this, ITER$0(this._prop1));
 	}
 
-	function static_prop1$get$0() {
+	function $static_prop1_get$0() {
 		return this.a.apply(this, ITER$0(this._prop1));
-	};DPS$0(A,{prop1: {"get": static_prop1$get$0, "set": static_prop1$set$0, "configurable":true,"enumerable":true}});
+	};DPS$0(A,{prop1: {"get": $static_prop1_get$0, "set": $static_prop1_set$0, "configurable":true,"enumerable":true}});
 
-	function prop1$set$0() {var rest = SLICE$0.call(arguments, 0);
+	function $prop1_set$0() {var rest = SLICE$0.call(arguments, 0);
 		this._prop1 = rest;
 	}
 
-	function static_prop1$set$0() {var rest = SLICE$0.call(arguments, 0);
+	function $static_prop1_set$0() {var rest = SLICE$0.call(arguments, 0);
 		this._prop1 = ['static'].concat(ITER$0(rest));
 	}
 MIXIN$0(A,static$0);MIXIN$0(A.prototype,proto$0);static$0=proto$0=void 0;return A;})();
 
-var B = (function(super$0){"use strict";var $D$0;var $D$1;var CNAMES$0 = [];var GET_CNAMES$0 = function f(o){var r,u;for(var p in o)if((r=o[p])&&typeof r ==='object'&&(u=r["__unq"])){CNAMES$0[u]=p;delete r["__unq"];}return o;};;function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,GET_CNAMES$0({"constructor":{"value":B,"configurable":true,"writable":true}, prop1: {"get": prop1$get$1, "set": prop1$set$1, "configurable":true,"enumerable":true, "__unq": 1}}));$D$0=CNAMES$0[1];delete CNAMES$0[1];;DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});var static$0={},proto$0={};
+var B = (function(super$0){"use strict";var $D$0;var $D$1;var CNAMES$0 = [];var GET_CNAMES$0 = function f(o){var r,u;for(var p in o)if((r=o[p])&&typeof r ==='object'&&(u=r["__unq"])){CNAMES$0[u]=p;delete r["__unq"];}return o;};;function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,GET_CNAMES$0({"constructor":{"value":B,"configurable":true,"writable":true}, prop1: {"get": $prop1_get$1, "set": $prop1_set$1, "configurable":true,"enumerable":true, "__unq": 1}}));$D$0=CNAMES$0[1];delete CNAMES$0[1];;DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});var static$0={},proto$0={};
 	proto$0.a = function() {var rest = SLICE$0.call(arguments, 0);
 		return super$0.prototype.a.apply(this, ITER$0(rest));
 	};
@@ -115,19 +115,19 @@ var B = (function(super$0){"use strict";var $D$0;var $D$1;var CNAMES$0 = [];var 
 		return super$0.a.apply(this, [1, 2].concat(ITER$0(rest)));
 	};
 
-	function prop1$get$1() {
+	function $prop1_get$1() {
 		return GOPD$0(super$0.prototype,$D$0)["get"].call(this);
 	}
 
-	function static_prop1$get$1() {
+	function $static_prop1_get$1() {
 		return GOPD$0(super$0,$D$1)["get"].call(this);
-	};DPS$0(B,GET_CNAMES$0({prop1: {"get": static_prop1$get$1, "set": static_prop1$set$1, "configurable":true,"enumerable":true, "__unq": 2}}));$D$1=CNAMES$0[2];delete CNAMES$0[2];;
+	};DPS$0(B,GET_CNAMES$0({prop1: {"get": $static_prop1_get$1, "set": $static_prop1_set$1, "configurable":true,"enumerable":true, "__unq": 2}}));$D$1=CNAMES$0[2];delete CNAMES$0[2];;
 
-	function prop1$set$1() {var rest = SLICE$0.call(arguments, 0);
+	function $prop1_set$1() {var rest = SLICE$0.call(arguments, 0);
 		GOPD$0(super$0.prototype,$D$0)["set"].apply(this, ITER$0(rest));
 	}
 
-	function static_prop1$set$1() {var rest = SLICE$0.call(arguments, 0);
+	function $static_prop1_set$1() {var rest = SLICE$0.call(arguments, 0);
 		GOPD$0(super$0,$D$1)["set"].apply(this, ITER$0(rest));
 	}
 MIXIN$0(B,static$0);MIXIN$0(B.prototype,proto$0);static$0=proto$0=void 0;return B;})(A);
