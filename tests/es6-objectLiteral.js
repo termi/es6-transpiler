@@ -45,4 +45,18 @@
 	console.log(test5() === A + 222);
 }
 
+{// issue #47 not a computed property
+	let foo = {
+		'[': true
+	};
+	console.log(foo['['] === true);
+}
+
+{// issue #47 not a computed property
+	let foo = {
+		']': true
+	};
+	console.log(foo[']'] === true);
+}
+
 // TODO:: more

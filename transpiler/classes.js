@@ -448,8 +448,11 @@ const classesTranspiler = {
 						: this.__current.accessors[key] || (this.__current.accessors[key] = {})
 					;
 					accessor.node = node;
+					let safeKey = key.replace(/[^a-z0-9_$]/gi, function(a) {
+						return a.charCodeAt(0);
+					});
 					let replacement = accessor[node.kind] =
-						core.unique((isStatic ? "static_" : "") + key + "$" + node.kind, true)
+						core.unique("$" + (isStatic ? "static_" : "") + safeKey + "_" + node.kind, true)
 					;
 
 					if ( isLiteral ) {

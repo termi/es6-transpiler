@@ -53,8 +53,8 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 
 // simple class with getter
 (function() {
-	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{a: {"get": a$get$0, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function a$get$0() {
+	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{a: {"get": $a_get$0, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
+		function $a_get$0() {
 			return 'test'
 		}
 	;return A;})();
@@ -67,8 +67,8 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 
 // simple class with setter
 (function() {
-	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{a: {"set": a$set$0, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function a$set$0(a) {
+	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{a: {"set": $a_set$0, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
+		function $a_set$0(a) {
 			this._a = a + '_' + 9;
 		}
 	;return A;})();
@@ -83,9 +83,9 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 // simple class with static getter
 (function() {
 	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function static_a$get$0() {
+		function $static_a_get$0() {
 			return 'test'
-		};DPS$0(A,{a: {"get": static_a$get$0, "configurable":true,"enumerable":true}});
+		};DPS$0(A,{a: {"get": $static_a_get$0, "configurable":true,"enumerable":true}});
 	;return A;})();
 
 	var pk = Object.keys(A.prototype);var sk = Object.keys(A);
@@ -97,9 +97,9 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 // simple class with static setter
 (function() {
 	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function static_a$set$0(a) {
+		function $static_a_set$0(a) {
 			this._a = a + '_' + 9;
-		};DPS$0(A,{a: {"set": static_a$set$0, "configurable":true,"enumerable":true}});
+		};DPS$0(A,{a: {"set": $static_a_set$0, "configurable":true,"enumerable":true}});
 	;return A;})();
 
 	var pk = Object.keys(A.prototype);var sk = Object.keys(A);
@@ -111,12 +111,12 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 
 // simple class with getter and setter
 (function() {
-	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{a: {"get": a$get$1, "set": a$set$1, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function a$get$1() {
+	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{a: {"get": $a_get$1, "set": $a_set$1, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
+		function $a_get$1() {
 			return this._a;
 		}
 
-		function a$set$1(a) {
+		function $a_set$1(a) {
 			this._a = a + '_' + 9;
 		}
 	;return A;})();
@@ -131,11 +131,11 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 // simple class with static getter and setter
 (function() {
 	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function static_a$get$1() {
+		function $static_a_get$1() {
 			return this._a;
-		};DPS$0(A,{a: {"get": static_a$get$1, "set": static_a$set$1, "configurable":true,"enumerable":true}});
+		};DPS$0(A,{a: {"get": $static_a_get$1, "set": $static_a_set$1, "configurable":true,"enumerable":true}});
 
-		function static_a$set$1(a) {
+		function $static_a_set$1(a) {
 			this._a = a + '_' + 9;
 		}
 	;return A;})();
@@ -193,8 +193,8 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 
 // simple class with literal getter
 (function() {
-	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{'a': {"get": a$get$2, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function a$get$2() {
+	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{'a': {"get": $a_get$2, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
+		function $a_get$2() {
 			return 'test'
 		}
 	;return A;})();
@@ -207,8 +207,8 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 
 // simple class with literal setter
 (function() {
-	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{'a': {"set": a$set$2, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function a$set$2(a) {
+	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{'a': {"set": $a_set$2, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
+		function $a_set$2(a) {
 			this._a = a + '_' + 9;
 		}
 	;return A;})();
@@ -223,9 +223,9 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 // simple class with literal static getter
 (function() {
 	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function static_a$get$2() {
+		function $static_a_get$2() {
 			return 'test'
-		};DPS$0(A,{'a': {"get": static_a$get$2, "configurable":true,"enumerable":true}});
+		};DPS$0(A,{'a': {"get": $static_a_get$2, "configurable":true,"enumerable":true}});
 	;return A;})();
 
 	var pk = Object.keys(A.prototype);var sk = Object.keys(A);
@@ -237,9 +237,9 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 // simple class with literal static setter
 (function() {
 	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function static_a$set$2(a) {
+		function $static_a_set$2(a) {
 			this._a = a + '_' + 9;
-		};DPS$0(A,{'a': {"set": static_a$set$2, "configurable":true,"enumerable":true}});
+		};DPS$0(A,{'a': {"set": $static_a_set$2, "configurable":true,"enumerable":true}});
 	;return A;})();
 
 	var pk = Object.keys(A.prototype);var sk = Object.keys(A);
@@ -251,12 +251,12 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 
 // simple class with literal getter and setter
 (function() {
-	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{'a': {"get": a$get$3, "set": a$set$3, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function a$get$3() {
+	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{'a': {"get": $a_get$3, "set": $a_set$3, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
+		function $a_get$3() {
 			return this._a;
 		}
 
-		function a$set$3(a) {
+		function $a_set$3(a) {
 			this._a = a + '_' + 9;
 		}
 	;return A;})();
@@ -271,11 +271,11 @@ var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var
 // simple class with literal static getter and setter
 (function() {
 	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
-		function static_a$get$3() {
+		function $static_a_get$3() {
 			return this._a;
-		};DPS$0(A,{'a': {"get": static_a$get$3, "set": static_a$set$3, "configurable":true,"enumerable":true}});
+		};DPS$0(A,{'a': {"get": $static_a_get$3, "set": $static_a_set$3, "configurable":true,"enumerable":true}});
 
-		function static_a$set$3(a) {
+		function $static_a_set$3(a) {
 			this._a = a + '_' + 9;
 		}
 	;return A;})();
@@ -567,4 +567,142 @@ var postfix = 'd' + Math.random(), constructorPostfix = 'ctor';
 	A['a' + postfix] = 'test';
 
 	console.log(a.constructor == A, a instanceof A, pk.length === 0, sk.length === 1, A['a' + postfix] === 'test_9', A._a === 'test_9');
+})();
+
+(function() {// issue #47 computed property: methods
+	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});var static$0={},proto$0={};
+		proto$0['['] = function() {
+			return '[' + 1;
+		};
+
+		proto$0[']'] = function() {
+			return ']' + 1;
+		};
+
+		static$0['['] = function() {
+			return '[' + 1;
+		};
+
+		static$0[']'] = function() {
+			return ']' + 1;
+		};
+	MIXIN$0(A,static$0);MIXIN$0(A.prototype,proto$0);static$0=proto$0=void 0;return A;})();
+
+	var a = new A;
+
+	console.log(a['[']() === '[' + 1, a[']']() === ']' + 1, A['[']() === '[' + 1, A[']']() === ']' + 1);
+})();
+
+(function() {// issue #47 not a computed property: methods
+	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});var static$0={},proto$0={};
+		proto$0['['] = function() {
+			return '[' + 1;
+		};
+
+		proto$0[']'] = function() {
+			return ']' + 1;
+		};
+
+		static$0['['] = function() {
+			return '[' + 1;
+		};
+
+		static$0[']'] = function() {
+			return ']' + 1;
+		};
+	MIXIN$0(A,static$0);MIXIN$0(A.prototype,proto$0);static$0=proto$0=void 0;return A;})();
+
+	var a = new A;
+
+	console.log(a['[']() === '[' + 1, a[']']() === ']' + 1, A['[']() === '[' + 1, A[']']() === ']' + 1);
+})();
+
+(function() {// issue #47 computed property: accessors
+	var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
+		DP$0(A.prototype,'[',{"get":function() {
+			return this['_' + '['];
+		},"configurable":true,"enumerable":true});
+
+		DP$0(A.prototype,'[',{"set":function(a) {
+			this['_' + '['] = a;
+		},"configurable":true,"enumerable":true});
+
+		DP$0(A.prototype,']',{"get":function() {
+			return this['_' + ']'];
+		},"configurable":true,"enumerable":true});
+
+		DP$0(A.prototype,']',{"set":function(a) {
+			this['_' + ']'] = a;
+		},"configurable":true,"enumerable":true});
+
+		DP$0(A,'[',{"get":function() {
+			return this['_' + '['];
+		},"configurable":true,"enumerable":true});
+
+		DP$0(A,'[',{"set":function(a) {
+			this['_' + '['] = a;
+		},"configurable":true,"enumerable":true});
+
+		DP$0(A,']',{"get":function() {
+			return this['_' + ']'];
+		},"configurable":true,"enumerable":true});
+
+		DP$0(A,']',{"set":function(a) {
+			this['_' + ']'] = a;
+		},"configurable":true,"enumerable":true});
+	;return A;})();
+
+	var a = new A;
+
+	a['['] = '[' + 1;
+	a[']'] = ']' + 2;
+	A['['] = '[' + 3;
+	A[']'] = ']' + 4;
+
+	console.log(a['['] === '[' + 1, a[']'] === ']' + 2, A['['] === '[' + 3, A[']'] === ']' + 4);
+})();
+
+(function() {// issue #47 not a computed property: accessors
+	var A = (function(){"use strict";function A() {}DPS$0(A.prototype,{'[': {"get": $91_get$0, "set": $91_set$0, "configurable":true,"enumerable":true}, ']': {"get": $93_get$0, "set": $93_set$0, "configurable":true,"enumerable":true}});DP$0(A,"prototype",{"configurable":false,"enumerable":false,"writable":false});
+		function $91_get$0() {
+			return this['_' + '['];
+		}
+
+		function $91_set$0(a) {
+			this['_' + '['] = a;
+		}
+
+		function $93_get$0() {
+			return this['_' + ']'];
+		}
+
+		function $93_set$0(a) {
+			this['_' + ']'] = a;
+		}
+
+		function $static_91_get$0() {
+			return this['_' + '['];
+		};DPS$0(A,{'[': {"get": $static_91_get$0, "set": $static_91_set$0, "configurable":true,"enumerable":true}, ']': {"get": $static_93_get$0, "set": $static_93_set$0, "configurable":true,"enumerable":true}});
+
+		function $static_91_set$0(a) {
+			this['_' + '['] = a;
+		}
+
+		function $static_93_get$0() {
+			return this['_' + ']'];
+		}
+
+		function $static_93_set$0(a) {
+			this['_' + ']'] = a;
+		}
+	;return A;})();
+
+	var a = new A;
+
+	a['['] = '[' + 1;
+	a[']'] = ']' + 2;
+	A['['] = '[' + 3;
+	A[']'] = ']' + 4;
+
+	console.log(a['['] === '[' + 1, a[']'] === ']' + 2, A['['] === '[' + 3, A[']'] === ']' + 4);
 })();

@@ -568,3 +568,141 @@ let postfix = 'd' + Math.random(), constructorPostfix = 'ctor';
 
 	console.log(a.constructor == A, a instanceof A, pk.length === 0, sk.length === 1, A['a' + postfix] === 'test_9', A._a === 'test_9');
 })();
+
+(function() {// issue #47 computed property: methods
+	class A {
+		['[']() {
+			return '[' + 1;
+		}
+
+		[']']() {
+			return ']' + 1;
+		}
+
+		static ['[']() {
+			return '[' + 1;
+		}
+
+		static [']']() {
+			return ']' + 1;
+		}
+	}
+
+	let a = new A;
+
+	console.log(a['[']() === '[' + 1, a[']']() === ']' + 1, A['[']() === '[' + 1, A[']']() === ']' + 1);
+})();
+
+(function() {// issue #47 not a computed property: methods
+	class A {
+		'['() {
+			return '[' + 1;
+		}
+
+		']'() {
+			return ']' + 1;
+		}
+
+		static '['() {
+			return '[' + 1;
+		}
+
+		static ']'() {
+			return ']' + 1;
+		}
+	}
+
+	let a = new A;
+
+	console.log(a['[']() === '[' + 1, a[']']() === ']' + 1, A['[']() === '[' + 1, A[']']() === ']' + 1);
+})();
+
+(function() {// issue #47 computed property: accessors
+	class A {
+		get ['[']() {
+			return this['_' + '['];
+		}
+
+		set ['['](a) {
+			this['_' + '['] = a;
+		}
+
+		get [']']() {
+			return this['_' + ']'];
+		}
+
+		set [']'](a) {
+			this['_' + ']'] = a;
+		}
+
+		static get ['[']() {
+			return this['_' + '['];
+		}
+
+		static set ['['](a) {
+			this['_' + '['] = a;
+		}
+
+		static get [']']() {
+			return this['_' + ']'];
+		}
+
+		static set [']'](a) {
+			this['_' + ']'] = a;
+		}
+	}
+
+	let a = new A;
+
+	a['['] = '[' + 1;
+	a[']'] = ']' + 2;
+	A['['] = '[' + 3;
+	A[']'] = ']' + 4;
+
+	console.log(a['['] === '[' + 1, a[']'] === ']' + 2, A['['] === '[' + 3, A[']'] === ']' + 4);
+})();
+
+(function() {// issue #47 not a computed property: accessors
+	class A {
+		get '['() {
+			return this['_' + '['];
+		}
+
+		set '['(a) {
+			this['_' + '['] = a;
+		}
+
+		get ']'() {
+			return this['_' + ']'];
+		}
+
+		set ']'(a) {
+			this['_' + ']'] = a;
+		}
+
+		static get '['() {
+			return this['_' + '['];
+		}
+
+		static set '['(a) {
+			this['_' + '['] = a;
+		}
+
+		static get ']'() {
+			return this['_' + ']'];
+		}
+
+		static set ']'(a) {
+			this['_' + ']'] = a;
+		}
+	}
+
+	let a = new A;
+
+	a['['] = '[' + 1;
+	a[']'] = ']' + 2;
+	A['['] = '[' + 3;
+	A[']'] = ']' + 4;
+
+	console.log(a['['] === '[' + 1, a[']'] === ']' + 2, A['['] === '[' + 3, A[']'] === ']' + 4);
+})();
