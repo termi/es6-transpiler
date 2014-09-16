@@ -433,7 +433,7 @@ var plugin = module.exports = {
 
 		if( (concatOpen || callIteratorOpen) ) {
 			if( innerSpread ) {
-				this.alter.insertBefore(node.range[1], ")", {extend: true});
+				this.alter.insertBefore(node.range[1] - 1, ")", {extend: true});
 				if( ArrayExpressionElementInInnerSpread ) {
 					this.alter.remove(getRange(ArrayExpressionElementInInnerSpread)[1] - 1, getRange(ArrayExpressionElementInInnerSpread)[1], {a: 6});// remove "]"
 					ArrayExpressionElementInInnerSpread = null;

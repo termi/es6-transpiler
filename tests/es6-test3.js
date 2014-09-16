@@ -1,4 +1,4 @@
-let result = (function(...r){const {b} = (  (...args)  =>  ({b: args[1]}))(...r);//destructuring / rest / spread
+let result = (function(...r){const {b, c} = (  (...args)  =>  ({b: args[1], c: args[2]}))(...r);//destructuring / rest / spread
 	return b;
 })(...[1, 2, 3]);
 
