@@ -1,5 +1,5 @@
 
-var es6transpiler = require('es6-transpiler');
+var es6transpiler = require('./es6-transpiler');
 var path = require('path');
 es6transpiler.node_inject_on(function(fileName){
 //	console.log(fileName);
