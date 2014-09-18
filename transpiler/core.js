@@ -885,6 +885,10 @@ let core = module.exports = extend({}, require('./core/is.js'), require('./core/
 				blockStatement = usingNode;
 				break;
 			}
+			else if( this.is.isClass(usingNode) ) {
+				blockStatement = usingNode;
+				break;
+			}
 			else if( usingNode.type === 'VariableDeclaration' ) {
 				let $parent = usingNode.$parent;
 

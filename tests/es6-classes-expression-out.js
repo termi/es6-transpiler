@@ -8,7 +8,7 @@ var A = (function(){"use strict";function A() {}DP$0(A,"prototype",{"configurabl
 MIXIN$0(A.prototype,proto$0);proto$0=void 0;return A;})();
 
 {// anon class
-	var v = new ((function(super$0){"use strict";function constructor$0() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(constructor$0, super$0);if(super$0!==null)SP$0(constructor$0,super$0);constructor$0.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":constructor$0,"configurable":true,"writable":true}});DP$0(constructor$0,"prototype",{"configurable":false,"enumerable":false,"writable":false});var static$0={};
+	var v = new ((function(super$0){"use strict";function constructor$0() {if(super$0!==null)super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(constructor$0, super$0);if(super$0!==null)SP$0(constructor$0,super$0);constructor$0.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":constructor$0,"configurable":true,"writable":true}});DP$0(constructor$0,"prototype",{"configurable":false,"enumerable":false,"writable":false});var static$0={};
 		static$0.sMethod = function() {
 			// can't call this method
 		};
@@ -20,7 +20,7 @@ MIXIN$0(A.prototype,proto$0);proto$0=void 0;return A;})();
 {// anon class2
 	var secret2 = Object.create(null);
 
-	var Class = (((function(super$0){"use strict";function constructor$1() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(constructor$1, super$0);if(super$0!==null)SP$0(constructor$1,super$0);constructor$1.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":constructor$1,"configurable":true,"writable":true}});DP$0(constructor$1,"prototype",{"configurable":false,"enumerable":false,"writable":false});var static$0={};
+	var Class = (((function(super$0){"use strict";function constructor$1() {if(super$0!==null)super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(constructor$1, super$0);if(super$0!==null)SP$0(constructor$1,super$0);constructor$1.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":constructor$1,"configurable":true,"writable":true}});DP$0(constructor$1,"prototype",{"configurable":false,"enumerable":false,"writable":false});var static$0={};
 		static$0.sMethod = function() {
 			return secret2;
 		};
@@ -33,7 +33,7 @@ MIXIN$0(A.prototype,proto$0);proto$0=void 0;return A;})();
 {// named class
 	var secret2$0 = Object.create(null);
 
-	var v$1 = new ((function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});var static$0={},proto$0={};
+	var v$1 = new ((function(super$0){"use strict";function B() {if(super$0!==null)super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});var static$0={},proto$0={};
 		static$0.sMethod = function() {
 			return secret2$0;
 		};
@@ -49,7 +49,7 @@ MIXIN$0(A.prototype,proto$0);proto$0=void 0;return A;})();
 {// named class 2
 	var secret2$1 = Object.create(null);
 
-	var Class$0 = (((function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});var static$0={},proto$0={};
+	var Class$0 = (((function(super$0){"use strict";function B() {if(super$0!==null)super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});var static$0={},proto$0={};
 		static$0.sMethod = function() {
 			return secret2$1;
 		};

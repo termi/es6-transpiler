@@ -244,7 +244,7 @@ const classesTranspiler = {
 			}
 			else {
 				insertAfterBodyBegin_string =  "function " + currentClassName + "() {"
-					+ (superClass ? names.super + ".apply(this, arguments)" : "")
+					+ (superClass ? 'if(' + names.super + '!==null)' + names.super + ".apply(this, arguments)" : "")
 					+ "}" + (insertAfterBodyBegin_string || "") + (extendedClassConstructorPostfix || "");
 			}
 
@@ -279,21 +279,43 @@ const classesTranspiler = {
 			// text change 'class A[ extends B]' => 'var A = (function([super$0])'
 			this.alter.replace(node.range[0], node.body.range[0], classStr);
 
-			this.alter.insert(node.range[1] - 1, theEndString + ";return " + currentClassName + ";");
+			theEndString += ";return " + currentClassName + ";}";
 
 			if ( superClass ) {
 				superClass = core.is.isIdentifier(superClass) ? superClass.name : this.alter.get(superClass.range[0], superClass.range[1]);
 
-				this.alter.insert(node.range[1],
-					")(" + superClass + ")"
-						+ (isClassExpression ? ")" : ";")//tail ')' or semicolon
+				theEndString += (")(" + superClass + ")"
+					+ (isClassExpression ? ")" : ";")//tail ')' or semicolon
 				);
 			}
 			else {
-				this.alter.insert(node.range[1],
-					")()" + (isClassExpression ? ")" : ";")//tail ')' or semicolon
-				);
+				theEndString += (")()" + (isClassExpression ? ")" : ";"));//tail ')' or semicolon
 			}
+
+			let from = node.range[1] - 1;
+			let to = node.range[1];
+			// replace last '}'
+			this.alter.replace(
+				from
+				, to
+				, this.alter.get(from, to) + '|' + theEndString, {
+					transform: function(str) {
+						// HACK START: fix removing last ';'. SEE: LINK<LAST ';'>
+						let char0, add = '', index = 0;
+						do {
+							char0 = str.charAt(index);
+							index++;
+							if ( char0 === ';' ) {
+								add = ';';
+							}
+						}
+						while ( char0 != '|' );
+						str = add + str.substr(index);
+						// HACK END
+						return str;
+					}
+				}
+			);
 
 			this.reset();
 		}
@@ -512,7 +534,7 @@ const classesTranspiler = {
 				// text change 'method(<something>)' => 'method = function(<something>)', '[method](<something>)' => '[method] = function(<something>)'
 				this.alter.insert(keyRange[1], " = function");
 
-				this.alter.insertBefore(node.range[1], ';', {extend: true});
+				this.alter.insertBefore(node.range[1], ';', {extend: true});/*LINK<LAST ';'>*/
 			}
 
 			astQuery.traverse(node.value.body, this.replaceClassMethodSuper);

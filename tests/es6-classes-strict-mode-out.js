@@ -10,7 +10,7 @@ function inStrictMode() {
 		};
 	MIXIN$0(A.prototype,proto$0);proto$0=void 0;return A;})();
 
-	var B = (function(super$0){function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});var proto$0={};//class body should be in strict mode, but in this case in already in strict mode
+	var B = (function(super$0){function B() {if(super$0!==null)super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});var proto$0={};//class body should be in strict mode, but in this case in already in strict mode
 
 		proto$0.test = function(a) {
 			arguments[0] = a + 1;
@@ -45,7 +45,7 @@ function notInStrictMode() {
 		};
 	MIXIN$0(A.prototype,proto$0);proto$0=void 0;return A;})();
 
-	var B = (function(super$0){"use strict";function B() {super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});var proto$0={};//class body should be in strict mode
+	var B = (function(super$0){"use strict";function B() {if(super$0!==null)super$0.apply(this, arguments)}if(!PRS$0)MIXIN$0(B, super$0);if(super$0!==null)SP$0(B,super$0);B.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":B,"configurable":true,"writable":true}});DP$0(B,"prototype",{"configurable":false,"enumerable":false,"writable":false});var proto$0={};//class body should be in strict mode
 
 		proto$0.test = function(a) {
 			arguments[0] = a + 1;

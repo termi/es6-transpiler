@@ -25,7 +25,7 @@ var class2 = (function(super$1){"use strict";if(!PRS$0)MIXIN$0(class2, super$1);
 	};
 MIXIN$0(class2,static$0);MIXIN$0(class2.prototype,proto$0);static$0=proto$0=void 0;return class2;})(class1);
 
-var class3 = (function(super$1){"use strict";function class3() {super$1.apply(this, arguments)}if(!PRS$0)MIXIN$0(class3, super$1);if(super$1!==null)SP$0(class3,super$1);class3.prototype = OC$0(super$1!==null?super$1.prototype:null,{"constructor":{"value":class3,"configurable":true,"writable":true}});DP$0(class3,"prototype",{"configurable":false,"enumerable":false,"writable":false});var proto$0={};
+var class3 = (function(super$1){"use strict";function class3() {if(super$1!==null)super$1.apply(this, arguments)}if(!PRS$0)MIXIN$0(class3, super$1);if(super$1!==null)SP$0(class3,super$1);class3.prototype = OC$0(super$1!==null?super$1.prototype:null,{"constructor":{"value":class3,"configurable":true,"writable":true}});DP$0(class3,"prototype",{"configurable":false,"enumerable":false,"writable":false});var proto$0={};
 	proto$0.say = function(){return "class3"};
 MIXIN$0(class3.prototype,proto$0);proto$0=void 0;return class3;})(class1);
 
