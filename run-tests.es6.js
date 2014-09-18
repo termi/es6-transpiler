@@ -1,9 +1,17 @@
 "use strict";
 
+let startTime = process.hrtime();
+console.log('starting...');
+
 const fs = require("fs");
 const path = require("path");
 const ansidiff = require("ansidiff");
 const es6transpiler = require("./es6-transpiler");
+
+let timeSeconds, timeNanoseconds;
+[timeSeconds, timeNanoseconds] = process.hrtime(startTime);
+console.log('started at', `${timeSeconds},${ `${timeNanoseconds}`.substring(0, 5) }`, 'seconds');
+startTime = process.hrtime();
 
 const EOF_STRING = '/* <[tests es6-transpiler test file EOF ]> */';
 const SUSPENDED_STRING = '/* <[tests es6-transpiler SUSPENDED test file ]> */';
@@ -39,16 +47,16 @@ if( commandVariables.file && typeof commandVariables.file === "string" ) {
 	]
 }
 else {
-	tests = fs.readdirSync(pathToTests).filter((filename) => (
+	tests = fs.readdirSync(pathToTests).filter( (filename) => (
 		!/-out\.js$/.test(filename) && /.js$/.test(filename) && !/-stderr$/.test(filename)
 	));
 }
 
 if( commandVariables.filter && typeof commandVariables.filter === "string" ) {
 	commandVariables.filter = commandVariables.filter.toLowerCase();
-	tests = tests.filter((filename) => (
+	tests = tests.filter( (filename) => (
 		filename.toLowerCase().indexOf(commandVariables.filter) !== -1
-	))
+	));
 }
 
 function stringCompare(str1, str2, compareType, removeLines) {
@@ -119,7 +127,10 @@ function colorGreen(text) {
 	return /*green*/`\x1b[32m${text}\x1b[39m`;
 }
 
+let failFiles = [];
 function fail(file, type, diff1, diff2) {
+	failFiles.push(file);
+
 	console.log(`FAILED test ${file} TYPE ${type} (${ colorRed("EXPECTED") }/${ colorGreen("CURRENT") })`);
 	console.log(diff1, "\n", diff2 || "");
 	console.log("\n---------------------------\n");
@@ -129,19 +140,22 @@ function removeCommentsFromErrorsList(str) {
 	return str.replace(/^#[ \t\v\S]+((\n)|(\r\n))/gm, '');
 }
 
+let suspendedFiles = [];
 console.log('test', tests.length, 'files');
 for ( let file of tests ) {
 	let result;
 	let errors;
 
 	try {
-		let fileSource = String(fs.readFileSync(path.join(pathToTests, file)));
+		let filename = path.join(pathToTests, file);
+		let src = String(fs.readFileSync(filename));
 
-		if ( fileSource.contains(SUSPENDED_STRING) ) {
+		if ( src.contains(SUSPENDED_STRING) ) {
+			suspendedFiles.push(filename);
 			continue;
 		}
 
-		result = es6transpiler.run({src: fileSource, polyfillsSeparator: "\/* <[tests es6-transpiler test file EOF ]> *\/"});
+		result = es6transpiler.run({src, filename, polyfillsSeparator: "\/* <[tests es6-transpiler test file EOF ]> *\/"});
 		errors = result.errors.join("\n");
 	}
 	catch(e) {
@@ -155,8 +169,8 @@ for ( let file of tests ) {
 
 	const noSuffix = file.slice(0, -3);
 
-	const expectedStderr = removeCommentsFromErrorsList(slurp(pathToTests + "/" + noSuffix + "-stderr"));
-	const expectedStdout = slurp(pathToTests + "/" + noSuffix + "-out.js");
+	const expectedStderr = removeCommentsFromErrorsList(slurp(`${ pathToTests }/${ noSuffix }-stderr`));
+	const expectedStdout = slurp(`${ pathToTests }/${ noSuffix }-out.js`);
 
 	const compare1 = stringCompare(expectedStderr, errors, "lines");
 	const compare2 = stringCompare(expectedStdout, srcOut, "lines", true);
@@ -176,3 +190,11 @@ for ( let file of tests ) {
 	}
 }
 console.log(tests.length, 'all done');
+if ( failFiles.length ) {
+	console.log(`Failed files(${ failFiles.length }):\n`, failFiles.join('\n'));
+}
+if ( suspendedFiles.length ) {
+	console.log(`Suspended files(${ suspendedFiles.length }):\n`, suspendedFiles.join('\n'));
+}
+[timeSeconds, timeNanoseconds] = process.hrtime(startTime);
+console.log('done at', `${timeSeconds},${ `${timeNanoseconds}`.substring(0, 5) }`, 'seconds');
