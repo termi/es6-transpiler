@@ -100,6 +100,12 @@ module.exports = {
 				&& (type === "CatchClause");
 		}
 
+		, isArgumentExpression: function(node) {
+			let type;
+			return node && (type = node.type)
+				&& (type === "UpdateExpression" || type === "UnaryExpression");
+		}
+
 		, isNonFunctionBlock: function(node) {
 			return node && node.type === "BlockStatement" && !this.isFunction(node.$parentNode);
 		}
@@ -188,22 +194,6 @@ module.exports = {
 					|| (node.$parentNode.type === "UpdateExpression" && node.$parentNode.argument === node)
 				)
 			;
-		}
-
-		, isAssignmentValue: function(node) {
-			if ( node ) {
-				let parent = node;
-				while ( !this.isBlock(parent = parent.$parentNode) && !this.isFunction(parent) ) {
-					let type = parent.type;
-					if ( type.endsWith('Expression')
-						|| type === 'VariableDeclarator'
-						|| type === 'Property'
-					) {
-						return true;
-					}
-				}
-			}
-			return false;
 		}
 
 		, isBodyStatement: function(node) {

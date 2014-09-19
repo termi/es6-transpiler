@@ -45,11 +45,24 @@ function test() {
 		}
 
 		{
+			let T = new /*1*/(/*2*/function(a, b, c){ this.a = a;this.b = b;this.c = c; }/*3*/)/*4*/(/*5*/9, ...arr/*6*/)/*7*/;
+			console.log( T.a === 9, T.b === 6, T.c === 3 )
+		}
+
+		{
 			let obj = {
 				test: test
 			};
 			let T = new obj.test(18, ...arr);
 			console.log( T.a === 18, T.b === 6, T.c === 3 )
+		}
+
+		{
+			let obj = {
+				test: test
+			};
+			let T = new obj.test(...arr);
+			console.log( T.a === 6, T.b === 3 )
 		}
 
 		{
@@ -89,6 +102,22 @@ function test() {
 			let arr = [1, 2];
 			let T = new test(...[...(arr), ...(arr)]);
 			console.log( T.a === 1, T.b === 2, T.c === 1 )
+		}
+
+		{// return another object
+			let anotherConstructor = function(a, b, c) {
+				return {a, b, c};
+			};
+			let T = new anotherConstructor(...arr);
+			console.log( T.a === 6, T.b === 3, !(T instanceof anotherConstructor) );
+		}
+
+		{// cascad
+			let anotherConstructor = function(a, b, c) {
+				return {a, b, c};
+			};
+			let T = new test(new anotherConstructor(new test(1, ...arr), ...arr), ...arr);
+			console.log( T instanceof test, T.a && T.a.a && T.a.a.a === 1, T.a && T.a.a && T.a.a.b === 6, T.a && T.a.a && T.a.a.c === 3, T.a && T.a.b === 6, T.a && T.a.c === 3, T.b === 6, T.c === 3);
 		}
 
 	}

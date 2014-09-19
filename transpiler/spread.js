@@ -18,7 +18,17 @@ function findSpreadArgument(node) {
 }
 
 function getRange(node) {
-	return node && (node.bracesRange || node.groupRange || node.range);
+	return node && (node.bracketsRange || node.groupRange || node.range);
+}
+
+function needFirstSquareBracket(args) {
+	let argsLength = args.length;
+	return argsLength > 1
+		|| (
+			core.is.isArrayExpression(args[0].argument)
+			&& !core.is.isSpreadElement(args[0].argument.elements[0])
+		)
+	;
 }
 
 function getLastNotNullElementIndex(elements, index) {
@@ -62,7 +72,7 @@ var plugin = module.exports = {
 				this.replaceCallExpression(node);
 			}
 			else if ( type === "NewExpression" ) {
-				this.replaceNewExpression(node, spreadIndex);
+				this.replaceNewExpression(node);
 			}
 			else if ( type === "ArrayExpression" && node.$despread !== true ) {
 				this.replaceArrayExpression(node);
@@ -110,6 +120,7 @@ var plugin = module.exports = {
 					, node.callee.object.range[1]
 					, (core.detectSemicolonNecessity(node) ? ";" : "") + "(" + tempVar + " = "
 					, ")"
+//					, {extend: true}
 				);
 
 				expressionInside = ".apply(" + tempVar + ", ";
@@ -142,48 +153,68 @@ var plugin = module.exports = {
 			);
 		}
 
-		let needFirstSquareBracket = argsLength > 1
-			|| core.is.isArrayExpression(args[0].argument)
-				&& !core.is.isSpreadElement(args[0].argument.elements[0])
-		;
-
 		this.alter.replace(
-			args.range[0]
+			node.parenthesesRange[0]
 			, getRange(args[0])[0]
-			, expressionInside + (needFirstSquareBracket ? "[" : "")
+			, expressionInside + (needFirstSquareBracket(args) ? "[" : "")
 		);
 
 		this.replaceSpreads(node, args, true);
 	}
 
-	, replaceNewExpression: function(node, spreadIndex) {
-		const bindFunctionName = core.bubbledVariableDeclaration(node.$scope, "BIND", "Function.prototype.bind");
+	, replaceNewExpression: function(node) {
+		// http://jsperf.com/object-create-bind-aply/2
+
+		const isMemberExpression = node.callee.type === "MemberExpression";
+		const isFunctionExpression = node.callee.type === "FunctionExpression";
 		const args = node["arguments"];
+		const argsLength = args.length;
+		const isSuper = isMemberExpression
+			? node.callee.object.$originalName === 'super' || node.callee.object.name === 'super'
+			: node.callee.$originalName === 'super' || node.callee.name === 'super'
+		;
+
+		assert(argsLength);
+
+		this.alter.remove(node.range[0], node.range[0] + 3);// remove 'new'
+
+		let tempVarInstance = core.getScopeTempVar(node, node.$scope);
+		let tempVar = core.getScopeTempVar(node, node.$scope);
 
 		this.alter.insert(
-			node.callee.range[0]
-			, "(" + bindFunctionName + ".apply("
+			node.range[0]
+			, (core.detectSemicolonNecessity(node) ? ";" : "")
+				+ '((' + tempVar + '='
+				+ (isFunctionExpression ? '(' : '')
+				+ '((' + tempVarInstance + '=' + core.createVars(node, "create") + '((' + tempVar + '='
+		);
+		this.alter.insertBefore(
+			node.parenthesesRange[0]
+			, (isSuper
+				? ')===null?null:' + tempVar + '.prototype))'
+				: ').prototype))'
+				) + ','
+				+ (isSuper
+					? tempVar + '===null?function(){}:' + tempVar
+					: tempVar
+					) + ').apply'
 		);
 
-		args.unshift({
-			type: "Literal",
-			value: null,
-			raw: "null",
-			range: [args.range[0] + 1, args.range[0] + 1]
-		});
-
-		this.alter.replace(// replace '(' from 'new test(...a)'
-			args.range[0]
-			, args.range[0] + 1
-			, ", [null" + (spreadIndex === 0 && !core.is.isArrayExpression(args[1]["argument"]) ? "" : ", ")
+		this.alter.replace(
+			node.parenthesesRange[0] + 1
+			, getRange(args[0])[0]
+			, tempVarInstance + ', ' + (needFirstSquareBracket(args) ? '[' : '')
 		);
+
+//		this.alter.insertBefore(getRange(args)[1],
+		this.alter.insert(node.range[1],
+			(isFunctionExpression ? ')' : '')
+			+ ')&&typeof ' + tempVar + '===\'object\'?' + tempVar + ':' + tempVarInstance + ')');
+
+		core.setScopeTempVar(tempVarInstance, node, node.$scope, true);
+		core.setScopeTempVar(tempVar, node, node.$scope, true);
 
 		this.replaceSpreads(node, args, true);
-
-		this.alter.insertAfter(
-			node.range[1]
-			, ")()"
-		);
 	}
 
 	, replaceArrayExpression: function(node) {
@@ -380,7 +411,8 @@ var plugin = module.exports = {
 								arrayHolesString += ", ";
 							}
 
-							let from = getRange(elements[lastNotNullElementIndex])[1]
+							let lastElement = elements[lastNotNullElementIndex];
+							let from = getRange(lastElement)[1]
 								, to = argumentRange[0]
 							;
 
@@ -389,9 +421,22 @@ var plugin = module.exports = {
 
 							this.alter.replace(
 								from
-								, argumentRange[0]
-								, concatStr + arrayHolesString + callIteratorFunctionName + "("
+								, to
+								, this.alter.get(from, to) + '|' + concatStr + arrayHolesString + callIteratorFunctionName + "("
 								, {transform: function(str) {
+									// HACK START: fix strange bug: removing last ')' if we come from replaceNewExpression
+									let char0, add = '', index = 0;
+									do {
+										char0 = str.charAt(index);
+										index++;
+										if ( char0 === ')' ) {
+											add += ')';
+										}
+									}
+									while ( char0 != '|' );
+									str = add + str.substr(index);
+									// HACK END
+
 									const newLineBreaks = str.match(/[\r\n]/g) || [];
 									const newLineBreaksCount = newLineBreaks.length;
 
@@ -450,7 +495,7 @@ var plugin = module.exports = {
 		startsFrom = +startsFrom + 1;
 
 		if ( startsFrom >= elements.length )return false;
-		if ( core.is.isSequenceExpression(variable) )return true;// need more work to deep analise SequenceExpression
+		if ( core.is.isSequenceExpression(variable) )return true;// TODO: need more work to deep analise SequenceExpression
 		if ( variable.type !== "Identifier" )return false;
 
 		elements = elements.slice(startsFrom);
@@ -467,7 +512,7 @@ var plugin = module.exports = {
 					&& parentType !== "SpreadElement"	// [...a, 0, ...a]
 				;
 			}
-			else if ( core.is.isSpreadElement(element) || elementType === "UpdateExpression" || elementType === "UnaryExpression" ) {
+			else if ( core.is.isSpreadElement(element) || core.is.isArgumentExpression(element) ) {
 				return checkElement.call(this, variableName, element.argument, element.type);
 			}
 			else if( elementType === "BinaryExpression" ) {
@@ -479,7 +524,7 @@ var plugin = module.exports = {
 				return checkElement.call(this, variableName, element.object);
 			}
 			else if( elementType === "Property" ) {
-				return checkElement.call(this, variableName, element.value, "Property");
+				return checkElement.call(this, variableName, element.value, elementType);
 			}
 			else if( elementType === "ArrayExpression" ) {
 				return checkManyElements.call(this, variableName, element.elements, elementType);
@@ -490,7 +535,7 @@ var plugin = module.exports = {
 			else if( elementType === "ObjectExpression" ) {
 				return /*parentType !== "ArrayExpression" || */checkManyElements.call(this, variableName, element.properties, elementType);
 			}
-			else if( elementType === "CallExpression" ) {
+			else if( elementType === "CallExpression" || elementType === "YieldExpression" ) {
 				return true;
 			}
 			else if( elementType === "Literal" ) {
