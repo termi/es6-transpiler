@@ -400,7 +400,7 @@ const classesTranspiler = {
 			let isStatic = node.static;
 			let isComputed = node.computed;
 
-			let keyRange = isComputed ? nodeKey.bracesRange : nodeKey.range;
+			let keyRange = isComputed ? nodeKey.bracketsRange : nodeKey.range;
 
 			this.__namedSuperCount = 0;
 			this.__unNamedSuperCount = 0;
@@ -436,7 +436,7 @@ const classesTranspiler = {
 					if ( unNamedSuperCount ) {
 						node.$nameForSuper = methodName = core.getScopeTempVar(node, node.$scope);
 						// get [<name>]() -> $D$0=(<name>]()
-						this.alter.replace(node.range[0], nodeKey.bracesRange[0] + 1, methodName + '=(');
+						this.alter.replace(node.range[0], nodeKey.bracketsRange[0] + 1, methodName + '=(');
 						// $D$0=(<name>]() -> $D$0=(<name>)+'';DP$0(<className>.prototype,$D$0,
 						this.alter.insert(
 							nodeKey.range[1]
@@ -447,11 +447,11 @@ const classesTranspiler = {
 						// get [<name>]() -> DP$0(<className>.prototype,<name>,
 						this.alter.replace(
 							node.range[0]
-							, nodeKey.bracesRange[0] + 1
+							, nodeKey.bracketsRange[0] + 1
 							, core.createVars(node, 'defineProperty') + '(' + targetName + ','
 						);
 					}
-					this.alter.replace(nodeKey.range[1], nodeKey.bracesRange[1], ',{"' + node.kind + '":function');
+					this.alter.replace(nodeKey.range[1], nodeKey.bracketsRange[1], ',{"' + node.kind + '":function');
 
 					let nodeValue = node.value;
 					this.alter.insertAfter(nodeValue.range[1], ',"configurable":true,"enumerable":true});');
@@ -508,7 +508,7 @@ const classesTranspiler = {
 					// text change '['method' + i++](<something>)' => '$D$0='method' + i++;$proto$0[$D$0](<something>)'
 
 					// [<name>]() -> $D$0=<name>]() or [<name>]() -> $D$0=(<name>]()
-					this.alter.replace(node.range[0], nodeKey.bracesRange[0] + 1, methodName + '=(');
+					this.alter.replace(node.range[0], nodeKey.bracketsRange[0] + 1, methodName + '=(');
 					// $D$0=(<name>]() -> $D$0=(<name>)+'';$proto$0[$D$0]()
 					this.alter.insertBefore(nodeKey.range[1], ')+\'\';' + targetName + '[' + methodName);
 				}

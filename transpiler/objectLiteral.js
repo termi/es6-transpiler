@@ -172,7 +172,7 @@ var plugin = module.exports = {
 				let propKey = property.key;
 				this.alter.remove(property.range[0], propKey.range[0]);//remove 'set ' or 'get ', or 'set [' or 'get ['
 				if ( isComputed ) {
-					this.alter.remove(propKey.bracesRange[1] - 1, propKey.bracesRange[1]);//remove ']'
+					this.alter.remove(propKey.bracketsRange[1] - 1, propKey.bracketsRange[1]);//remove ']'
 				}
 				this.alter.insertBefore(propKey.range[1], (isComputed ? ',' : ':') + '{"' + property.kind + '":function');
 
@@ -180,7 +180,7 @@ var plugin = module.exports = {
 					let nextAccessorKey = nextAccessor.key;
 					this.alter.remove(nextAccessor.range[0], nextAccessorKey.range[1]);//remove 'set <name>' or 'get <name>', or 'set [<name>' or 'get [<name>'
 					if ( nextAccessor.computed === true ) {
-						this.alter.remove(nextAccessorKey.bracesRange[1] - 1, nextAccessorKey.bracesRange[1]);//remove ']'
+						this.alter.remove(nextAccessorKey.bracketsRange[1] - 1, nextAccessorKey.bracketsRange[1]);//remove ']'
 					}
 					this.alter.insertBefore(nextAccessorKey.range[1], '"' + nextAccessor.kind + '":function');
 					this.alter.insert(nextAccessor.range[1], ',"configurable":true,"enumerable":true}');
@@ -199,8 +199,8 @@ var plugin = module.exports = {
 
 				let propKey = property.key;
 				if ( isComputed ) {
-					this.alter.remove(propKey.bracesRange[0], propKey.bracesRange[0] + 1);//remove '['
-					this.alter.remove(propKey.bracesRange[1] - 1, propKey.bracesRange[1]);//remove ']'
+					this.alter.remove(propKey.bracketsRange[0], propKey.bracketsRange[0] + 1);//remove '['
+					this.alter.remove(propKey.bracketsRange[1] - 1, propKey.bracketsRange[1]);//remove ']'
 				}
 				else {
 					property.$literal = true;
