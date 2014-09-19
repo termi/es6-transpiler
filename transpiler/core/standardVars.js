@@ -61,7 +61,7 @@ const $getIteratorBody =
 	"(v){" +
 		"if(v){" +
 			"if(Array.isArray(v))return 0;" +
-			"if(v.length && v.callee)return ${slice}(v);" + // probably arguments object
+			"if({}.toString.call(v) == '[object Arguments]')return ${slice}.call(v, 0);" + // probably arguments object
 			"var f;" +
 			"if(${Symbol_mark})${Symbol_mark}(v);" +
 			"if(typeof v==='object'&&typeof (f=v[${Symbol_iterator}])==='function'){if(${Symbol_mark})${Symbol_mark}(void 0);return f.call(v);}" +
@@ -75,7 +75,7 @@ const $callIteratorBody =
 	"(v,f){" +
 		"if(v){" +
 			"if(Array.isArray(v))return f?v.slice():v;" +
-			"if(v.length && v.callee)return ${slice}(v);" + //probably arguments
+			"if({}.toString.call(v) == '[object Arguments]')return ${slice}.call(v, 0);" + //probably arguments
 			"var i,r;"+
 			"if(${Symbol_mark})${Symbol_mark}(v);" +
 			"if(typeof v==='object'&&typeof (f=v[${Symbol_iterator}])==='function'){" +
