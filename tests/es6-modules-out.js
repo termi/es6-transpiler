@@ -15,5 +15,5 @@ module.exports.Bob = Bob;;
 module.exports.Bob = Bob;
 
 module.exports = foo;
-module.exports = { a:1, b: 2 };
+module.exports = { f: function() { return 2; }, a:1 };
 module.exports = function fn3() {}

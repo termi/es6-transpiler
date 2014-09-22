@@ -10,5 +10,5 @@ export class Bob {};
 export {Bob};
 
 export default foo;
-export default { a:1, b: 2 };
+export default { f() { return 2; }, a:1 };
 export default function fn3() {}
