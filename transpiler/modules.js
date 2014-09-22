@@ -85,7 +85,7 @@ let plugin = module.exports = {
 				
 				name = node.declaration[0].id.name;
 				i = node.range[0]; // start of the "export default"
-				exportString = "module.exports =";
+				exportString = "module.exports = ";
 				
 				if (node.declaration[0].init) {
 					this.alter.replace(i, node.declaration[0].init.range[0], exportString);
