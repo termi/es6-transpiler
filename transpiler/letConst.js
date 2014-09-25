@@ -69,7 +69,7 @@ let plugin = module.exports = {
 		);
 
 		let declarations = node.declarations;
-		let hasLoopScopeBetween;
+		let needToReset;
 
 		declarations.forEach(function renameDeclaration(declarator) {
 			var declaratorId = core.is.isObjectPattern(declarator) || core.is.isArrayPattern(declarator)
@@ -106,7 +106,9 @@ let plugin = module.exports = {
 				return;
 			}
 
-			let name, prefix = "", needSrcChanges = true;
+			let name, prefix = ""
+				, needSrcChanges = true
+			;
 
 			if (declarator.$parentType === "ObjectPattern") {
 				declaratorId = declarator;
@@ -187,14 +189,21 @@ let plugin = module.exports = {
 
 			if( needSrcChanges ) {
 				if( declarator.init == null ) {
-					if( hasLoopScopeBetween === void 0 ) {
-						hasLoopScopeBetween = origScope.hasLoopScopeBetween(hoistScope, true);
+					let scopeNode = node.$scope.node;
+					if( needToReset === void 0 ) {
+						needToReset = scopeNode.type === 'ForStatement'
+							|| (
+								!core.is.isLoop(scopeNode)
+								&& core.hasNodeBetween(node, hoistScope.node, 'ForStatement', 'ForInStatement', 'ForOfStatement', 'WhileStatement', 'DoWhileStatement', 'Program')
+							)
+						;
+
 					}
-					if( hasLoopScopeBetween ) {
+					if( needToReset ) {
 						/*
-						ES6:      for( var i = 0 ; i < 3 ; i++ ) { let x; if( x === void 0 ) x = Math.random(); console.log(x); }
-						ES5 BAD:  for( var i = 0 ; i < 3 ; i++ ) { var x; if( x === void 0 ) x = Math.random(); console.log(x); }
-						ES5 GOOD: for( var i = 0 ; i < 3 ; i++ ) { var x = void 0; if( x === void 0 ) x = Math.random(); console.log(x); }
+						ES6:       for( var i = 0 ; i < 3 ; i++ ) { let x; if( x === void 0 ) x = Math.random(); console.log(x); }
+						ES5 WRONG: for( var i = 0 ; i < 3 ; i++ ) { var x; if( x === void 0 ) x = Math.random(); console.log(x); }
+						ES5 RIGHT: for( var i = 0 ; i < 3 ; i++ ) { var x = void 0; if( x === void 0 ) x = Math.random(); console.log(x); }
 						*/
 						this.alter.insert(
 							declaratorId.range[1]

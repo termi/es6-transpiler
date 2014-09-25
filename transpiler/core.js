@@ -480,8 +480,9 @@ let core = module.exports = extend({}, require('./core/is.js'), require('./core/
 
 				assert(is.finitenumber(allowedFromPos));
 				assert(is.finitenumber(referencedAtPos));
-				if (referencedAtPos < allowedFromPos) {
-					if (!node.$scope.hasFunctionScopeBetween(scope) || decl.isGlobal) {
+
+				if ( referencedAtPos < allowedFromPos ) {
+					if ( decl.isGlobal || !core.hasNodeBetween(node, scope.node, 'FunctionDeclaration', 'FunctionExpression', 'ArrowFunctionExpression') ) {
 						// decl.isGlobal == true: global variable could be defined by jshint-like comment at any
 						//  line the file and this variable will be available after this line
 						error(getline(node), "{0} is referenced before its declaration", node.name);
@@ -1183,12 +1184,12 @@ let core = module.exports = extend({}, require('./core/is.js'), require('./core/
 		let declarations = declarationNode.declarations;
 		let declaration;
 
-		let k = 0, len = declarations.length, result;
+		let k = 0, len = declarations.length;
 		for(  ; k < len ; k++ ) {
 			declaration = declarations[k];
 
 			if( this.is.isObjectPattern(declaration) || this.is.isArrayPattern(declaration) ) {
-				//let result; // TODO:: es6-traspiler error: line 1091: can't transform loop-closure due to use of return at line 1100. result is defined outside closure, inside loop
+				let result;
 				this.traverseDestructuringVariables(declaration, function(declaration) {
 					if( declaration === declaratorNode ) {
 						result = true;
@@ -1256,10 +1257,6 @@ let core = module.exports = extend({}, require('./core/is.js'), require('./core/
 		assert(isLiteral || this.is.isIdentifier(keyNode));
 
 		return isLiteral ? keyNode.value : keyNode.name;
-	}
-
-	, getGlobalVariable: function(node) {
-		return core.bubbledVariableDeclaration(node.$scope, "GLOBAL", '(new Function("return this"))()');
 	}
 
 	, getScopeOptions: function(scope, node) {
@@ -1373,6 +1370,33 @@ let core = module.exports = extend({}, require('./core/is.js'), require('./core/
 		hideSpecialProperties(node, 0);
 
 		console.log(node);
+	}
+	
+	, hasNodeBetween: function(fromNode, toNode) {
+		let node = fromNode;
+		let result = false;
+		let findNodes = [].slice.call(arguments, 2);
+		
+		do {
+			for ( var i = 0 ; i < findNodes.length ; i++ ) {
+				let findNode = findNodes[i];
+
+				result = typeof findNode === 'string'
+					? findNode == node.type
+					: findNode == node
+				;
+				if ( result ) break;
+			}
+
+			if ( result ) break;
+			if ( typeof toNode === 'string'
+					? toNode == node.type
+					: toNode == node
+				) break;
+		}
+		while( (node = node.$parentNode) );
+
+		return result;
 	}
 });
 
