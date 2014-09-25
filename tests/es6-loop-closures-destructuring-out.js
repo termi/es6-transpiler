@@ -25,7 +25,7 @@ var a = 1, b = 2, c = 3;
 
 {// destructuring inside loop closure
 	e = [];
-	var a$1 = 3, c$0;
+	var a$1 = 3, c$0 = void 0;
 	while( (c$0 = a$1--) > 0 ) {(function(){
 		var a = (b = {a: c$0, b: c$0 * 100}).a, b = b.b
 		e.push( function() {return a + b} )

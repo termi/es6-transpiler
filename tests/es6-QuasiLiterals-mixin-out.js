@@ -51,7 +51,7 @@ var arr = [1, 2, 3, 4, 5, 6], obj = { arr: arr, method: function(){ return ("val
 
 {// object destructuring & shorthand
 	var a$4 = 1, b$4 = 9, c = 5;
-	var obj$0;
+	var obj$0 = void 0;
 	var str$5 = ("" + (obj$0 = (b$4 = ($D$0 = {a: a$4, b: b$4, c: c, toString: function(){ return (("" + (this.a)) + ("|" + (this.b)) + ("|" + (this.c)) + "") }}).a, a$4 = $D$0.b, c = $D$0.c, $D$0)));
 	console.log(str$5 === obj$0.a + "|" + obj$0.b + "|" + obj$0.c, a$4 === 9, b$4 === 1, c === 5);
 ;$D$0 = void 0}

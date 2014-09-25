@@ -13,7 +13,7 @@ function test() {
 	{var test$0;}
 
 	var test;
-	for (var i ; test = false ; ) {
+	for (var i = void 0 ; test = false ; ) {
 		var test$1 = (this.testtesttest((test$1||{}).a, (test$1||{}).b)).test;
 	}
 

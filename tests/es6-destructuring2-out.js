@@ -2,7 +2,7 @@ var SLICE$0 = Array.prototype.slice;var $D$0;var a = (c = [1, 2, 3, 4, 5, 6])[0]
 console.log(a === 1, b === 2, c.join("|") === "3|4|5|6")
 
 {
-	var a$0 = (b$0 = [1, [[[4], 3], 2]])[0], b$0 = b$0[1], c$0, d, e;
+	var a$0 = (b$0 = [1, [[[4], 3], 2]])[0], b$0 = b$0[1], c$0 = void 0, d = void 0, e = void 0;
 	b$0 = ($D$0 = [a$0, b$0])[0], a$0 = (d = (c$0 = $D$0[1])[0])[0][0], d = d[1], c$0 = c$0[1], $D$0;
 	console.log(b$0 === 1, c$0 === 2, d === 3, a$0 === 4);
 }
@@ -46,7 +46,7 @@ console.log(a === 1, b === 2, c.join("|") === "3|4|5|6")
 }
 
 {
-	var a$7, b$7, c$7, rest$0;
+	var a$7 = void 0, b$7 = void 0, c$7 = void 0, rest$0 = void 0;
 	a$7 = ($D$0 = [1, 2, 3, 4, 5])[0], b$7 = $D$0[1], c$7 = $D$0[2], rest$0 = SLICE$0.call($D$0, 3), $D$0;
 	console.log(a$7 === 1, b$7 === 2, c$7 === 3, rest$0.join("|") === "4|5");
 }

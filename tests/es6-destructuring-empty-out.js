@@ -11,7 +11,7 @@ console.log(test2() === 2);
 
 var $D$8;
 var $D$8, b = 2 ;
-var a, c = ((a = ($D$8 = {a: 3}).a, $D$8)).a;
+var a = void 0, c = ((a = ($D$8 = {a: 3}).a, $D$8)).a;
 console.log(b === 2, a === c, a === 3);
 
 function test3($D$2) {var $D$2;$D$2;

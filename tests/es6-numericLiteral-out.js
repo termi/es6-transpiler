@@ -40,6 +40,6 @@
 
 {// comples expression
 	var obj = {};
-	var res$0;res$0 = (res$0 = 503) + res$0 + (obj[503] = 503)[503];
+	var res$0 = void 0;res$0 = (res$0 = 503) + res$0 + ((obj[503] = 503),obj)[503];
 	console.log(res$0 === 503 + 503 + 503);
 }

@@ -12,7 +12,7 @@ var i = 0;
 }
 
 {
-	var arr$0,f$0;
+	var arr$0 = void 0,f$0 = void 0;
 }
 
 {
@@ -66,5 +66,5 @@ var i = 0;
 }
 
 {
-	var arr$4,f$3;
+	var arr$4 = void 0,f$3 = void 0;
 }

@@ -1,4 +1,4 @@
-var a = "a", b = "b", a$1, b$1;
+var a = "a", b = "b", a$1 = void 0, b$1 = void 0;
 
 {// simple
 	var a$0 = 1, b$0 = 2;

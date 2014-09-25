@@ -85,7 +85,7 @@ var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P
 	}
 
 	{// setter simple
-		var _x;
+		var _x = void 0;
 		var obj$11 = DP$0({},
 			'x',{"set":function(a){ _x = a },"configurable":true,"enumerable":true}
 		);
@@ -94,7 +94,7 @@ var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P
 	}
 
 	{// setter simple exspression
-		var _x$0;
+		var _x$0 = void 0;
 		var obj$12 = DP$0({},
 			'x' + 1,{"set":function(a){ _x$0 = a },"configurable":true,"enumerable":true}
 		);
@@ -103,7 +103,7 @@ var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P
 	}
 
 	{// setter exspression
-		var _x$1;
+		var _x$1 = void 0;
 		var obj$13 = DP$0({},
 			'x' + (function(){ return 123 })(),{"set":function(a){ _x$1 = a },"configurable":true,"enumerable":true}
 		);
@@ -308,7 +308,7 @@ var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P
 	}
 
 	{// setter simple - right
-		var _x$2;
+		var _x$2 = void 0;
 		var obj$38 = DPS$0(DP$0({},
 			'x',{"set":function(a){ _x$2 = a },"configurable":true,"enumerable":true})
 			, GOPDS_P$0({prop1: 'prop' + ++x
@@ -318,7 +318,7 @@ var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P
 	}
 
 	{// setter simple - left
-		var _x$3;
+		var _x$3 = void 0;
 		var obj$39 = DP$0({
 			prop1: 'prop' + ++x},
 			'x',{"set":function(a){ _x$3 = a },"configurable":true,"enumerable":true}
@@ -328,7 +328,7 @@ var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P
 	}
 
 	{// setter simple exspression - right
-		var _x$4;
+		var _x$4 = void 0;
 		var obj$40 = DPS$0(DP$0({},
 			'x' + 1,{"set":function(a){ _x$4 = a },"configurable":true,"enumerable":true})
 			, GOPDS_P$0({prop1: 'prop' + ++x
@@ -338,7 +338,7 @@ var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P
 	}
 
 	{// setter simple exspression - left
-		var _x$5;
+		var _x$5 = void 0;
 		var obj$41 = DP$0({
 			prop1: 'prop' + ++x},
 			'x' + 1,{"set":function(a){ _x$5 = a },"configurable":true,"enumerable":true}
@@ -348,7 +348,7 @@ var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P
 	}
 
 	{// setter exspression - right
-		var _x$6;
+		var _x$6 = void 0;
 		var obj$42 = DPS$0(DP$0({},
 			'x' + (function(){ return 123 })(),{"set":function(a){ _x$6 = a },"configurable":true,"enumerable":true})
 			, GOPDS_P$0({prop1: 'prop' + ++x
@@ -358,7 +358,7 @@ var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P
 	}
 
 	{// setter exspression - left
-		var _x$7;
+		var _x$7 = void 0;
 		var obj$43 = DP$0({
 			prop1: 'prop' + ++x},
 			'x' + (function(){ return 123 })(),{"set":function(a){ _x$7 = a },"configurable":true,"enumerable":true}
@@ -564,7 +564,7 @@ var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P
 	}
 
 	{// setter simple - right
-		var _x$8;
+		var _x$8 = void 0;
 		var obj$68 = DP$0(DP$0({},
 			'x',{"set":function(a){ _x$8 = a },"configurable":true,"enumerable":true})
 			, 'prop1',{"value": 'prop' + ++x$0,"configurable":true,"enumerable":true,"writable":true}
@@ -574,7 +574,7 @@ var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P
 	}
 
 	{// setter simple - left
-		var _x$9;
+		var _x$9 = void 0;
 		var obj$69 = DP$0({
 			'prop1': 'prop' + ++x$0},
 			'x',{"set":function(a){ _x$9 = a },"configurable":true,"enumerable":true}
@@ -584,7 +584,7 @@ var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P
 	}
 
 	{// setter simple exspression - right
-		var _x$10;
+		var _x$10 = void 0;
 		var obj$70 = DP$0(DP$0({},
 			'x' + 1,{"set":function(a){ _x$10 = a },"configurable":true,"enumerable":true})
 			, 'prop1',{"value": 'prop' + ++x$0,"configurable":true,"enumerable":true,"writable":true}
@@ -594,7 +594,7 @@ var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P
 	}
 
 	{// setter simple exspression - left
-		var _x$11;
+		var _x$11 = void 0;
 		var obj$71 = DP$0({
 			'prop1': 'prop' + ++x$0},
 			'x' + 1,{"set":function(a){ _x$11 = a },"configurable":true,"enumerable":true}
@@ -604,7 +604,7 @@ var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P
 	}
 
 	{// setter exspression - right
-		var _x$12;
+		var _x$12 = void 0;
 		var obj$72 = DP$0(DP$0({},
 			'x' + (function(){ return 123 })(),{"set":function(a){ _x$12 = a },"configurable":true,"enumerable":true})
 			, 'prop1',{"value": 'prop' + ++x$0,"configurable":true,"enumerable":true,"writable":true}
@@ -614,7 +614,7 @@ var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P
 	}
 
 	{// setter exspression - left
-		var _x$13;
+		var _x$13 = void 0;
 		var obj$73 = DP$0({
 			'prop1': 'prop' + ++x$0},
 			'x' + (function(){ return 123 })(),{"set":function(a){ _x$13 = a },"configurable":true,"enumerable":true}
@@ -628,7 +628,7 @@ var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P
 	var x$1 = 0;
 
 	{// getter + setter simple - right
-		var _x$14;
+		var _x$14 = void 0;
 		var obj$74 = DPS$0(DP$0({},
 			'x',{"get":function(){ return _x$14 },"configurable":true,"enumerable":true})
 			, GOPDS_A$0({x:{"set":function(a){ _x$14 = a },"configurable":true,"enumerable":true}
@@ -638,7 +638,7 @@ var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P
 	}
 
 	{// getter + setter simple - left
-		var _x$15;
+		var _x$15 = void 0;
 		var obj$75 = DP$0(DPS$0({},
 			GOPDS_A$0({x:{"set":function(a){ _x$15 = a },"configurable":true,"enumerable":true}})),
 			'x',{"get":function(){ return _x$15 },"configurable":true,"enumerable":true}
@@ -648,7 +648,7 @@ var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P
 	}
 
 	{// getter + setter simple exspression - right
-		var _x$16;
+		var _x$16 = void 0;
 		var obj$76 = DPS$0(DP$0({},
 			'x' + 1,{"get":function(){ return _x$16 },"configurable":true,"enumerable":true})
 			, GOPDS_A$0({x1:{"set":function(a){ _x$16 = a },"configurable":true,"enumerable":true}
@@ -658,7 +658,7 @@ var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P
 	}
 
 	{// getter + setter simple exspression - left
-		var _x$17;
+		var _x$17 = void 0;
 		var obj$77 = DP$0(DPS$0({},
 			GOPDS_A$0({x1:{"set":function(a){ _x$17 = a },"configurable":true,"enumerable":true}})),
 			'x' + 1,{"get":function(){ return _x$17 },"configurable":true,"enumerable":true}
@@ -668,7 +668,7 @@ var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P
 	}
 
 	{// getter + setter exspression - right
-		var _x$18;
+		var _x$18 = void 0;
 		var obj$78 = DPS$0(DP$0({},
 			'x' + (function(){ return 123 })(),{"get":function(){ return _x$18 },"configurable":true,"enumerable":true})
 			, GOPDS_A$0({x123:{"set":function(a){ _x$18 = a },"configurable":true,"enumerable":true}
@@ -678,7 +678,7 @@ var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P
 	}
 
 	{// getter + setter exspression - left
-		var _x$19;
+		var _x$19 = void 0;
 		var obj$79 = DP$0(DPS$0({},
 			GOPDS_A$0({x123:{"set":function(a){ _x$19 = a },"configurable":true,"enumerable":true}})),
 			'x' + (function(){ return 123 })(),{"get":function(){ return _x$19 },"configurable":true,"enumerable":true}
@@ -884,7 +884,7 @@ var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P
 	}
 
 	{// setter simple - right
-		var _x$20;
+		var _x$20 = void 0;
 		var obj$104 = DP$0(DP$0({},
 			'x',{"set":function(a){ _x$20 = a },"configurable":true,"enumerable":true})
 			, 'prop1',{"value": 'prop' + ++x$2,"configurable":true,"enumerable":true,"writable":true}
@@ -894,7 +894,7 @@ var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P
 	}
 
 	{// setter simple - left
-		var _x$21;
+		var _x$21 = void 0;
 		var obj$105 = DP$0(DP$0({},
 			'prop1',{"value": 'prop' + ++x$2,"configurable":true,"enumerable":true,"writable":true}),
 			'x',{"set":function(a){ _x$21 = a },"configurable":true,"enumerable":true}
@@ -904,7 +904,7 @@ var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P
 	}
 
 	{// setter simple exspression - right
-		var _x$22;
+		var _x$22 = void 0;
 		var obj$106 = DP$0(DP$0({},
 			'x' + 1,{"set":function(a){ _x$22 = a },"configurable":true,"enumerable":true})
 			, 'prop' + 1,{"value": 'prop' + ++x$2,"configurable":true,"enumerable":true,"writable":true}
@@ -914,7 +914,7 @@ var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P
 	}
 
 	{// setter simple exspression - left
-		var _x$23;
+		var _x$23 = void 0;
 		var obj$107 = DP$0(DP$0({},
 			'prop' + 1,{"value": 'prop' + ++x$2,"configurable":true,"enumerable":true,"writable":true}),
 			'x' + 1,{"set":function(a){ _x$23 = a },"configurable":true,"enumerable":true}
@@ -924,7 +924,7 @@ var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P
 	}
 
 	{// setter exspression - right
-		var _x$24;
+		var _x$24 = void 0;
 		var obj$108 = DP$0(DP$0({},
 			'x' + (function(){ return 123 })(),{"set":function(a){ _x$24 = a },"configurable":true,"enumerable":true})
 			, 'prop1',{"value": 'prop' + ++x$2,"configurable":true,"enumerable":true,"writable":true}
@@ -934,7 +934,7 @@ var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P
 	}
 
 	{// setter exspression - left
-		var _x$25;
+		var _x$25 = void 0;
 		var obj$109 = DP$0(DP$0({},
 			'prop1',{"value": 'prop' + ++x$2,"configurable":true,"enumerable":true,"writable":true}),
 			'x' + (function(){ return 123 })(),{"set":function(a){ _x$25 = a },"configurable":true,"enumerable":true}
@@ -948,7 +948,7 @@ var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P
 	var x$3 = 0;
 
 	{// getter + setter simple - right
-		var _x$26;
+		var _x$26 = void 0;
 		var obj$110 = DP$0(DP$0({},
 			'x',{"get":function(){ return _x$26 },"configurable":true,"enumerable":true})
 			, 'x',{"set":function(a){ _x$26 = a },"configurable":true,"enumerable":true}
@@ -958,7 +958,7 @@ var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P
 	}
 
 	{// getter + setter simple - left
-		var _x$27;
+		var _x$27 = void 0;
 		var obj$111 = DP$0(DP$0({},
 			'x',{"set":function(a){ _x$27 = a },"configurable":true,"enumerable":true}),
 			'x',{"get":function(){ return _x$27 },"configurable":true,"enumerable":true}
@@ -968,7 +968,7 @@ var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P
 	}
 
 	{// getter + setter simple exspression - right
-		var _x$28;
+		var _x$28 = void 0;
 		var obj$112 = DP$0(DP$0({},
 			'x' + 1,{"get":function(){ return _x$28 },"configurable":true,"enumerable":true})
 			, 'x' + 1,{"set":function(a){ _x$28 = a },"configurable":true,"enumerable":true}
@@ -978,7 +978,7 @@ var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P
 	}
 
 	{// getter + setter simple exspression - left
-		var _x$29;
+		var _x$29 = void 0;
 		var obj$113 = DP$0(DP$0({},
 			'x' + 1,{"set":function(a){ _x$29 = a },"configurable":true,"enumerable":true}),
 			'x' + 1,{"get":function(){ return _x$29 },"configurable":true,"enumerable":true}
@@ -988,7 +988,7 @@ var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P
 	}
 
 	{// getter + setter exspression - right
-		var _x$30;
+		var _x$30 = void 0;
 		var obj$114 = DP$0(DP$0({},
 			'x' + (function(){ return 123 })(),{"get":function(){ return _x$30 },"configurable":true,"enumerable":true})
 			, 'x' + (function(){ return 123 })(),{"set":function(a){ _x$30 = a },"configurable":true,"enumerable":true}
@@ -998,7 +998,7 @@ var DP$0 = Object.defineProperty;var DPS$0 = Object.defineProperties;var GOPDS_P
 	}
 
 	{// getter + setter exspression - left
-		var _x$31;
+		var _x$31 = void 0;
 		var obj$115 = DP$0(DP$0({},
 			'x' + (function(){ return 123 })(),{"set":function(a){ _x$31 = a },"configurable":true,"enumerable":true}),
 			'x' + (function(){ return 123 })(),{"get":function(){ return _x$31 },"configurable":true,"enumerable":true}

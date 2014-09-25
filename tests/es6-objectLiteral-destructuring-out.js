@@ -1,7 +1,7 @@
 // About: objectLiteral's and destructuring transpiling
 
 {// properties
-	var A, B, C;
+	var A = void 0, B = void 0, C = void 0;
 	var A$0 = 11, B$0 = 21, C$0 = 31;
 
 	{
@@ -12,7 +12,7 @@
 }
 
 {// properties & default values
-	var A$2, B$2, C$2;
+	var A$2 = void 0, B$2 = void 0, C$2 = void 0;
 	var A$0$0 = 12, B$0$0 = 22, C$0$0 = 33;
 
 	{
@@ -23,7 +23,7 @@
 }
 
 {// computed properties & arrow function & string template
-	var A$4, B$4, C$4;
+	var A$4 = void 0, B$4 = void 0, C$4 = void 0;
 	var A$0$1 = 13, B$0$1 = 23, C$0$1 = 33;
 	var prop = "B";
 

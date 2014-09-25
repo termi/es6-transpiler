@@ -40,6 +40,6 @@
 
 {// comples expression
 	let obj = {};
-	let res;res = (res = 0b111110111) + res + (obj[0o767] = 0o767)[0o767];
+	let res;res = (res = 0b111110111) + res + ((obj[0o767] = 0o767),obj)[0o767];
 	console.log(res === 503 + 503 + 503);
 }

@@ -1,4 +1,4 @@
-var $D$0;var test1, test2;
+var $D$0;var test1 = void 0, test2 = void 0;
 
 {
 	var a = 1, b = 2, c = 3;
@@ -15,7 +15,7 @@ var $D$0;var test1, test2;
 }
 
 {
-	var a$0 = void 0, b$0 = void 0, c$0 = void 0, test1$0;
+	var a$0 = void 0, b$0 = void 0, c$0 = void 0, test1$0 = void 0;
 
 	var obj$0 = {
 		test2: ( (a$0 = ((a$0 = ($D$0 = {a: a$0, b: b$0, c: c$0}).a) === void 0 ? 9 : a$0), b$0 = ((b$0 = $D$0.b) === void 0 ? 8 : b$0), c$0 = ((c$0 = $D$0.c) === void 0 ? 7 : c$0), $D$0) ).a
