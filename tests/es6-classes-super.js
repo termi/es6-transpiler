@@ -1,13 +1,32 @@
 
-var testCall = false;
+var testCall1 = false, testCall2 = false;
 class Foo {
-	static doIt(test) {
+	static doIt(test, n) {
 		if ( test ) {
-			testCall = true;
+			if ( n == 1 ) {
+				testCall1 = true;
+			}
+			else {
+				testCall2 = true;
+			}
 		}
 		else {
-			this.test = 999;
+			if ( n == 1 ) {
+				this.test1 = 999;
+			}
+			else {
+				this.test2 = 999;
+			}
+
 		}
+	}
+
+	doIt() {
+		Foo.doIt.apply(this, arguments);
+	}
+
+	static constructor() {
+
 	}
 }
 
@@ -15,8 +34,19 @@ class Base extends Foo {
 	constructor() {
 		super();
 		super.constructor();//useless call
+		super.doIt(true, 1);
+		super.doIt.call(this, void 0, 1);
+
+		return true;
+	}
+
+	static constructor() {
+		super();
+		super.constructor();//useless call
 		super.doIt(true);
 		super.doIt.call(this);
+
+		return true;
 	}
 
 	getParentClass() {
@@ -28,7 +58,9 @@ class Base extends Foo {
 	}
 }
 
-console.log( ((new Base).test === 999 && testCall) === true, (new Base).getParentClass() == Foo, Base.getParentClass() == Foo );
+console.log( ((new Base).test1 === 999 && testCall1) === true );
+console.log( (new Base).getParentClass() == Foo );
+console.log( Base.constructor(), (Base.test2 === 999 && testCall2) === true, Base.getParentClass() == Foo );
 
 // --------------------======================== SPREAD ========================--------------------
 

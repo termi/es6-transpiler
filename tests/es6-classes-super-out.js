@@ -1,23 +1,53 @@
 var PRS$0 = (function(o,t){o["__proto__"]={"a":t};return o["a"]===t})({},{});var DP$0 = Object.defineProperty;var GOPD$0 = Object.getOwnPropertyDescriptor;var MIXIN$0 = function(t,s){for(var p in s){if(s.hasOwnProperty(p)){DP$0(t,p,GOPD$0(s,p));}}return t};var SP$0 = Object.setPrototypeOf||function(o,p){if(PRS$0){o["__proto__"]=p;}else {DP$0(o,"__proto__",{"value":p,"configurable":true,"enumerable":false,"writable":true});}return o};var OC$0 = Object.create;var DPS$0 = Object.defineProperties;var SLICE$0 = Array.prototype.slice;var S_ITER$0 = typeof Symbol!=='undefined'&&Symbol&&Symbol.iterator||'@@iterator';var S_MARK$0 = typeof Symbol!=='undefined'&&Symbol&&Symbol["__setObjectSetter__"];function ITER$0(v,f){if(v){if(Array.isArray(v))return f?v.slice():v;var i,r;if(S_MARK$0)S_MARK$0(v);if(typeof v==='object'&&typeof (f=v[S_ITER$0])==='function'){i=f.call(v);r=[];}else if((v+'')==='[object Generator]'){i=v;r=[];};if(S_MARK$0)S_MARK$0(void 0);if(r) {while((f=i['next']()),f['done']!==true)r.push(f['value']);return r;}}throw new Error(v+' is not iterable')};
-var testCall = false;
-var Foo = (function(){"use strict";function Foo() {}DP$0(Foo,"prototype",{"configurable":false,"enumerable":false,"writable":false});var static$0={};
-	static$0.doIt = function(test) {
+var testCall1 = false, testCall2 = false;
+var Foo = (function(){"use strict";function Foo() {}DP$0(Foo,"prototype",{"configurable":false,"enumerable":false,"writable":false});var static$0={},proto$0={};
+	static$0.doIt = function(test, n) {
 		if ( test ) {
-			testCall = true;
+			if ( n == 1 ) {
+				testCall1 = true;
+			}
+			else {
+				testCall2 = true;
+			}
 		}
 		else {
-			this.test = 999;
+			if ( n == 1 ) {
+				this.test1 = 999;
+			}
+			else {
+				this.test2 = 999;
+			}
+
 		}
 	};
-MIXIN$0(Foo,static$0);static$0=void 0;return Foo;})();
+
+	proto$0.doIt = function() {
+		Foo.doIt.apply(this, arguments);
+	};
+
+	static$0.constructor = function() {
+
+	};
+MIXIN$0(Foo,static$0);MIXIN$0(Foo.prototype,proto$0);static$0=proto$0=void 0;return Foo;})();
 
 var Base = (function(super$0){"use strict";if(!PRS$0)MIXIN$0(Base, super$0);var static$0={},proto$0={};
 	function Base() {
 		super$0.call(this);
-		super$0.constructor();//useless call
-		super$0.doIt(true);
-		super$0.doIt.call(this);
+		super$0.prototype.constructor.call(this);//useless call
+		super$0.prototype.doIt.call(this, true, 1);
+		super$0.prototype.doIt.call(this, void 0, 1);
+
+		return true;
 	}if(super$0!==null)SP$0(Base,super$0);Base.prototype = OC$0(super$0!==null?super$0.prototype:null,{"constructor":{"value":Base,"configurable":true,"writable":true}});DP$0(Base,"prototype",{"configurable":false,"enumerable":false,"writable":false});
+
+	static$0.constructor = function() {
+		super$0.constructor.call(this);
+		super$0.constructor.call(this);//useless call
+		super$0.doIt.call(this, true);
+		super$0.doIt.call(this);
+
+		return true;
+	};
 
 	proto$0.getParentClass = function() {
 		return super$0;
@@ -28,7 +58,9 @@ var Base = (function(super$0){"use strict";if(!PRS$0)MIXIN$0(Base, super$0);var 
 	};
 MIXIN$0(Base,static$0);MIXIN$0(Base.prototype,proto$0);static$0=proto$0=void 0;return Base;})(Foo);
 
-console.log( ((new Base).test === 999 && testCall) === true, (new Base).getParentClass() == Foo, Base.getParentClass() == Foo );
+console.log( ((new Base).test1 === 999 && testCall1) === true );
+console.log( (new Base).getParentClass() == Foo );
+console.log( Base.constructor(), (Base.test2 === 999 && testCall2) === true, Base.getParentClass() == Foo );
 
 // --------------------======================== SPREAD ========================--------------------
 
