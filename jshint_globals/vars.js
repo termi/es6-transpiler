@@ -36,7 +36,7 @@ exports.ecmaIdentifiers = {
 	String             : false,
 	SyntaxError        : false,
 	TypeError          : false,
-	URIError           : false,
+	URIError           : false
 };
 
 exports.newEcmaIdentifiers = {
@@ -45,7 +45,8 @@ exports.newEcmaIdentifiers = {
 	WeakMap : false,
 	WeakSet : false,
 	Proxy   : false,
-	Promise : false
+	Promise : false,
+	Symbol  : false
 };
 
 // Global variables commonly provided by a web browser environment.
