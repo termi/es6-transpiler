@@ -731,6 +731,10 @@ let core = module.exports = extend({}, require('./core/is.js'), require('./core/
 	}
 
 	, __getNodeBegin: function(node) {
+		if ( '$nodeBegin' in node ) {
+			return node['$nodeBegin'];
+		}
+
 		let begin;
 		let hoistScopeNodeBody = node.body;
 
@@ -1007,6 +1011,10 @@ let core = module.exports = extend({}, require('./core/is.js'), require('./core/
 
 	, bubbledVariableDeclaration: function(scope, variableName, variableInitValue, isFunction, variableNamePlaceholder) {
 		scope = scope.closestHoistScope();
+
+		if ( scope.node["$bubbleNext"] ) {
+			scope = scope.parent.closestHoistScope();
+		}
 
 		let bubbledVariable = this.__isBubbledVariableDeclaration(variableName, variableInitValue);
 

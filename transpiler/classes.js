@@ -23,6 +23,10 @@ function literalToName(string) {
 	return string;
 }
 
+function getRange(node) {
+	return node.groupRange || node.range;
+}
+
 const classesTranspiler = {
 	reset: function() {
 		this.__statistic = {
@@ -46,6 +50,7 @@ const classesTranspiler = {
 		}
 
 		core.registerVar('super', {persistent: true});
+		core.registerVar('constructor', {persistent: true});
 //		core.registerVar('super_prototype', {persistent: true});
 		core.registerVar('static', {persistent: true});
 		core.registerVar('proto', {persistent: true});
@@ -168,19 +173,27 @@ const classesTranspiler = {
 			assert(nodeId ? core.is.isIdentifier(nodeId) : isClassExpression);
 
 			const classBodyNodes = node.body.body
-				, currentClassName = nodeId ? nodeId.name : core.unique("constructor", true)
 				, useStrictString = node.strictMode ? "" : "\"use strict\";"
 			;
 
 			let superClass = node.superClass
+				, superIsPrimitive = core.is.isIdentifier(superClass) || core.is.isLiteral(superClass)
+				, superIsNotPrimitive = superClass && !superIsPrimitive
 				, classBodyNodesCount = classBodyNodes.length
 				, insertAfterBodyBegin_string = ""
 				, classConstructor
 				, extendedClassConstructorPostfix
 			;
 
-			let names = core.createVars(node, {"super": !!superClass, __proto__support: !!superClass, MIXIN: true});
+			if ( superIsNotPrimitive ) {
+				node["$bubbleNext"] = true;
+			}
 
+			let currentClassName;
+
+			let names = core.createVars(node, {"super": !!superClass, "constructor": !nodeId, __proto__support: !!superClass, MIXIN: true});
+
+			currentClassName = nodeId ? nodeId.name : names.constructor;
 			node["$ClassName"] = currentClassName;
 			this.__current.name = currentClassName;
 
@@ -209,14 +222,10 @@ const classesTranspiler = {
 					let isLiteral = core.is.isLiteral(nodeKey);
 					let methodName = isLiteral ? nodeKey.value : nodeKey.name;
 
-					if( methodName !== "constructor" ) {
+					if( methodName !== "constructor" || classConstructor.static ) {
 						classConstructor = null;
 					}
 				}
-			}
-
-			if ( useStrictString ) {
-				this.alter.replace(node.body.range[0], node.body.range[0] + 1, '{' + useStrictString);
 			}
 
 			this.__current.accessors = {};
@@ -236,11 +245,6 @@ const classesTranspiler = {
 				if( extendedClassConstructorPostfix ) {
 					this.alter.insert(classConstructor.range[1], extendedClassConstructorPostfix);
 				}
-
-				this.__current.method = classConstructor.value;
-				astQuery.traverse(classConstructor.value.body, this.replaceClassConstructorSuper);
-				astQuery.traverse(classConstructor.value.body, this.replaceClassMethodSuperInConstructor);
-				this.__current.method = null;
 			}
 			else {
 				insertAfterBodyBegin_string =  "function " + currentClassName + "() {"
@@ -269,21 +273,63 @@ const classesTranspiler = {
 			}
 			theEndString += tmpVars.join('=');
 
-			this.alter.insertBefore(node.body.range[0] + 1, insertAfterBodyBegin_string);
-
 			if ( staticAccessorsDefinitionString ) {
 				this.alter.insertAfter(this.__current.firstStaticAccessors.range[1], ';' + staticAccessorsDefinitionString);
 			}
 
 			// replace class definition
-			// text change 'class A[ extends B]' => 'var A = (function([super$0])'
-			this.alter.replace(node.range[0], node.body.range[0], classStr);
+			if ( !superClass || superIsPrimitive ) {
+				if ( useStrictString ) {
+					this.alter.replace(node.body.range[0], node.body.range[0] + 1, '{' + useStrictString);
+				}
+
+				this.alter.insertBefore(node.body.range[0] + 1, insertAfterBodyBegin_string);
+
+				// text change 'class A[ extends B]' => 'var A = (function([super$0])'
+				let from = node.range[0], to = node.body.range[0];
+				let lineBreaks = this.alter.getRange(from, to).match(/[\r\n]/g) || [], lineBreaksCount = lineBreaks.length;
+
+				this.alter.replace(from, to, classStr, {transform: function(str) {
+					const newLineBreaks = str.match(/[\r\n]/g) || [];
+					const newLineBreaksCount = newLineBreaks.length;
+
+					if ( newLineBreaksCount < lineBreaksCount ) {
+						str = lineBreaks.slice(newLineBreaksCount).join("") + str;
+					}
+					return str;
+				}});
+
+				if ( superClass ) {
+					superClass = core.is.isLiteral(superClass) ? superClass.raw : superClass.name;
+				}
+			}
+			else {
+				// text change 'class A extends (returnSuper()){' => 'var A = (function(){super$0=(returnSuper())'
+				classStr = classStr + '{' + useStrictString + names.super + '=';
+
+				let superRange = getRange(superClass);
+
+				let from = node.range[0], to = superRange[0];
+				let lineBreaks = this.alter.getRange(from, to).match(/[\r\n]/g) || [], lineBreaksCount = lineBreaks.length;
+
+				this.alter.replace(from, to, classStr, {transform: function(str) {
+					const newLineBreaks = str.match(/[\r\n]/g) || [];
+					const newLineBreaksCount = newLineBreaks.length;
+
+					if ( newLineBreaksCount < lineBreaksCount ) {
+						str = lineBreaks.slice(newLineBreaksCount).join("") + str;
+					}
+					return str;
+				}});
+
+				this.alter.replace(superRange[1], node.body.range[0] + 1, ';' + insertAfterBodyBegin_string);//remove class '{'
+
+				superClass = '';
+			}
 
 			theEndString += ";return " + currentClassName + ";}";
 
 			if ( superClass ) {
-				superClass = core.is.isIdentifier(superClass) ? superClass.name : this.alter.get(superClass.range[0], superClass.range[1]);
-
 				theEndString += (")(" + superClass + ")"
 					+ (isClassExpression ? ")" : ";")//tail ')' or semicolon
 				);
@@ -377,171 +423,164 @@ const classesTranspiler = {
 		}
 	}
 	
-	, replaceClassConstructorSuper: function replaceClassConstructorSuper(node) {
-		if( node.type === "CallExpression" ) {
-			let calleeNode = node.callee;
-
-			if( calleeNode && core.is.isIdentifier(calleeNode) && calleeNode.name === 'super' ) {
-
-				this.unwrapSuperCall(node, calleeNode, this.__current.method, true);
-			}
-		}
-		else if( core.is.isClass(node) || core.is.isHoistFunction(node) ) {
-			return false;
-		}
-	}
-	
 	, replaceClassMethods: function replaceClassMethods(node, astQuery) {
-		let nodeKey = node.key;
-		let isLiteral = core.is.isLiteral(nodeKey);
-		let methodName = core.PropertyToString(nodeKey, true);
-
-		if( node.type === "MethodDefinition" && (isLiteral ? nodeKey.value : nodeKey.name) !== "constructor" ) {
+		if( node.type === "MethodDefinition" ) {
+			let nodeKey = node.key;
+			let isLiteral = core.is.isLiteral(nodeKey);
 			let isStatic = node.static;
-			let isComputed = node.computed;
+			let isConstructor = !isStatic && (isLiteral ? nodeKey.value : nodeKey.name) === "constructor";
 
-			let keyRange = isComputed ? nodeKey.bracketsRange : nodeKey.range;
+			if ( !isConstructor ) {
 
-			this.__namedSuperCount = 0;
-			this.__unNamedSuperCount = 0;
-			astQuery.traverse(node.value.body, function(child) {
-				if( child.type === "CallExpression" ) {
-					child = child.callee;
+				let methodName = core.PropertyToString(nodeKey, true);
+				let isComputed = node.computed;
 
-					if ( core.is.isMemberExpression(child) ) {
-						let objectNode = child.object;
-						if( core.is.isIdentifier(objectNode) && objectNode.name === 'super' ) {
-							this.__namedSuperCount++;
+				let keyRange = isComputed ? nodeKey.bracketsRange : nodeKey.range;
+
+				this.__namedSuperCount = 0;
+				this.__unNamedSuperCount = 0;
+				astQuery.traverse(node.value.body, function(child) {
+					if( child.type === "CallExpression" ) {
+						child = child.callee;
+
+						if ( core.is.isMemberExpression(child) ) {
+							let objectNode = child.object;
+							if( core.is.isIdentifier(objectNode) && objectNode.name === 'super' ) {
+								this.__namedSuperCount++;
+
+								node.$hasSuperInside = true;
+							}
+						}
+						else if ( core.is.isIdentifier(child) && child.name === 'super' ) {
+							this.__unNamedSuperCount++;
 
 							node.$hasSuperInside = true;
 						}
 					}
-					else if ( core.is.isIdentifier(child) && child.name === 'super' ) {
-						this.__unNamedSuperCount++;
-
-						node.$hasSuperInside = true;
+					else if( core.is.isClass(child) || (core.is.isFunction(node) && node.type !== 'ArrowFunctionExpression' ) ) {
+						return false;
 					}
-				}
-				else if( core.is.isClass(child) || core.is.isHoistFunction(child) ) {
-					return false;
-				}
-			}.bind(this));
+				}.bind(this));
 
-			let unNamedSuperCount = this.__unNamedSuperCount;
+				let unNamedSuperCount = this.__unNamedSuperCount;
 
-			if( node.kind === 'set' || node.kind === 'get' ) {
-				if ( isComputed ) {
-					let targetName = isStatic === true ? this.__current.name : this.__current.name + '.prototype';
+				if( node.kind === 'set' || node.kind === 'get' ) {
+					if ( isComputed ) {
+						let targetName = isStatic === true ? this.__current.name : this.__current.name + '.prototype';
 
-					if ( unNamedSuperCount ) {
-						node.$nameForSuper = methodName = core.getScopeTempVar(node, node.$scope);
-						// get [<name>]() -> $D$0=(<name>]()
-						this.alter.replace(node.range[0], nodeKey.bracketsRange[0] + 1, methodName + '=(');
-						// $D$0=(<name>]() -> $D$0=(<name>)+'';DP$0(<className>.prototype,$D$0,
-						this.alter.insert(
-							nodeKey.range[1]
-							, ')+\'\';' + core.createVars(node, 'defineProperty') + '(' + targetName + ',' + methodName
-						);
-					}
-					else {
-						// get [<name>]() -> DP$0(<className>.prototype,<name>,
-						this.alter.replace(
-							node.range[0]
-							, nodeKey.bracketsRange[0] + 1
-							, core.createVars(node, 'defineProperty') + '(' + targetName + ','
-						);
-					}
-					this.alter.replace(nodeKey.range[1], nodeKey.bracketsRange[1], ',{"' + node.kind + '":function');
-
-					let nodeValue = node.value;
-					this.alter.insertAfter(nodeValue.range[1], ',"configurable":true,"enumerable":true});');
-				}
-				else {
-					if ( isStatic && !this.__current.firstStaticAccessors ) {
-						this.__current.firstStaticAccessors = node;
-					}
-
-					assert(core.is.isIdentifier(nodeKey) || isLiteral);
-
-					let key = literalToName(methodName);
-
-					let accessor = isStatic === true
-						? this.__current.staticAccessors[key] || (this.__current.staticAccessors[key] = {})
-						: this.__current.accessors[key] || (this.__current.accessors[key] = {})
-					;
-					accessor.node = node;
-					let safeKey = key.replace(/[^a-z0-9_$]/gi, function(a) {
-						return a.charCodeAt(0);
-					});
-					let replacement = accessor[node.kind] =
-						core.unique("$" + (isStatic ? "static_" : "") + safeKey + "_" + node.kind, true)
-					;
-
-					if ( isLiteral ) {
-						accessor.raw = nodeKey.raw;
-					}
-					else if ( node.$hasSuperInside ) {
-						if ( !accessor.$nameForSuper ) {
-							accessor.$nameForSuper = core.getScopeTempVar(node, node.$scope);
+						if ( unNamedSuperCount ) {
+							node.$nameForSuper = methodName = core.getScopeTempVar(node, node.$scope);
+							// get [<name>]() -> $D$0=(<name>]()
+							this.alter.replace(node.range[0], nodeKey.bracketsRange[0] + 1, methodName + '=(');
+							// $D$0=(<name>]() -> $D$0=(<name>)+'';DP$0(<className>.prototype,$D$0,
+							this.alter.insert(
+								nodeKey.range[1]
+								, ')+\'\';' + core.createVars(node, 'defineProperty') + '(' + targetName + ',' + methodName
+							);
 						}
-						node.$nameForSuper = accessor.$nameForSuper;
-					}
+						else {
+							// get [<name>]() -> DP$0(<className>.prototype,<name>,
+							this.alter.replace(
+								node.range[0]
+								, nodeKey.bracketsRange[0] + 1
+								, core.createVars(node, 'defineProperty') + '(' + targetName + ','
+							);
+						}
+						this.alter.replace(nodeKey.range[1], nodeKey.bracketsRange[1], ',{"' + node.kind + '":function');
 
-					this.alter.replace(node.range[0], nodeKey.range[1], "function " + replacement);
-				}
-
-			}
-			else {
-				if ( isStatic ) {
-					this.__statistic.staticCount++;
-				}
-				else {
-					this.__statistic.protoCount++;
-				}
-
-				let targetName = core.createVars(node, isStatic === true ? 'static' : 'proto');
-
-				if ( unNamedSuperCount && isComputed ) {
-					node.$nameForSuper = methodName = core.getScopeTempVar(node, node.$scope);
-
-					// text change 'static ['method' + i++](<something>)' => '$D$0=('method' + i++) + '';$static$0[$D$0](<something>)'
-					// text change '['method' + i++](<something>)' => '$D$0='method' + i++;$proto$0[$D$0](<something>)'
-
-					// [<name>]() -> $D$0=<name>]() or [<name>]() -> $D$0=(<name>]()
-					this.alter.replace(node.range[0], nodeKey.bracketsRange[0] + 1, methodName + '=(');
-					// $D$0=(<name>]() -> $D$0=(<name>)+'';$proto$0[$D$0]()
-					this.alter.insertBefore(nodeKey.range[1], ')+\'\';' + targetName + '[' + methodName);
-				}
-				else {
-					let beforeName = isLiteral && !isComputed ? '[' : (isComputed ? '' : '.');
-					let afterName = isLiteral && !isComputed ? ']' : '';
-
-					if ( isStatic ) {
-						// text change 'static method(<something>)' => '$static$0.method(<something>)'
-						// text change 'static [method](<something>)' => '$static$0[method](<something>)'
-						this.alter.replace(node.range[0], keyRange[0], targetName + beforeName);
+						let nodeValue = node.value;
+						this.alter.insertAfter(nodeValue.range[1], ',"configurable":true,"enumerable":true});');
 					}
 					else {
-						// text change 'method(<something>)' => '$proto$0.method(<something>)'
-						// text change '[method](<something>)' => '$proto$0[method](<something>)'
-						this.alter.insert(node.range[0], targetName + beforeName);
+						if ( isStatic && !this.__current.firstStaticAccessors ) {
+							this.__current.firstStaticAccessors = node;
+						}
+
+						assert(core.is.isIdentifier(nodeKey) || isLiteral);
+
+						let key = literalToName(methodName);
+
+						let accessor = isStatic === true
+							? this.__current.staticAccessors[key] || (this.__current.staticAccessors[key] = {})
+							: this.__current.accessors[key] || (this.__current.accessors[key] = {})
+						;
+						accessor.node = node;
+						let safeKey = key.replace(/[^a-z0-9_$]/gi, function(a) {
+							return a.charCodeAt(0);
+						});
+						let replacement = accessor[node.kind] =
+							core.unique("$" + (isStatic ? "static_" : "") + safeKey + "_" + node.kind, true)
+						;
+
+						if ( isLiteral ) {
+							accessor.raw = nodeKey.raw;
+						}
+						else if ( node.$hasSuperInside ) {
+							if ( !accessor.$nameForSuper ) {
+								accessor.$nameForSuper = core.getScopeTempVar(node, node.$scope);
+							}
+							node.$nameForSuper = accessor.$nameForSuper;
+						}
+
+						this.alter.replace(node.range[0], nodeKey.range[1], "function " + replacement);
 					}
-					if ( afterName ) {
-						this.alter.insert(keyRange[1], afterName);
-					}
+
 				}
+				else {
+					if ( isStatic ) {
+						this.__statistic.staticCount++;
+					}
+					else {
+						this.__statistic.protoCount++;
+					}
 
-				// text change 'method(<something>)' => 'method = function(<something>)', '[method](<something>)' => '[method] = function(<something>)'
-				this.alter.insert(keyRange[1], " = function");
+					let targetName = core.createVars(node, isStatic === true ? 'static' : 'proto');
 
-				this.alter.insertBefore(node.range[1], ';', {extend: true});/*LINK<LAST ';'>*/
+					if ( unNamedSuperCount && isComputed ) {
+						node.$nameForSuper = methodName = core.getScopeTempVar(node, node.$scope);
+
+						// text change 'static ['method' + i++](<something>)' => '$D$0=('method' + i++) + '';$static$0[$D$0](<something>)'
+						// text change '['method' + i++](<something>)' => '$D$0='method' + i++;$proto$0[$D$0](<something>)'
+
+						// [<name>]() -> $D$0=<name>]() or [<name>]() -> $D$0=(<name>]()
+						this.alter.replace(node.range[0], nodeKey.bracketsRange[0] + 1, methodName + '=(');
+						// $D$0=(<name>]() -> $D$0=(<name>)+'';$proto$0[$D$0]()
+						this.alter.insertBefore(nodeKey.range[1], ')+\'\';' + targetName + '[' + methodName);
+					}
+					else {
+						let beforeName = isLiteral && !isComputed ? '[' : (isComputed ? '' : '.');
+						let afterName = isLiteral && !isComputed ? ']' : '';
+
+						if ( isStatic ) {
+							// text change 'static method(<something>)' => '$static$0.method(<something>)'
+							// text change 'static [method](<something>)' => '$static$0[method](<something>)'
+							this.alter.replace(node.range[0], keyRange[0], targetName + beforeName);
+						}
+						else {
+							// text change 'method(<something>)' => '$proto$0.method(<something>)'
+							// text change '[method](<something>)' => '$proto$0[method](<something>)'
+							this.alter.insert(node.range[0], targetName + beforeName);
+						}
+						if ( afterName ) {
+							this.alter.insert(keyRange[1], afterName);
+						}
+					}
+
+					// text change 'method(<something>)' => 'method = function(<something>)', '[method](<something>)' => '[method] = function(<something>)'
+					this.alter.insert(keyRange[1], " = function");
+
+					this.alter.insertBefore(node.range[1], ';', {extend: true});/*LINK<LAST ';'>*/
+				}
 			}
 
-			astQuery.traverse(node.value.body, this.replaceClassMethodSuper);
+			var _this = this;
+			astQuery.traverse(node.value.body, function(node) {
+				return _this.replaceClassMethodSuper(node, isConstructor);
+			});
 		}
 	}
 	
-	, replaceClassMethodSuper: function replaceClassMethodSuper(node) {
+	, replaceClassMethodSuper: function replaceClassMethodSuper(node, isConstructor) {
 		if( node.type === "CallExpression" ) {
 			let calleeNode = node.callee;
 
@@ -562,35 +601,28 @@ const classesTranspiler = {
 			}
 			else if ( core.is.isIdentifier(calleeNode, 'super') ) {
 				// text change 'super(<some>)' => 'super$0[<superMethodName>](<some>)' (if <some> contains SpreadElement) or 'super$0[<superMethodName>].call(this, <some>)'
-				this.unwrapSuperCall(node, calleeNode, this.__current.method);
+				this.unwrapSuperCall(node, calleeNode, this.__current.method, isConstructor);
 			}
 		}
 		else if ( core.is.isIdentifier(node, 'super') ) {
 			if ( !node.$originalName ) {
+				let range = getRange(node);
+
+				if ( !this.__current.method.static ) {
+					let parent = node.$parentNode;
+
+					if ( core.is.isExpression(parent) ) {
+						this.alter.insert(range[1], '.prototype');
+					}
+				}
+
 				node.$originalName = node.name;
 				node.name = core.createVars(node, "super");
 
-				this.alter.replace(node.range[0], node.range[1], node.name);
+				this.alter.replace(range[0], range[1], node.name);
 			}
 		}
-		else if( core.is.isClass(node) || core.is.isHoistFunction(node) ) {
-			return false;
-		}
-	}
-
-	, replaceClassMethodSuperInConstructor: function replaceClassMethodSuperInConstructor(node) {
-		if ( core.is.isIdentifier(node, 'super') ) {
-			let parent = node.$parent;
-			if ( parent.type === 'CallExpression' ) {
-				//'super(<some>)' case
-				return;
-			}
-			// TODO:: using letConts transpiler for renaming
-
-			// text change 'super.a(<some>)' => 'super$0.a(<some>)'
-			this.alter.replace(node.range[0], node.range[1], core.createVars(node, 'super'));
-		}
-		else if( core.is.isClass(node) || core.is.isHoistFunction(node) ) {
+		else if( core.is.isClass(node) || (core.is.isFunction(node) && node.type !== 'ArrowFunctionExpression' ) ) {
 			return false;
 		}
 	}

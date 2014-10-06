@@ -92,7 +92,6 @@ const $callIteratorBody =
 		"throw new Error(v+' is not iterable')"+
 	"};"
 ;
-
 const $generatorConstructor =
 	"Function[\"__Generator__\"];if(!${__self__}){Function[\"__Generator__\"]=${__self__}=function Generator(){" +
 		"if(!(this instanceof ${__self__}))throw new TypeError('incompatible'+this);" +
@@ -168,6 +167,7 @@ var standardVars = {
 		, name: "Generator"
 	}
 };
+standardVars.__proto__ = null;
 
 function isTheSameVarDescriptions(d1, d2) {
 	return ['persistent', 'template', 'name', 'on', 'deps', 'isFunction', 'self'].every(function(name) {
@@ -186,7 +186,7 @@ function isTheSameVarDescriptions(d1, d2) {
 
 module.exports = {
 	createVars: function(node, options) {
-		assert(node && node.$scope)
+		assert(node && node.$scope);
 
 		let core = this;
 		let isString = typeof options === 'string';

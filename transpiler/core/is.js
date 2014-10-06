@@ -25,12 +25,6 @@ module.exports = {
 				&& (type === "FunctionDeclaration" || type === "FunctionExpression" || type === "ArrowFunctionExpression");
 		}
 
-		, isHoistFunction: function(node) {
-			let type;
-			return node && (type = node.type)
-				&& (type === "FunctionDeclaration" || type === "FunctionExpression");
-		}
-
 		, isBlock: function(node) {
 			let type;
 			return node && (type = node.type)
@@ -210,6 +204,13 @@ module.exports = {
 					|| type === "DoWhileStatement"
 					|| type === "Program"
 				)
+			;
+		}
+
+		, isExpression: function(node) {
+			let type;
+			return node && (type = node.type)
+				&& String(type).endsWith('Expression')
 			;
 		}
 	}
