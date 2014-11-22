@@ -756,7 +756,7 @@ let core = module.exports = extend({}, require('./core/is.js'), require('./core/
 				begin = useStrictBlock.expression.range[1];
 
 				if ( !useStrictBlock.$new_semi ) {
-					if ( !this.alter.getRange(begin, blockEnd).contains(';') ) {
+					if ( this.alter.getRange(begin, blockEnd).indexOf(';') < 0 ) {
 						useStrictBlock.$new_semi = true;
 						this.alter.insertBefore(begin, ';', {extend: true});
 					}
@@ -781,7 +781,7 @@ let core = module.exports = extend({}, require('./core/is.js'), require('./core/
 				begin = useStrictBlock.expression.range[1];
 
 				if ( !useStrictBlock.$new_semi ) {
-					if ( !this.alter.getRange(begin, blockEnd).contains(';') ) {
+					if ( this.alter.getRange(begin, blockEnd).indexOf(';') < 0 ) {
 						useStrictBlock.$new_semi = true;
 						this.alter.insertBefore(begin, ';', {extend: true});
 					}
