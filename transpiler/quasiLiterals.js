@@ -132,7 +132,7 @@ var plugin = module.exports = {
 
 			let quasiString, variableNamePlaceholder;
 			if( !quasiRawString ) {
-				while ( quasiCookedString.contains(UUID) ) {// paranoiac mode: on
+				while ( ~quasiCookedString.indexOf(UUID) ) {// paranoiac mode: on
 					UUID = tmpl.generateUUID();
 				}
 				variableNamePlaceholder = UUID;

@@ -58,10 +58,10 @@ var plugin = module.exports = {
 		if ( raw[0] === "/" && (lastSlashIndex = raw.lastIndexOf("/")) !== -1 && lastSlashIndex !== 0 ) {
 			let regExpBody = raw.substr(1, lastSlashIndex - 1)
 				, flags = raw.substr(lastSlashIndex + 1)
-				, isUnicodeFlag = flags.contains("u")
+				, isUnicodeFlag = flags.indexOf("u") >= 0
 			;
 
-			if ( flags.contains("y") || isUnicodeFlag ) {
+			if ( flags.indexOf("y") >= 0 || isUnicodeFlag ) {
 				if ( isUnicodeFlag ) {
 					let oldPattern = regExpBody;
 					let oldPatternEscaped = unicode.escape(oldPattern);
@@ -160,7 +160,7 @@ var plugin = module.exports = {
 		}
 	}
 	, ':re: ?* characterClassRange': function(node, astQuery) {
-		let isNegative = astQuery.mods.contains("negative");
+		let isNegative = astQuery.mods.indexOf("negative") >= 0;
 
 		let needToReplace = true;
 
@@ -344,7 +344,7 @@ var plugin = module.exports = {
 		if ( result === void 0 ) {
 			result = regenerate().addRange(codePoint1, codePoint2).toString();
 
-			if ( result.contains("|") ) {
+			if ( result.indexOf("|") >= 0 ) {
 				result = "(?:" + result + ")";
 			}
 
@@ -372,7 +372,7 @@ var plugin = module.exports = {
 
 			result = reg + "";
 
-			if ( result.contains("|") ) {
+			if ( result.indexOf("|") >= 0 ) {
 				result = "(?:" + result + ")";
 			}
 
