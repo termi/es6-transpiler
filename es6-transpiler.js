@@ -3,6 +3,7 @@
 
 require("es5-shim");
 require("es6-shim");
+polifills();
 
 var MIXIN = function(t,s) {
 	for(var p in s) {
@@ -315,4 +316,18 @@ function outputToConsole(output, config) {
 		process.stdout.write(output.src);
 	}
 	process.exit(0);
+}
+
+function polifills() {
+	if ( !Array.prototype.contains ) {
+		Array.prototype.contains = function(from) {
+			return !!~this.indexOf(from);
+		}
+	}
+
+	if ( !String.prototype.contains ) {
+		String.prototype.contains = function(from) {
+			return !!~this.indexOf(from);
+		}
+	}
 }
