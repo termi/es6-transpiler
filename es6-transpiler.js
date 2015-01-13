@@ -3,7 +3,7 @@
 
 require("es5-shim");
 require("es6-shim");
-polifills();
+polyfills();
 
 var MIXIN = function(t,s) {
 	for(var p in s) {
@@ -318,16 +318,20 @@ function outputToConsole(output, config) {
 	process.exit(0);
 }
 
-function polifills() {
-	if ( !Array.prototype.contains ) {
-		Array.prototype.contains = function(from) {
-			return !!~this.indexOf(from);
-		}
+function polyfills() {
+	var contains = (from) {
+		return !!~this.indexOf(from);
+	};
+
+	if (!Array.prototype.contains) {
+		Object.defineProperty(Array.prototype, 'contains', {
+			value: contains
+		});
 	}
 
-	if ( !String.prototype.contains ) {
-		String.prototype.contains = function(from) {
-			return !!~this.indexOf(from);
-		}
+	if (!String.prototype.contains) {
+		Object.defineProperty(String.prototype, 'contains', {
+			value: contains
+		});
 	}
 }
