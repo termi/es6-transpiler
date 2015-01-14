@@ -1,4 +1,4 @@
-var SLICE$0 = Array.prototype.slice;var S_ITER$0 = typeof Symbol!=='undefined'&&Symbol&&Symbol.iterator||'@@iterator';var S_MARK$0 = typeof Symbol!=='undefined'&&Symbol&&Symbol["__setObjectSetter__"];function ITER$0(v,f){if(v){if(Array.isArray(v))return f?v.slice():v;var i,r;if(S_MARK$0)S_MARK$0(v);if(typeof v==='object'&&typeof (f=v[S_ITER$0])==='function'){i=f.call(v);r=[];}else if((v+'')==='[object Generator]'){i=v;r=[];};if(S_MARK$0)S_MARK$0(void 0);if(r) {while((f=i['next']()),f['done']!==true)r.push(f['value']);return r;}}throw new Error(v+' is not iterable')};var $D$0;var $freeze$0 = Object.freeze;var $defProps$0 = Object.defineProperties;var $TS$0 = $freeze$0($defProps$0(["\nstring", "string", "string\n"], {"raw": {"value": $freeze$0(["\nstring", "string", "string\\n"])}}));function GET_ITER$0(v){if(v){if(Array.isArray(v))return 0;var f;if(S_MARK$0)S_MARK$0(v);if(typeof v==='object'&&typeof (f=v[S_ITER$0])==='function'){if(S_MARK$0)S_MARK$0(void 0);return f.call(v);}if(S_MARK$0)S_MARK$0(void 0);if((v+'')==='[object Generator]')return v;}throw new Error(v+' is not iterable')};
+var ARRAY$0 = Array;var S_ITER$0 = typeof Symbol!=='undefined'&&Symbol&&Symbol.iterator||'@@iterator';var S_MARK$0 = typeof Symbol!=='undefined'&&Symbol&&Symbol["__setObjectSetter__"];function ITER$0(v,f){if(v){if(Array.isArray(v))return f?v.slice():v;var i,r;if(S_MARK$0)S_MARK$0(v);if(typeof v==='object'&&typeof (f=v[S_ITER$0])==='function'){i=f.call(v);r=[];}else if((v+'')==='[object Generator]'){i=v;r=[];};if(S_MARK$0)S_MARK$0(void 0);if(r) {while((f=i['next']()),f['done']!==true)r.push(f['value']);return r;}}throw new Error(v+' is not iterable')};var $D$0;var $freeze$0 = Object.freeze;var $defProps$0 = Object.defineProperties;var $TS$0 = $freeze$0($defProps$0(["\nstring", "string", "string\n"], {"raw": {"value": $freeze$0(["\nstring", "string", "string\\n"])}}));function GET_ITER$0(v){if(v){if(Array.isArray(v))return 0;var f;if(S_MARK$0)S_MARK$0(v);if(typeof v==='object'&&typeof (f=v[S_ITER$0])==='function'){if(S_MARK$0)S_MARK$0(void 0);return f.call(v);}if(S_MARK$0)S_MARK$0(void 0);if((v+'')==='[object Generator]')return v;}throw new Error(v+' is not iterable')};
 var arr = [1, 2, 3, 4, 5, 6], obj = { arr: arr, method: function(){ return ("value") } };
 
 {// array comprehentions
@@ -13,7 +13,7 @@ var arr = [1, 2, 3, 4, 5, 6], obj = { arr: arr, method: function(){ return ("val
 
 {// compound with spread inside
 	var a = "a", b = "b";
-	function test() {var rest = SLICE$0.call(arguments, 0);
+	function test() {for (var l$0 = arguments.length, rest = ARRAY$0(l$0), i$0 = 0; i$0 < l$0; i$0++) rest[i$0] = arguments[i$0];
 		return rest.join("\n");
 	}
 	var string = (("a = " + a) + (" | bb = " + (b + b)) + (" | function call = " + (test.apply(null, [a, b, "c", "d"]))) + "");
@@ -63,7 +63,7 @@ var arr = [1, 2, 3, 4, 5, 6], obj = { arr: arr, method: function(){ return ("val
 	}
 	
 	{// rest & spread
-		var str$7 = ("" + (((function(){var rest = SLICE$0.call(arguments, 0); return rest.join(("2")) })).apply(null, ITER$0(arr))));
+		var str$7 = ("" + (((function(){for (var l$1 = arguments.length, rest = ARRAY$0(l$1), i$1 = 0; i$1 < l$1; i$1++) rest[i$1] = arguments[i$1]; return rest.join(("2")) })).apply(null, ITER$0(arr))));
 		console.log(str$7 === arr.join(("2")));	
 	}
 }
@@ -71,12 +71,12 @@ var arr = [1, 2, 3, 4, 5, 6], obj = { arr: arr, method: function(){ return ("val
 {// arrow function inside
 	{
 		var str$8 = (("\
-\nstring" + (( function()  {var x = arguments[0];if(x === void 0)x = 1;return x + 2} )())) + ("string" + (( function()  {var x = arguments[0];if(x === void 0)x = 1;var rest = SLICE$0.call(arguments, 1);return x + 2 + rest.join("")} )(2, 3, 4))) + "string\n");
+\nstring" + (( function()  {var x = arguments[0];if(x === void 0)x = 1;return x + 2} )())) + ("string" + (( function()  {var x = arguments[0];if(x === void 0)x = 1;for (var l$2 = arguments.length, rest = ARRAY$0(l$2 > 1 ? l$2 - 1 : 0),  i$2 = 1; i$2 < l$2; i$2++) rest[i$2 - 1] = arguments[i$2];return x + 2 + rest.join("")} )(2, 3, 4))) + "string\n");
 		console.log(str$8 === '\nstring3string434string\n');
 	}
 
 	{// tagged
-		var simpleTag = function(quasis)  {var expressions = SLICE$0.call(arguments, 1);
+		var simpleTag = function(quasis)  {for (var l$3 = arguments.length, expressions = ARRAY$0(l$3 > 1 ? l$3 - 1 : 0),  i$3 = 1; i$3 < l$3; i$3++) expressions[i$3 - 1] = arguments[i$3];
 			var length = quasis.length;
 
 			length |= 0;
@@ -95,7 +95,7 @@ var arr = [1, 2, 3, 4, 5, 6], obj = { arr: arr, method: function(){ return ("val
 			}
 		};
 		var str$9 = simpleTag($TS$0
-,  ( function()  {var x = arguments[0];if(x === void 0)x = 1;return x + 2} )() ,  ( function()  {var x = arguments[0];if(x === void 0)x = 1;var rest = SLICE$0.call(arguments, 1);return x + 2 + rest.join("")} )(2, 3, 4) );
+,  ( function()  {var x = arguments[0];if(x === void 0)x = 1;return x + 2} )() ,  ( function()  {var x = arguments[0];if(x === void 0)x = 1;for (var l$4 = arguments.length, rest = ARRAY$0(l$4 > 1 ? l$4 - 1 : 0),  i$4 = 1; i$4 < l$4; i$4++) rest[i$4 - 1] = arguments[i$4];return x + 2 + rest.join("")} )(2, 3, 4) );
 		console.log(str$9 === '\nstring3string434string\n');
 	}
 }

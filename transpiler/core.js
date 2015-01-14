@@ -618,10 +618,37 @@ let core = module.exports = extend({}, require('./core/is.js'), require('./core/
 	/**
 	 *
 	 * @param {Object} node
+	 * @param {number} fromIndex
+	 */
+	unwrapRestDeclaration: function(node, fromIndex) {
+		assert(node.type === "Identifier");
+
+		const a = this.createVars(node, "Array");
+		const i = core.unique("i", true);
+		const l = core.unique("l", true);
+
+		if (fromIndex) {
+			return "for (var "+l+" = arguments.length, "+
+				node.name+" = "+a+"("+l+" > "+fromIndex+" ? "+l+" - "+fromIndex+" : 0), "+
+				i+" = "+fromIndex+"; "+i+" < "+l+"; "+i+"++) "+
+				node.name + "["+i+" - "+fromIndex+"] = arguments["+i+"];";
+		} else {
+			return "for (var "+l+" = arguments.length, "+
+				node.name+" = "+a+"("+l+"), "+
+				i+" = "+fromIndex+"; "+i+" < "+l+"; "+i+"++) "+
+				node.name + "["+i+"] = arguments["+i+"];";
+		}
+	}
+
+
+	,
+	/**
+	 *
+	 * @param {Object} node
 	 * @param {string} donor
 	 * @param {number} fromIndex
 	 */
-	unwrapRestDeclaration: function(node, donor, fromIndex) {
+	unwrapSpreadAssignmentDeclaration: function(node, donor, fromIndex) {
 		assert(node.type === "Identifier");
 
 		const sliceFunctionName = this.createVars(node, "slice");

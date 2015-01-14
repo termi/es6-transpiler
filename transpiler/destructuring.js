@@ -323,7 +323,7 @@ var plugin = module.exports = {
 //					}
 
 					if( element.type === "SpreadElement" ) {
-						newDefinition["$raw"] = core.unwrapRestDeclaration(element.argument, valueIdentifierName, k);
+						newDefinition["$raw"] = core.unwrapSpreadAssignmentDeclaration(element.argument, valueIdentifierName, k);
 						newDefinition["$lineBreaks"] = lineBreaks;
 					}
 					else {

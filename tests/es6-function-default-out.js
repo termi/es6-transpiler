@@ -23,7 +23,7 @@ function test4(a) {var b = arguments[1];if(b === void 0)b = 2;
 }
 test4(1);
 
-function test5() {var SLICE$0 = Array.prototype.slice;var a = arguments[0];if(a === void 0)a = 1;var rest = SLICE$0.call(arguments, 1);
+function test5() {var ARRAY$0 = Array;var a = arguments[0];if(a === void 0)a = 1;for (var l$0 = arguments.length, rest = ARRAY$0(l$0 > 1 ? l$0 - 1 : 0),  i$0 = 1; i$0 < l$0; i$0++) rest[i$0 - 1] = arguments[i$0];
     console.log(a === 1, rest.join("|") === "");
 }
 test5();

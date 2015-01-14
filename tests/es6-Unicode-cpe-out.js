@@ -73,7 +73,7 @@ var $freeze$0 = Object.freeze;var $defProps$0 = Object.defineProperties;var $TS$
 	console.log(tetragram4$4 === "\\u{1D306}\\u00A9");
 }
 
-function tag(quasis) {var SLICE$0 = Array.prototype.slice;var expressionValues = SLICE$0.call(arguments, 1);
+function tag(quasis) {var ARRAY$0 = Array;for (var l$0 = arguments.length, expressionValues = ARRAY$0(l$0 > 1 ? l$0 - 1 : 0),  i$0 = 1; i$0 < l$0; i$0++) expressionValues[i$0 - 1] = arguments[i$0];
 	var quasisLen = quasis.length;
 
 	var s = '', i = 0;

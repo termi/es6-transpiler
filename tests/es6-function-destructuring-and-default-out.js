@@ -22,7 +22,7 @@ function test3() {var c = (d = (arguments[0] !== void 0 ? arguments[0] : {a: [ {
 }
 test3();
 
-function test4() {var SLICE$0 = Array.prototype.slice;var a = arguments[0];if(a === void 0)a = 1;var b = arguments[1];if(b === void 0)b = {c: 333};var d = (arguments[2] !== void 0 ? arguments[2] : b).c;var rest = SLICE$0.call(arguments, 3);
+function test4() {var ARRAY$0 = Array;var a = arguments[0];if(a === void 0)a = 1;var b = arguments[1];if(b === void 0)b = {c: 333};var d = (arguments[2] !== void 0 ? arguments[2] : b).c;for (var l$0 = arguments.length, rest = ARRAY$0(l$0 > 3 ? l$0 - 3 : 0),  i$0 = 3; i$0 < l$0; i$0++) rest[i$0 - 3] = arguments[i$0];
 	console.log(a === 1, typeof b === "object" && b.c === 333, d === b.c, rest.join("|") === "9|8|7|6|5|4");
 }
 test4(void 0, void 0, void 0, 9, 8, 7, 6, 5, 4);
@@ -34,6 +34,6 @@ test5(void 0, void 0, void 0, 9, 8, 7, 6, 5, 4);
 
 {
 	var a = [1, 2];
-	var test6 = function() {var arr = arguments[0];if(arr === void 0)arr = [ ].concat(ITER$0(a, true), ITER$0((function(b){var a = b[0], b = ((b = b[1]) === void 0 ? 4 : b);var c = arguments[1];if(c === void 0)c = 3;return [a, b, c]})([a[1]+1])), ITER$0(a.reverse())); return arr }
+	var test6 = function() {var arr = arguments[0];if(arr === void 0)arr = [ ].concat(ITER$0(a, true), ...(function(b){var a = b[0], b = ((b = b[1]) === void 0 ? 4 : b);var c = arguments[1];if(c === void 0)c = 3;return [a, b, c]})([a[1]+1])), ITER$0(a.reverse())); return arr }
 	console.log(test6().join("|") === [1, 2, 3, 4, 3, 2, 1].join("|"))
 }

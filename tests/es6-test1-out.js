@@ -1,5 +1,5 @@
-var SLICE$0 = Array.prototype.slice;var obj = {
-	arrowTest: function(a, b, c)  {var rest = SLICE$0.call(arguments, 3);
+var ARRAY$0 = Array;var obj = {
+	arrowTest: function(a, b, c)  {for (var l$0 = arguments.length, rest = ARRAY$0(l$0 > 3 ? l$0 - 3 : 0),  i$0 = 3; i$0 < l$0; i$0++) rest[i$0 - 3] = arguments[i$0];
 		return (a + "" + b + "" + c + rest.join(""))
 	}
 };
@@ -18,7 +18,7 @@ function test() {
 	}
 
 	var obj = (function() { return {
-		arrowTest: function()  {var rest = SLICE$0.call(arguments, 0);
+		arrowTest: function()  {for (var l$1 = arguments.length, rest = ARRAY$0(l$1), i$1 = 0; i$1 < l$1; i$1++) rest[i$1] = arguments[i$1];
 			return rest.join("")
 		}
 	} })();
