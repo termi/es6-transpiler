@@ -61,6 +61,7 @@ const $getIteratorBody =
 	"(v){" +
 		"if(v){" +
 			"if(Array.isArray(v))return 0;" +
+			"if({}.toString.call(v) == '[object Arguments]')return ${slice}.call(v, 0);" + // probably arguments object
 			"var f;" +
 			"if(${Symbol_mark})${Symbol_mark}(v);" +
 			"if(typeof v==='object'&&typeof (f=v[${Symbol_iterator}])==='function'){if(${Symbol_mark})${Symbol_mark}(void 0);return f.call(v);}" +
@@ -74,6 +75,7 @@ const $callIteratorBody =
 	"(v,f){" +
 		"if(v){" +
 			"if(Array.isArray(v))return f?v.slice():v;" +
+			"if({}.toString.call(v) == '[object Arguments]')return ${slice}.call(v, 0);" + //probably arguments
 			"var i,r;"+
 			"if(${Symbol_mark})${Symbol_mark}(v);" +
 			"if(typeof v==='object'&&typeof (f=v[${Symbol_iterator}])==='function'){" +
@@ -150,13 +152,13 @@ var standardVars = {
 	, "Symbol_mark": {template: $SymbolPolyfillMarkBody, name: "S_MARK"}
 	, "getIterator": {
 		template: $getIteratorBody
-		, deps: ["Symbol_iterator", "Symbol_mark"]
+		, deps: ["Symbol_iterator", "Symbol_mark", "slice"]
 		, name: "GET_ITER"
 		, isFunction: true
 	}
 	, "callIterator": {
 		template: $callIteratorBody
-		, deps: ["Symbol_iterator", "Symbol_mark"]
+		, deps: ["Symbol_iterator", "Symbol_mark", "slice"]
 		, name: "ITER"
 		, isFunction: true
 	}
