@@ -56,7 +56,7 @@ var S_ITER$0 = typeof Symbol!=='undefined'&&Symbol&&Symbol.iterator||'@@iterator
 
 {// destructuring & arrow function & rest
 	var output$3 = [];var arr$2 = [8, 9];
-	var value$0=void 0, index$0=void 0;$D$3 = (arr$2.push(10), arr$2.map(function(){var SLICE$0 = Array.prototype.slice;var r = SLICE$0.call(arguments, 0);return r}));$D$0 = GET_ITER$0($D$3);$D$2 = $D$0 === 0;$D$1 = ($D$2 ? $D$3.length : void 0);for( ;$D$2 ? ($D$0 < $D$1) : !($D$1 = $D$0["next"]())["done"];){value$0 = (index$0 = ($D$2 ? $D$3[$D$0++] : $D$1["value"]))[0], index$0 = index$0[1];
+	var value$0=void 0, index$0=void 0;$D$3 = (arr$2.push(10), arr$2.map(function(){var ARRAY$0 = Array;for (var l$0 = arguments.length, r = ARRAY$0(l$0), i$0 = 0; i$0 < l$0; i$0++) r[i$0] = arguments[i$0];return r}));$D$0 = GET_ITER$0($D$3);$D$2 = $D$0 === 0;$D$1 = ($D$2 ? $D$3.length : void 0);for( ;$D$2 ? ($D$0 < $D$1) : !($D$1 = $D$0["next"]())["done"];){value$0 = (index$0 = ($D$2 ? $D$3[$D$0++] : $D$1["value"]))[0], index$0 = index$0[1];
 		output$3.push(value$0)
 	};$D$0 = $D$1 = $D$2 = $D$3 = void 0;value$0=void 0;index$0=void 0;
 	console.log(output$3.join("|") === [8, 9, 10].join("|"))

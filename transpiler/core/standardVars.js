@@ -125,6 +125,7 @@ const $generatorConstructor =
 
 var standardVars = {
 	"slice": {template: 'Array.prototype.slice', name: "SLICE"}
+	, "Array": {template: 'Array', name: "ARRAY"}
 	, "defineProperty": {template: $defineProperty, name: "DP"}
 	, "defineProperties": {template: $defineProperties, name: "DPS"}
 	, "create": {template: $create, name: "OC"}

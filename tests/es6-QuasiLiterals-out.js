@@ -14,7 +14,7 @@ var a = "a", b = "b", a$1 = void 0, b$1 = void 0;
 
 {// with function call inside
 	var a$3 = "a", b$3 = "b";
-	function test1() {var SLICE$0 = Array.prototype.slice;var rest = SLICE$0.call(arguments, 0);
+	function test1() {var ARRAY$0 = Array;for (var l$0 = arguments.length, rest = ARRAY$0(l$0), i$0 = 0; i$0 < l$0; i$0++) rest[i$0] = arguments[i$0];
 		return rest;
 	}
 	var string = (("a = " + a$3) + (" | bb = " + (b$3 + b$3)) + (" | function call = " + (test1(a$3, b$3).join("\n"))) + "");

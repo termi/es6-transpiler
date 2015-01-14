@@ -58,7 +58,7 @@ test.apply(null, ITER$0(([9,8,7],[1,2,[3]])))
 {
 	var a$3 = [9, void 0, void 0, 6, 5, 4];
 
-	var b$2 = (  function()    {var SLICE$0 = Array.prototype.slice;var a = arguments[0];if(a === void 0)a = 9;var b = arguments[1];if(b === void 0)b = 8;var c = arguments[2];if(c === void 0)c = 7;var rest = SLICE$0.call(arguments, 3);return [
+	var b$2 = (  function()    {var ARRAY$0 = Array;var a = arguments[0];if(a === void 0)a = 9;var b = arguments[1];if(b === void 0)b = 8;var c = arguments[2];if(c === void 0)c = 7;for (var l$0 = arguments.length, rest = ARRAY$0(l$0 > 3 ? l$0 - 3 : 0),  i$0 = 3; i$0 < l$0; i$0++) rest[i$0 - 3] = arguments[i$0];return [
 		a, b, c].concat(ITER$0(rest)
 	)}).apply(null, ITER$0(a$3))
 
