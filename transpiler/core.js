@@ -245,15 +245,17 @@ let core = module.exports = extend({}, require('./core/is.js'), require('./core/
 				addParamToScope(node.rest)
 			}
 
-		} else if (node.type === "ImportDeclaration") {
+		} else if (node.type === "ImportDeclaration" && node.kind) {
 			// Variable declarations names in import's
 			assert( node.kind === "default" || node.kind === "named" );
 			node.specifiers.forEach(function(declarator) {
 				assert(declarator.type === "ImportSpecifier");
 
-				addVariableToScope(declarator.id, "var"/*, node.kind*/, declarator, void 0, declarator);
+				addVariableToScope(declarator.name ? declarator.name : declarator.id, "var"/*, node.kind*/, declarator, void 0, declarator);
 			}, this);
-
+		} else if (node.type === "ModuleDeclaration") {
+			addVariableToScope(node.id, "var", node, void 0, node.source);
+		
 		} else if (node.type === "VariableDeclaration") {
 			// Variable declarations names goes in current scope
 			assert(this.is.isVarConstLet(node));

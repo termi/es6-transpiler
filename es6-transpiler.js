@@ -54,6 +54,7 @@ let plugins = [
 	, require("./transpiler/RegExp")
 	, require("./transpiler/unicode")
 	, require("./transpiler/polyfills")
+	, require("./transpiler/modules")
 ];
 
 let extensions = [
