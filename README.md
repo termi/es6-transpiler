@@ -18,7 +18,7 @@ Beta
      1. termination stage for temporary variables
      1. es6 RegExp support
      1. and others
- * output should support [Closure Compiler](https://code.google.com/p/closure-compiler/)
+ * output should support [Closure Compiler](https://github.com/google/closure-compiler)
  * line-to-line input/output mapping
 
 ## Supported
